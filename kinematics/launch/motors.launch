@@ -1,7 +1,5 @@
 <launch>
-  <arg name="l_serial" default="469741"/>
-  <arg name="r_serial" default="469412"/>
 
   <node pkg="phidgets" type="motor" name="l_motor"
-        args="$(arg l_serial)" />
+        args="_serial:=469741 __name:=l_motor _name:=l_motor"/>
 </launch>
