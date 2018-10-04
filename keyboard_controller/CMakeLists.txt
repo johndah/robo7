@@ -17,7 +17,7 @@ include_directories(
 )
 
 
-add_executable(keyboard_controller keyboard_controller.cpp)
+add_executable(keyboard_controller src/keyboard_controller.cpp)
 target_link_libraries(keyboard_controller ${catkin_LIBRARIES})
 add_dependencies(keyboard_controller keyboard_controller_cpp)
 
