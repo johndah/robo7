@@ -2,7 +2,7 @@
 #include <math.h>
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
-#include <ras_phidget/motor_encoder.h>
+#include <phidgets/motor_encoder.h>
 #include <robo7_msgs/PWM.h>
 
 
