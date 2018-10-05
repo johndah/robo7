@@ -1,4 +1,4 @@
-
+'''
 
 #include <ros/ros.h>
 #include <robo7_msgs/PWM.h>
@@ -9,7 +9,7 @@
 
 
 
-class KobukiMotorsNode
+class MotorsNode
 {
 public:
 
@@ -18,10 +18,10 @@ public:
     ros::Publisher encoders_publisher_;
     ros::Publisher twist_publisher_;
 
-    KobukiMotorsNode()
+    MotorsNode()
     {
         n_ = ros::NodeHandle("~");
-        kobuki_motors_ = new KobukiMotors();
+        motor_node = new MotorsNode();
 
         pwm_ = std::vector<int>(2, 0);
         t_pwm_ = ros::Time::now();
@@ -29,22 +29,22 @@ public:
         wheel_radius_ = 0.0352;
         base_ = 0.23;
 
-        pwm_subscriber_ = n_.subscribe("pwm", 1, &KobukiMotorsNode::pwmCallback, this);
-        encoders_publisher_ = n_.advertise<ras_lab1_msgs::Encoders>("encoders", 1);
+        pwm_subscriber_ = n_.subscribe("pwm", 1, &MotorsNode::pwmCallback, this);
+        encoders_publisher_ = n_.advertise<robo7_msgs::Encoders>("encoders", 1);
         twist_publisher_ = n_.advertise<geometry_msgs::Twist>("/mobile_base/commands/velocity", 1);
     }
 
     ~KobukiMotorsNode()
     {
-        delete kobuki_motors_;
+        delete motor_node;
     }
 
 
     // [0] corresponds to left wheel, [1] corresponds to right wheel
-    void pwmCallback(const ras_lab1_msgs::PWM::ConstPtr &msg)
+    void pwmCallback(const robo7::PWM::ConstPtr &msg)
     {
-        pwm_[0] = msg->PWM1;
-        pwm_[1] = msg->PWM2;
+        pwm_[0] = msg->PWM_l;
+        pwm_[1] = msg->PWM2_r;
         t_pwm_ = ros::Time::now();
     }
 
@@ -72,11 +72,11 @@ public:
 
 
         // publish encoders
-        encoders_msg.encoder1 = abs_encoders[0];
-        encoders_msg.encoder2 = abs_encoders[1];
+        encoders_msg.encoder_l = abs_encoders[0];
+        encoders_msg.encoder_r = abs_encoders[1];
 
-        encoders_msg.delta_encoder1 = diff_encoders[0];
-        encoders_msg.delta_encoder2 = diff_encoders[1];
+        encoders_msg.delta_encoder_l = diff_encoders[0];
+        encoders_msg.delta_encoder_r = diff_encoders[1];
 
 
         encoders_publisher_.publish(encoders_msg);
@@ -85,8 +85,15 @@ public:
         // calculate kinematics and send twist to robot simulation node
         geometry_msgs::Twist twist_msg;
 
+        '''
+        '''
         double linear_vel = (wheel_angular_velocities[1] + wheel_angular_velocities[0])*0.5*wheel_radius_;
         double angular_vel = (wheel_angular_velocities[1] - wheel_angular_velocities[0])*wheel_radius_/base_;
+        '''
+        ''' 
+
+        double linear_vel = 1;
+        double angular_vel = 0;
 
         twist_msg.linear.x = linear_vel;
         twist_msg.linear.y = 0.0;
@@ -132,3 +139,5 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
+'''
