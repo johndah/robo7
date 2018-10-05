@@ -1,14 +1,9 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
 
-//ros::Subscriber pwm_subscriber_;
 //ros::Publisher encoders_publisher_;
 //ros::Publisher publisher_velocity;
 
-//rostopic pub -r 10 l_motor/cmd_vel std_msgs/Float32 "data: -10"
-
-
-//pwm_subscriber_ = n_.subscribe("pwm", 1, &MotorsNode::pwmCallback, this);
 //encoders_publisher_ = n_.advertise<robo7_msgs::Encoders>("encoders", 1);
 
 ros::Publisher publisher_velocity;
@@ -45,10 +40,6 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
-//hej = 20.0;
-
-//publisher_velocity.publish(hej);
 
 
 /*
