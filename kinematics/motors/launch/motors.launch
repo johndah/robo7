@@ -1,18 +1,18 @@
 <launch>
 
   <node pkg="phidgets" type="motor" name="l_motor"
-        args="_serial:=469412 __name:=l_motor _name:=l_motor _frequency:=30" />
+        args="_serial:=469412 _name:=l_motor _frequency:=10" />
   <node pkg="phidgets" type="motor" name="r_motor"
-        args="_serial:=469741 __name:=r_motor _name:=r_motor _frequency:=30" />
+        args="_serial:=469741 _name:=r_motor _frequency:=10" />
 
   <node pkg="motors" type="motor_controller" name="motor_controller">
-    <param name="l_P" type="double" value="60"/>
-    <param name="l_I" type="double" value="20"/>
-    <param name="l_D" type="double" value="5"/>
+    <param name="l_P" type="double" value="6"/>
+    <param name="l_I" type="double" value="3"/>
+    <param name="l_D" type="double" value="0.1"/>
 
-    <param name="r_P" type="double" value="60"/>
-    <param name="r_I" type="double" value="20"/>
-    <param name="r_D" type="double" value="5"/>
+    <param name="r_P" type="double" value="6"/>
+    <param name="r_I" type="double" value="3"/>
+    <param name="r_D" type="double" value="0.1"/>
   </node>
 
 </launch>

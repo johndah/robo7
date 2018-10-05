@@ -18,8 +18,6 @@ public:
   void keyLoop();
 
 private:
-
-
   ros::NodeHandle nh_;
   double linear_, angular_, l_scale_, a_scale_;
   ros::Publisher twist_pub_;

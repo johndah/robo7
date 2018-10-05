@@ -18,7 +18,7 @@ public:
 
 	MotorControllerNode()
 	{
-		counts_pr = 3591.84;
+		counts_pr = 48 * 4;
 		dt = 0.1;
 		delta_encoder = std::vector<int>(2, 0);
 		estimated_w = std::vector<float>(2, 0.0);
@@ -38,7 +38,12 @@ public:
 		nh.param<float>("/motor_controller/l_D", D[0], 0);
 		nh.param<float>("/motor_controller/r_D", D[1], 0);
 
-		ROS_INFO("l_P %f", P[0]);
+		// P[0] = 6;
+		// P[1] = 6;
+		// I[0] = 3;
+		// I[1] = 3;
+		// D[0] = 0.1;
+		// D[1] = 0.1;
 
 		l_encoder_sub = n.subscribe("/l_motor/encoder", 100, &MotorControllerNode::l_encoderCallback, this);
 		r_encoder_sub = n.subscribe("/r_motor/encoder", 100, &MotorControllerNode::r_encoderCallback, this);
@@ -50,7 +55,7 @@ public:
 	void l_encoderCallback(const phidgets::motor_encoder::ConstPtr &msg)
 	{
 		delta_encoder[0] = msg->count_change;
-		estimated_w[0] = delta_encoder[0] / counts_pr * 3.14 * 30;
+		estimated_w[0] = delta_encoder[0] / counts_pr * 2 * 3.14 * 10;
 
 		// ROS_INFO("l_delta_encoder: %d", delta_encoder[0]);
 		ROS_INFO("Left estimated_w: %f", estimated_w[0]);
@@ -59,7 +64,7 @@ public:
 	void r_encoderCallback(const phidgets::motor_encoder::ConstPtr &msg)
 	{
 		delta_encoder[1] = msg->count_change;
-		estimated_w[1] = delta_encoder[1] / counts_pr * 3.14 * 30;
+		estimated_w[1] = delta_encoder[1] / counts_pr * 2 * 3.14 * 10;
 		// ROS_INFO("r_delta_encoder: %d", delta_encoder[1]);
 		ROS_INFO("Right estimated_w: %f", estimated_w[1]);
 	}
