@@ -1,5 +1,5 @@
 <package>
- <name>robo7_msg</name>
+ <name>robo7_msgs</name>
   <version>0.1.0</version>
   <description>
     Messages for robo7 project.
