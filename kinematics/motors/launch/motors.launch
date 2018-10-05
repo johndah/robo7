@@ -5,4 +5,14 @@
   <node pkg="phidgets" type="motor" name="r_motor"
         args="_serial:=469741 __name:=r_motor _name:=r_motor _frequency:=30" />
 
+  <node pkg="motors" type="motor_controller" name="motor_controller">
+    <param name="l_P" type="double" value="60"/>
+    <param name="l_I" type="double" value="20"/>
+    <param name="l_D" type="double" value="5"/>
+
+    <param name="r_P" type="double" value="60"/>
+    <param name="r_I" type="double" value="20"/>
+    <param name="r_D" type="double" value="5"/>
+  </node>
+
 </launch>
