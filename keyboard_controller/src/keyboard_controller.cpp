@@ -11,7 +11,6 @@
 #define KEYCODE_Q 0x71
 
 
-
 class KeyboardController
 {
 public:
@@ -81,7 +80,7 @@ void KeyboardController::keyLoop()
 
   puts("Reading from keyboard");
   puts("---------------------------");
-  puts("Use arrow keys to move the turtle.");
+  puts("Use arrow keys to move the robot.");
 
 
   for(;;)
@@ -121,6 +120,7 @@ void KeyboardController::keyLoop()
     }
 
 
+
     geometry_msgs::Twist twist;
     twist.angular.z = a_scale_*angular_;
     twist.linear.x = l_scale_*linear_;
@@ -134,6 +134,3 @@ void KeyboardController::keyLoop()
 
   return;
 }
-
-
-
