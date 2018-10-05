@@ -33,7 +33,7 @@ public:
     pwm_Left = n.subscribe("pwm_l", 1000, &deadReckogning::pwm_L_callBack, this);
     pwm_Right = n.subscribe("pwm_r", 1000, &deadReckogning::pwm_R_callBack, this);
 
-    chatter_pub = n.advertise<std_msgs::String>("deadReckogning/Pos", 1000);
+    robot_position = n.advertise<geometry_msgs::Twist>("deadReckogning/Pos", 1000);
 
   }
 
