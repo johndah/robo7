@@ -17,7 +17,10 @@ public:
 
 	MotorControllerNode()
 	{
-		counts_pr = 3591.84;
+		// counts_pr = 3591.84;
+		// dt = 0.1;
+
+		int_error = std::vector<float>(2, 0);
 
 		l_encoder_sub = n.subscribe("/l_motor/encoder", 100, &MotorControllerNode::l_encoderCallback, this);
 		r_encoder_sub = n.subscribe("/r_motor/encoder", 100, &MotorControllerNode::r_encoderCallback, this);
@@ -28,38 +31,57 @@ public:
 
 	void l_encoderCallback(const phidgets::motor_encoder::ConstPtr &msg)
 	{
-		l_delta_encoder = msg->count_change;
-		l_estimated_w = l_delta_encoder / counts_pr * 3.14 * 30;
+		delta_encoder[0] = msg->count_change;
+		estimated_w[0] = delta_encoder[0] / counts_pr * 3.14 * 30;
 
-		ROS_INFO("l_delta_encoder: %d", l_delta_encoder);
-		ROS_INFO("l_estimated_w: %f", l_estimated_w);
+		ROS_INFO("l_delta_encoder: %d", delta_encoder[0]);
+		ROS_INFO("l_estimated_w: %f", estimated_w[0]);
 	}
 
 	void r_encoderCallback(const phidgets::motor_encoder::ConstPtr &msg)
 	{
-		r_delta_encoder = msg->count_change;
-		r_estimated_w = r_delta_encoder / counts_pr * 3.14 * 30;
-		ROS_INFO("r_delta_encoder: %d", r_delta_encoder);
+		delta_encoder[1] = msg->count_change;
+		estimated_w[1] = delta_encoder[1] / counts_pr * 3.14 * 30;
+		ROS_INFO("r_delta_encoder: %d", delta_encoder[1]);
 	}
 
-	// void twistCallback(const robo7_msgs::WheelAngularVelocities::ConstPtr &msg)
-	// {
-	//
-	// }
+	void twistCallback(const robo7_msgs::WheelAngularVelocities::ConstPtr &msg)
+	{
+		desired_w[0] = msg->w_l;
+		desired_w[1] = msg->w_r;
+	}
 
 	void pidController()
 	{
 
+		std_msgs::Float32 l_pwm_msg;
+		std_msgs::Float32 r_pwm_msg;
+
+		error[0] = desired_w[0] - estimated_w[0];
+		error[1] = desired_w[1] - estimated_w[1];
+
+		int_error[0] = int_error[0] + error[0] * dt;
+		int_error[1] = int_error[1] + error[1] * dt;
+
+		l_pwm_msg = P * error[0] + I * int_error[0] + D * error[0] / dt;
+		r_pwm_msg = P * error[1] + I * int_error[1] + D * error[1] / dt;
+
+		l_pwm_pub.publish(l_pwm_msg);
+		r_pwm_pub.publish(r_pwm_msg); 
 	}
 
 private:
 
-	int l_delta_encoder;
-	int r_delta_encoder;
-	float l_estimated_w;
-	float r_estimated_w;
+	std::vector<int> delta_encoder;
+	std::vector<float> estimated_w;
+	std::vector<float> desired_w;
+	std::vector<float> int_error;
 
-	float counts_pr;
+	std::vector<float> P = {1.0, 1.0};
+	std::vector<float> I = {1.0, 1.0};
+	std::vector<float> D = {1.0, 1.0};
+	float dt = 0.1;
+	float counts_pr = 3591.84;
 
 };
 
