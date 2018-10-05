@@ -1,0 +1,8 @@
+<launch>
+
+  <node pkg="motors" type="motors_node" name="l_motor"
+        args="_serial:=469412 __name:=l_motor _name:=l_motor"/>
+  <node pkg="motors" type="motors_node" name="r_motor"
+        args="_serial:=469741 __name:=r_motor _name:=r_motor"/>
+
+</launch>

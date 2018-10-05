@@ -1,4 +1,60 @@
-'''
+#include <ros/ros.h>
+#include <std_msgs/Float32.h>
+
+//ros::Subscriber pwm_subscriber_;
+//ros::Publisher encoders_publisher_;
+//ros::Publisher publisher_velocity;
+
+//rostopic pub -r 10 l_motor/cmd_vel std_msgs/Float32 "data: -10"
+
+
+//pwm_subscriber_ = n_.subscribe("pwm", 1, &MotorsNode::pwmCallback, this);
+//encoders_publisher_ = n_.advertise<robo7_msgs::Encoders>("encoders", 1);
+
+ros::Publisher publisher_velocity;
+
+std_msgs::Float32 hej;
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "motors_node");
+
+    ros::NodeHandle nh;
+
+
+    publisher_velocity = nh.advertise<std_msgs::Float32>("l_motor/cmd_vel", 100);
+
+    double control_frequency = 10.0;
+
+    ros::Rate loop_rate(control_frequency);
+
+    ROS_INFO("Ran Encoder");
+    hej.data = 20.0;
+
+
+    while(ros::ok())
+    {
+        publisher_velocity.publish(hej);
+
+
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
+
+
+
+    return 0;
+}
+
+//hej = 20.0;
+
+//publisher_velocity.publish(hej);
+
+
+/*
+<node pkg="phidgets" type="motor" name="l_motor"
+      args="_serial:=469412 __name:=l_motor _name:=l_motor"/>
+
 
 #include <ros/ros.h>
 #include <robo7_msgs/PWM.h>
@@ -90,7 +146,7 @@ public:
         double linear_vel = (wheel_angular_velocities[1] + wheel_angular_velocities[0])*0.5*wheel_radius_;
         double angular_vel = (wheel_angular_velocities[1] - wheel_angular_velocities[0])*wheel_radius_/base_;
         '''
-        ''' 
+        '''
 
         double linear_vel = 1;
         double angular_vel = 0;
@@ -140,4 +196,4 @@ int main(int argc, char **argv)
     return 0;
 }
 
-'''
+*/
