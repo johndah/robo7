@@ -27,9 +27,9 @@ public:
     y_angle = 0;
     z_pos = 0;
 
-    robot_position = n.subscribe("deadReckogning/pos", 1000, &markerRviz::deadReckogning_callBack, this);
+    robot_position = n.subscribe("deadReckogning/Pos", 1000, &markerRviz::deadReckogning_callBack, this);
 
-    marker_parameters = n.advertise<visualization_msgs::Marker>( "robotMarker", 1000 );
+    marker_parameters = n.advertise<visualization_msgs::Marker>("robotMarker", 1000);
   }
 
   void deadReckogning_callBack(const geometry_msgs::Twist::ConstPtr &msg)
