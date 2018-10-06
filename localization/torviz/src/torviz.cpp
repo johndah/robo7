@@ -8,6 +8,31 @@
 // Control @ 10 Hz
 double control_frequency = 10.0;
 
+// class quaternion
+// {
+// public:
+//   float x;
+//   float y;
+//   float z;
+//   float w;
+//
+//   quaternion()
+//   {
+//     x = 0;
+//     y = 0;
+//     z = 0;
+//     w = 0;
+//   }
+//
+//   void updateValues(float x1, float y1, float z1, float w1)
+//   {
+//     x = x1;
+//     y = y1;
+//     z = z1;
+//     w = w1;
+//   }
+// };
+
 class markerRviz
 {
 public:
@@ -15,16 +40,20 @@ public:
   ros::Subscriber robot_position;
   ros::Publisher marker_parameters;
 
-  deadReckogning()
+  markerRviz()
   {
-    n_ = ros::NodeHandle("~");
+    n = ros::NodeHandle("~");
 
-    robot_position = n.subscribe("deadReckogning/pos", 1000, &deadReckogning::deadReckogning_callBack, this);
+    x_angle = 0;
+    y_angle = 0;
+    z_pos = 0;
+
+    robot_position = n.subscribe("deadReckogning/pos", 1000, &markerRviz::deadReckogning_callBack, this);
 
     marker_parameters = n.advertise<visualization_msgs::Marker>( "robotMarker", 0 );
   }
 
-  void deadReckogning_callBack(const ras_lab1_msgs::PWM::ConstPtr &msg)
+  void deadReckogning_callBack(const geometry_msgs::Twist::ConstPtr &msg)
   {
       x_pos = msg->linear.x;
       y_pos = msg->linear.y;
@@ -36,7 +65,8 @@ public:
     visualization_msgs::Marker marker;
 
     //Transform angles to quaternion
-    quater = new quaternion;
+    // quater = new quaternion;
+    float s = sin(angle_pos/2);
 
 
     marker.header.frame_id = "base_link";
@@ -48,10 +78,10 @@ public:
     marker.pose.position.x = x_pos;
     marker.pose.position.y = y_pos;
     marker.pose.position.z = z_pos;
-    marker.pose.orientation.x = quater.x;
-    marker.pose.orientation.y = quater.y;
-    marker.pose.orientation.z = quater.z;
-    marker.pose.orientation.w = quater.w;
+    marker.pose.orientation.x = 0;
+    marker.pose.orientation.y = 0;
+    marker.pose.orientation.z = angle_pos * s;
+    marker.pose.orientation.w = cos(angle_pos / 2);
     marker.scale.x = 1;
     marker.scale.y = 0.1;
     marker.scale.z = 0.1;
@@ -68,52 +98,29 @@ public:
   }
 
   // assumes axis is already normalised
-  void changeToQuaternion(float ax, float ay, float az) {
-    float s = sin(a1.angle/2);
-    x = ax * s;
-    y = ay * s;
-    z = az * s;
-    w = cos(a1.angle/2);
-    quater.updateValues(x, y, z, w);
-  }
+  // void changeToQuaternion(float ax, float ay, float az) {
+  //
+  //   // x = ax * s;
+  //   // y = ay * s;
+  //   // z = az * s;
+  //   // w = cos(a1.angle/2);
+  //   quater.updateValues(ax * s, ay * s, az * s, cos(ax/2));
+  // }
 
 private:
   //Robot position parameters
   float x_pos;
   float y_pos;
-  float z_pos = 0;
-  float x_angle = 0;
-  float y_angle = 0;
+  float z_pos;
+  float x_angle;
+  float y_angle;
   float angle_pos;
 
-  quaternion quater;
-}
+  // quaternion quater = new quaternion();
+};
 
 
-class quaternion
-{
-public:
-  float x;
-  float y;
-  float z;
-  float w;
 
-  quaternion()
-  {
-    x = 0;
-    y = 0;
-    z = 0;
-    w = 0;
-  }
-
-  void updateValues(float x1, float y1, float z1, float w1)
-  {
-    x = x1;
-    y = y1;
-    z = z1;
-    w = w1;
-  }
-}
 
 
 int main(int argc, char **argv)

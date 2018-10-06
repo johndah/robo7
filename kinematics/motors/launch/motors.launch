@@ -15,4 +15,6 @@
     <param name="r_D" type="double" value="0.001"/>
   </node>
 
+  <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" />
+
 </launch>

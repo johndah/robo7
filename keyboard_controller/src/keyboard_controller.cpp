@@ -124,7 +124,7 @@ void KeyboardController::keyLoop()
     twist.linear.x = l_scale_*linear_;
     if(dirty ==true)
     {
-      if (twist.angular.z > 0 || twist.linear.x > 0) {
+      if (!(twist.angular.z == 0 && twist.linear.x == 0)) {
         twist_pub_.publish(twist);
       }
       dirty=false;

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(dead_reckogning)
+project(deadreckogning)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -18,6 +18,6 @@ include_directories(
 )
 
 
-add_executable(dead_reckogning src/dead_reckogning.cpp)
-target_link_libraries(dead_reckogning ${catkin_LIBRARIES})
-add_dependencies(dead_reckogning dead_reckogning_cpp)
+add_executable(deadreckogning src/deadreckogning.cpp)
+target_link_libraries(deadreckogning ${catkin_LIBRARIES})
+add_dependencies(deadreckogning deadreckogning_cpp)
