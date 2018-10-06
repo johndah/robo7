@@ -2,7 +2,7 @@
 #include "std_msgs/Float32.h"
 #include "phidgets/motor_encoder.h"
 
-#include <robo7_msgs/WheelAngularVelocities.h>
+#include "robo7_msgs/WheelAngularVelocities.h"
 
 class MotorControllerNode
 {
