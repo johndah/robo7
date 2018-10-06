@@ -55,8 +55,11 @@ public:
     pose_.pose.position.z = z_pos;
 
     //Orientation
-    orientation_.setRPY(x_angle, y_angle, z_angle);
-    pose_.pose.orientation = orientation_;
+    s = sin(x_angle/2);
+    pose_.pose.orientation.x = x_angle * s;
+    pose_.pose.orientation.y = y_angle * s;
+    pose_.pose.orientation.z = z_angle * s;
+    pose_.pose.orientation.w = cos(x_angle/2);
 
     //set the pose_ in msg
     odom_msg.pose = pose_;
@@ -78,6 +81,7 @@ private:
   float x_angle;
   float y_angle;
   float z_angle;
+  float s;
 };
 
 
