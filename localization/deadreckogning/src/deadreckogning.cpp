@@ -15,8 +15,8 @@ public:
   ros::NodeHandle n;
   ros::Subscriber encoder_Left;
   ros::Subscriber encoder_Right;
-  ros::Subscriber pwm_Left;
-  ros::Subscriber pwm_Right;
+  ros::Subscriber estimated_L_speed;
+  ros::Subscriber estimated_R_speed;
   ros::Publisher robot_position;
 
   //Initialisation
@@ -32,8 +32,8 @@ public:
     y_pos = 0;
     angle_pos = 0;
 
-    wheel_radius = 98/2 / 1000; //m
-    wheel_distance = 219.8 / 1000; //m
+    wheel_radius = 49/1000.0; //m
+    wheel_distance = 219.8/1000.0; //m
     tics_per_rev = 897.96;
     pi = 3.14159265358979323846;
 
@@ -45,39 +45,38 @@ public:
     encoder_R = 0;
     count_L = 0;
     count_R = 0;
+    prev_count_L = 0;
+    prev_count_R = 0;
     //PWM values -> in order to know how it rotate
     pwm_L = 0;
     pwm_R = 0;
 
     encoder_Left = n.subscribe("/l_motor/encoder", 1000, &deadReckogning::encoder_L_callBack, this);
     encoder_Right = n.subscribe("/r_motor/encoder", 1000, &deadReckogning::encoder_R_callBack, this);
-    pwm_Left = n.subscribe("/l_motor/cmd_vel", 1000, &deadReckogning::pwm_L_callBack, this);
-    pwm_Right = n.subscribe("/r_motor/cmd_vel", 1000, &deadReckogning::pwm_R_callBack, this);
-
+    estimated_L_speed = n.subscribe("/l_motor/estimated_vel", 1000, &deadReckogning::speed_L_callBack, this);
+    estimated_R_speed = n.subscribe("/r_motor/estimated_vel", 1000, &deadReckogning::speed_R_callBack, this);
     robot_position = n.advertise<geometry_msgs::Twist>("Pos", 1000);
 
   }
 
   void encoder_L_callBack(const phidgets::motor_encoder::ConstPtr &msg)
   {
-      encoder_L = msg->count - count_L;
       count_L = msg->count;
   }
 
   void encoder_R_callBack(const phidgets::motor_encoder::ConstPtr &msg)
   {
-      encoder_R = msg->count - count_R;
       count_R = msg->count;
   }
 
-  void pwm_L_callBack(const std_msgs::Float32::ConstPtr &msg)
+  void speed_L_callBack(const std_msgs::Float32::ConstPtr &msg)
   {
-      pwm_L = msg->data;
+      om_L = msg->data;
   }
 
-  void pwm_R_callBack(const std_msgs::Float32::ConstPtr &msg)
+  void speed_R_callBack(const std_msgs::Float32::ConstPtr &msg)
   {
-      pwm_R = msg->data;
+      om_R = msg->data;
   }
 
 
@@ -85,9 +84,13 @@ public:
     //Generate the future published twist msg
     geometry_msgs::Twist twist_msg;
 
+    //Update the differents count changes
+    encoder_L = count_L - prev_count_L;
+    encoder_R = count_R - prev_count_R;
+
     //Guess the values of both wheel's angular speeds with signs
-    om_L = angular_motor_speed(encoder_L);
-    om_R = angular_motor_speed(encoder_R);
+    //om_L = angular_motor_speed(encoder_L);
+    //om_R = angular_motor_speed(encoder_R);
     //Compute the linear and angular velocities
     ang_vel = angular_velocity(om_L, -om_R);
     lin_vel = linear_velocity(om_L, -om_R);
@@ -126,6 +129,9 @@ private:
   //Counts
   int count_L;
   int count_R;
+  //Prev counts
+  int prev_count_L;
+  int prev_count_R;
   //PWM values -> in order to know how it rotate
   int pwm_L;
   int pwm_R;

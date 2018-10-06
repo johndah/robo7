@@ -69,9 +69,9 @@ public:
     float s = sin(angle_pos/2);
 
 
-    marker.header.frame_id = "base_link";
+    marker.header.frame_id = "map";
     marker.header.stamp = ros::Time();
-    marker.ns = "my_namespace";
+    marker.ns = "map";
     marker.id = 0;
     marker.type = visualization_msgs::Marker::SPHERE;
     marker.action = visualization_msgs::Marker::ADD;
