@@ -6,13 +6,13 @@
         args="_serial:=469741 _name:=r_motor _frequency:=10" />
 
   <node pkg="motors" type="motor_controller" name="motor_controller">
-    <param name="l_P" type="double" value="3"/>
-    <param name="l_I" type="double" value="0.5"/>
-    <param name="l_D" type="double" value="-0.05"/>
+    <param name="l_P" type="double" value="0.8"/>
+    <param name="l_I" type="double" value="7.5"/>
+    <param name="l_D" type="double" value="0.001"/>
 
-    <param name="r_P" type="double" value="0"/>
-    <param name="r_I" type="double" value="0"/>
-    <param name="r_D" type="double" value="0"/>
+    <param name="r_P" type="double" value="0.8"/>
+    <param name="r_I" type="double" value="7.25"/>
+    <param name="r_D" type="double" value="0.001"/>
   </node>
 
 </launch>

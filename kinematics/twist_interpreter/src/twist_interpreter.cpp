@@ -32,9 +32,9 @@ int main(int argc, char **argv)
 
   ros::NodeHandle n;
 
-  ros::Subscriber twist_sub = n.subscribe("/desired_velocity", 1000, TwistCallback);
+  ros::Subscriber twist_sub = n.subscribe("/desired_velocity", 1, TwistCallback);
 
-  ros::Publisher ref_vel_pub = n.advertise<robo7_msgs::WheelAngularVelocities>("/ref_vels", 1000);
+  ros::Publisher ref_vel_pub = n.advertise<robo7_msgs::WheelAngularVelocities>("/ref_vels", 1);
 
   ros::Rate loop_rate(freq);
 
