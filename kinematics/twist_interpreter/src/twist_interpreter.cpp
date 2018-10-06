@@ -10,6 +10,8 @@ robo7_msgs::WheelAngularVelocities ref_vels;
 int freq = 10;
 float pi = 3.14159;
 int break_scalar = 5;
+
+double msg_timeout = 0.004; // acepted delay between msgs before stopping
 float des_v;
 float des_w;
 
@@ -18,11 +20,18 @@ double wheel_separation = 0.2198; // center of track to center of track
 double wheel_radius = 0.049;
 
 
+std::clock_t last_msg;
+double duration;
+
+
+
 void TwistCallback(const geometry_msgs::Twist::ConstPtr &msg)
 {
   des_twist = *msg;
   des_v = des_twist.linear.x;
   des_w = des_twist.angular.z;
+  last_msg = std::clock();
+
 }
 
 
@@ -50,11 +59,32 @@ int main(int argc, char **argv)
 
     //ROS_INFO("des_l: %e , des_r: %e", des_l, des_r);
 
-    ref_vels.W_l = des_l;
-    ref_vels.W_r = des_r;
+    duration = ( std::clock() - last_msg ) / (double) CLOCKS_PER_SEC;
+    ROS_INFO("duration: %e", duration );
+    if(duration > msg_timeout){
+      ref_vels.W_l = 0;
+      ref_vels.W_r = 0;
+
+    }
+    else{
+      ref_vels.W_l = des_l;
+      ref_vels.W_r = des_r;
+
+    }
+
+
+
+
+
 
     ref_vel_pub.publish(ref_vels);
 
+
+
+
+
+
+/*
     // Smooth breaking when no input is recieved
     if (abs(des_v) > 0.001) {
       des_v = des_v / break_scalar;
@@ -72,7 +102,7 @@ int main(int argc, char **argv)
       ROS_DEBUG("STOP W");
     }
 
-
+*/
 
     loop_rate.sleep();
 
