@@ -20,4 +20,4 @@ include_directories(
 
 add_executable(deadreckogning src/deadreckogning.cpp)
 target_link_libraries(deadreckogning ${catkin_LIBRARIES})
-add_dependencies(deadreckogning deadreckogning_cpp)
+add_dependencies(deadreckogning ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

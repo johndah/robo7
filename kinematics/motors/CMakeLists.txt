@@ -22,7 +22,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(motor_controller src/motor_controller.cpp)
 target_link_libraries(motor_controller ${catkin_LIBRARIES})
-add_dependencies(motor_controller motor_controller_cpp)
+add_dependencies(motor_controller ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) 
 
 add_executable(twist src/twist.cpp)
 target_link_libraries(twist ${catkin_LIBRARIES})

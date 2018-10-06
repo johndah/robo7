@@ -3,6 +3,15 @@
 This project will include all software for the autonomous robot.
 
 ## Motor
+$$
+angular Velocity = encoderCount \div CPR  \times 2\pi \times freqency
+$$
+
+```
+CPR (counts per revolution) = 897.96
+frequency = 121
+```
+
 range of motor input is -100 ~ 100
 
 - left motor serial number: 469741
@@ -19,3 +28,6 @@ therefore, estimated angular velocity -25.387 ~ 25.387
 ```
 - ssh ras17@192.168.1.202
 ```
+
+
+## Dead reckoning
