@@ -32,8 +32,8 @@ public:
     y_pos = 0;
     angle_pos = 0;
 
-    wheel_radius = 98/2; //mm
-    wheel_distance = 219.8; //mm
+    wheel_radius = 98/2 / 1000; //m
+    wheel_distance = 219.8 / 1000; //m
     tics_per_rev = 897.96;
     pi = 3.14159265358979323846;
 
@@ -60,13 +60,13 @@ public:
 
   void encoder_L_callBack(const phidgets::motor_encoder::ConstPtr &msg)
   {
-      encoder_L = count_L - msg->count;
+      encoder_L = msg->count - count_L;
       count_L = msg->count;
   }
 
   void encoder_R_callBack(const phidgets::motor_encoder::ConstPtr &msg)
   {
-      encoder_R = count_R - msg->count;
+      encoder_R = msg->count - count_R;
       count_R = msg->count;
   }
 
@@ -89,8 +89,8 @@ public:
     om_L = angular_motor_speed(encoder_L);
     om_R = angular_motor_speed(encoder_R);
     //Compute the linear and angular velocities
-    ang_vel = angular_velocity(-om_L, om_R);
-    lin_vel = linear_velocity(-om_L, om_R);
+    ang_vel = angular_velocity(om_L, -om_R);
+    lin_vel = linear_velocity(om_L, -om_R);
 
     //Update the position and orientation of the robot
     x_pos = x_pos + (lin_vel*Dt) * cos(angle_pos);
@@ -111,8 +111,8 @@ public:
 
 private:
   //All the physical dimensions of the robot
-  float wheel_radius; //mm
-  float wheel_distance; //mm
+  float wheel_radius;
+  float wheel_distance;
   float tics_per_rev;
   float pi;
 
@@ -149,7 +149,7 @@ private:
   }
 
   float angular_motor_speed(int encod) {
-    return (2*pi/tics_per_rev)*encod;
+    return (2*pi/tics_per_rev)*encod/Dt;
   }
 
   float linear_velocity(float left_wheel_speed, float right_wheel_speed) {
