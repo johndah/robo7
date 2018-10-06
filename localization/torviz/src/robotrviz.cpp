@@ -4,7 +4,6 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseWithCovariance.h>
-#include <tf/Quaternion.h>
 #include <nav_msgs/Odometry.h>
 
 // Control @ 10 Hz
@@ -43,7 +42,6 @@ public:
     nav_msgs::Odometry odom_msg;
     std_msgs::Header header_;
     geometry_msgs::PoseWithCovariance pose_;
-    tf::Quaternion orientation_;
 
     //Defining header
     header_.time = ros::Time(0);
