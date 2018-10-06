@@ -45,7 +45,7 @@ public:
 
     //Defining header
     header_.stamp = ros::Time(0);
-    header_.frame_id = "/map";
+    header_.frame_id = "map";
 
     //Defining Point position
     pose_.pose.position.x = x_pos;
