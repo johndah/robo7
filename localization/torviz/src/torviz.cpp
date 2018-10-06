@@ -27,7 +27,7 @@ public:
     y_angle = 0;
     z_pos = 0;
 
-    robot_position = n.subscribe("/deadReckogning/Pos", 1000, &markerRviz::deadReckogning_callBack, this);
+    robot_position = n.subscribe("/deadreckogning/Pos", 1000, &markerRviz::deadReckogning_callBack, this);
 
     marker_parameters = n.advertise<visualization_msgs::Marker>("robotMarker", 1000);
   }
