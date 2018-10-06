@@ -1,7 +1,6 @@
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
 #include "phidgets/motor_encoder.h"
-
 #include "robo7_msgs/WheelAngularVelocities.h"
 
 class MotorControllerNode
@@ -50,11 +49,11 @@ public:
 
 		l_encoder_sub = n.subscribe("/l_motor/encoder", 100, &MotorControllerNode::l_encoderCallback, this);
 		r_encoder_sub = n.subscribe("/r_motor/encoder", 100, &MotorControllerNode::r_encoderCallback, this);
-		twist_sub = n.subscribe("ref_vels", 100, &MotorControllerNode::twistCallback, this);
+		twist_sub = n.subscribe("ref_vels", 1, &MotorControllerNode::twistCallback, this);
 		l_pwm_pub = n.advertise<std_msgs::Float32>("/l_motor/cmd_vel", 100);
 		r_pwm_pub = n.advertise<std_msgs::Float32>("/r_motor/cmd_vel", 100);
-		est_L_vel = n.advertise<std_msgs::Float32>("/r_motor/estimated_L_vel", 100);
-		est_R_vel = n.advertise<std_msgs::Float32>("/r_motor/estimated_R_vel", 100);
+		est_L_vel = n.advertise<std_msgs::Float32>("/l_motor/estimated_vel", 100);
+		est_R_vel = n.advertise<std_msgs::Float32>("/r_motor/estimated_vel", 100);
 	}
 
 	void l_encoderCallback(const phidgets::motor_encoder::ConstPtr &msg)
@@ -104,17 +103,21 @@ public:
 		l_pwm_msg.data = (P[0] * error[0] + I[0] * int_error[0] + D[0] * dif_error[0] / dt);
 		r_pwm_msg.data = (P[1] * error[1] + I[1] * int_error[1] + D[1] * dif_error[1] / dt);
 
-		if (l_pwm_msg.data > 100)
-		{l_pwm_msg.data = 100;}
-		else if (l_pwm_msg.data < -100)
-		{l_pwm_msg.data = -100;}
-		if (r_pwm_msg.data > 100)
-		{r_pwm_msg.data = 100;}
-		else if (r_pwm_msg.data < -100)
-		{r_pwm_msg.data = -100;}
+		l_pwm_msg.data = l_pwm_msg.data * max_motor_input / max_speed;
+		r_pwm_msg.data = r_pwm_msg.data * max_motor_input / max_speed;
+
+		if (l_pwm_msg.data > max_motor_input)
+		{l_pwm_msg.data = max_motor_input;}
+		else if (l_pwm_msg.data < -max_motor_input)
+		{l_pwm_msg.data = -max_motor_input;}
+		if (r_pwm_msg.data > max_motor_input)
+		{r_pwm_msg.data = max_motor_input;}
+		else if (r_pwm_msg.data < -max_motor_input)
+		{r_pwm_msg.data = -max_motor_input;}
 
 		ROS_INFO("Left pwm: %f", l_pwm_msg.data);
 		ROS_INFO("Right pwm: %f", r_pwm_msg.data);
+		ROS_INFO("Error : %f", error[0]);
 
 		l_pwm_pub.publish(l_pwm_msg);
 		r_pwm_pub.publish(r_pwm_msg);
@@ -138,6 +141,8 @@ private:
 	float dt;
 	float counts_pr;
 
+	float max_speed = 25.387;
+	float max_motor_input = 100;
 };
 
 int main(int argc, char **argv)

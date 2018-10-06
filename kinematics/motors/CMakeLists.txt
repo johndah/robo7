@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   robo7_msgs
   std_msgs
+  phidgets
 )
 
 #add_message_files(
@@ -14,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
   DEPENDS
-  CATKIN_DEPENDS roscpp robo7_msgs std_msgs
+  CATKIN_DEPENDS roscpp robo7_msgs std_msgs phidgets
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
