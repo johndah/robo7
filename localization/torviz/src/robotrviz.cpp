@@ -25,7 +25,7 @@ public:
     y_angle = 0;
     z_pos = 0;
 
-    robot_position = n.subscribe("deadReckogning/pos", 1000, &markerRviz::deadReckogning_callBack, this);
+    robot_position = n.subscribe("deadReckogning/pos", 1000, &robotRviz::deadReckogning_callBack, this);
 
     robot_to_rviz = n.advertise<nav_msgs::Odometry>( "~/odom", 0 );
   }
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
     ros::Rate loop_rate(control_frequency);
 
-    while(marker_rviz.n.ok())
+    while(robot_rviz.n.ok())
     {
         robot_rviz.updatePosition();
         ros::spinOnce();
