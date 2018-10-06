@@ -23,10 +23,14 @@ negative: forward
 encoder output range -30 ~ 30
 therefore, estimated angular velocity -25.387 ~ 25.387
 
-## Connect to NUC
-
+## Connect to NUCs
+### Mobile NUC
 ```
 - ssh ras17@192.168.1.202
+```
+### Stationary NUC
+```
+- ssh ras27@192.168.1.207
 ```
 
 
