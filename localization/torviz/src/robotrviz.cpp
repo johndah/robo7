@@ -44,9 +44,8 @@ public:
     geometry_msgs::PoseWithCovariance pose_;
 
     //Defining header
-    string map_id = "/map";
     header_.stamp = ros::Time(0);
-    header_.frame_id = map_id;
+    header_.frame_id = "/map";
 
     //Defining Point position
     pose_.pose.position.x = x_pos;
