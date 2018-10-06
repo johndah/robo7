@@ -86,7 +86,7 @@ private:
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "robo7rviz");
+    ros::init(argc, argv, "robotrviz");
 
     robotRviz robot_rviz;
 
