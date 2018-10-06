@@ -12,4 +12,4 @@ positive: forward
 negative: forward
 
 encoder output range -30 ~ 30
-therefore, estimated angular velocity -39.25/4 ~ 39.25/4
+therefore, estimated angular velocity -25.387 ~ 25.387

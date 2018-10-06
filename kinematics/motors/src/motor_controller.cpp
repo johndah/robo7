@@ -15,11 +15,14 @@ public:
 	ros::Subscriber twist_sub;
 	ros::Publisher l_pwm_pub;
 	ros::Publisher r_pwm_pub;
+	ros::Publisher est_L_vel;
+	ros::Publisher est_R_vel;
 
 	MotorControllerNode()
 	{
-		counts_pr = 48 * 4;
-		dt = 0.1;
+		counts_pr = 897.96;
+		control_freq = 100;
+		dt = 1/control_freq;
 		delta_encoder = std::vector<int>(2, 0);
 		estimated_w = std::vector<float>(2, 0.0);
 		desired_w = std::vector<float>(2, 0.0);
@@ -50,12 +53,14 @@ public:
 		twist_sub = n.subscribe("ref_vels", 100, &MotorControllerNode::twistCallback, this);
 		l_pwm_pub = n.advertise<std_msgs::Float32>("/l_motor/cmd_vel", 100);
 		r_pwm_pub = n.advertise<std_msgs::Float32>("/r_motor/cmd_vel", 100);
+		est_L_vel = n.advertise<std_msgs::Float32>("/r_motor/estimated_L_vel", 100);
+		est_R_vel = n.advertise<std_msgs::Float32>("/r_motor/estimated_R_vel", 100);
 	}
 
 	void l_encoderCallback(const phidgets::motor_encoder::ConstPtr &msg)
 	{
 		delta_encoder[0] = msg->count_change;
-		estimated_w[0] = delta_encoder[0] / counts_pr * 2 * 3.14 * 10;
+		estimated_w[0] = delta_encoder[0] * 2 * 3.14 * 121 / counts_pr ;
 
 		// ROS_INFO("l_delta_encoder: %d", delta_encoder[0]);
 		ROS_INFO("Left estimated_w: %f", estimated_w[0]);
@@ -64,7 +69,7 @@ public:
 	void r_encoderCallback(const phidgets::motor_encoder::ConstPtr &msg)
 	{
 		delta_encoder[1] = msg->count_change;
-		estimated_w[1] = delta_encoder[1] / counts_pr * 2 * 3.14 * 10;
+		estimated_w[1] = delta_encoder[1] * 2 * 3.14 * 121 / counts_pr;
 		// ROS_INFO("r_delta_encoder: %d", delta_encoder[1]);
 		ROS_INFO("Right estimated_w: %f", estimated_w[1]);
 	}
@@ -80,6 +85,9 @@ public:
 
 		std_msgs::Float32 l_pwm_msg;
 		std_msgs::Float32 r_pwm_msg;
+		std_msgs::Float32 estima_L_vel;
+		std_msgs::Float32 estima_R_vel;
+
 
 		dif_error[0] = desired_w[0] - estimated_w[0] - error[0];
 		dif_error[1] = desired_w[1] - estimated_w[1] - error[1];
@@ -87,17 +95,31 @@ public:
 		error[0] = desired_w[0] - estimated_w[0];
 		error[1] = desired_w[1] - estimated_w[1];
 
+		estima_L_vel.data = estimated_w[0];
+		estima_R_vel.data = estimated_w[1];
+
 		int_error[0] = int_error[0] + error[0] * dt;
 		int_error[1] = int_error[1] + error[1] * dt;
 
 		l_pwm_msg.data = (P[0] * error[0] + I[0] * int_error[0] + D[0] * dif_error[0] / dt);
 		r_pwm_msg.data = (P[1] * error[1] + I[1] * int_error[1] + D[1] * dif_error[1] / dt);
 
+		if (l_pwm_msg.data > 100)
+		{l_pwm_msg.data = 100;}
+		else if (l_pwm_msg.data < -100)
+		{l_pwm_msg.data = -100;}
+		if (r_pwm_msg.data > 100)
+		{r_pwm_msg.data = 100;}
+		else if (r_pwm_msg.data < -100)
+		{r_pwm_msg.data = -100;}
+
 		ROS_INFO("Left pwm: %f", l_pwm_msg.data);
 		ROS_INFO("Right pwm: %f", r_pwm_msg.data);
 
 		l_pwm_pub.publish(l_pwm_msg);
 		r_pwm_pub.publish(r_pwm_msg);
+		est_L_vel.publish(estima_L_vel);
+		est_R_vel.publish(estima_R_vel);
 	}
 
 private:
@@ -112,6 +134,7 @@ private:
 	std::vector<float> P;
 	std::vector<float> I;
 	std::vector<float> D;
+	float control_freq;
 	float dt;
 	float counts_pr;
 
@@ -123,7 +146,7 @@ int main(int argc, char **argv)
 
 	MotorControllerNode motor_controller_node;
 
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(100);
 
 	while (motor_controller_node.n.ok())
 	{

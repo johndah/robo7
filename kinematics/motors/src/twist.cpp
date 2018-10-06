@@ -14,8 +14,8 @@ int main(int argc, char **argv)
   while (ros::ok()) {
 
     robo7_msgs::WheelAngularVelocities msg;
-    msg.W_l = 3;
-    msg.W_r = 3;
+    msg.W_l = 15;
+    msg.W_r = 0;
 
     ROS_INFO("W_l: %f", msg.W_l);
     ROS_INFO("W_r: %f", msg.W_r);
