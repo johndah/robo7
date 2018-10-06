@@ -27,7 +27,7 @@ public:
 
     robot_position = n.subscribe("deadReckogning/pos", 1000, &robotRviz::deadReckogning_callBack, this);
 
-    robot_to_rviz = n.advertise<nav_msgs::Odometry>( "~/odom", 0 );
+    robot_to_rviz = n.advertise<nav_msgs::Odometry>( "/odom", 0 );
   }
 
   void deadReckogning_callBack(const geometry_msgs::Twist::ConstPtr &msg)
