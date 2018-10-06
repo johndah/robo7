@@ -3,35 +3,14 @@
 #include <vector>
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/Quaternion.h>
 #include <visualization_msgs/Marker.h>
+#include <nav_msgs/Odometry.h>
 
 // Control @ 10 Hz
 double control_frequency = 10.0;
 
-// class quaternion
-// {
-// public:
-//   float x;
-//   float y;
-//   float z;
-//   float w;
-//
-//   quaternion()
-//   {
-//     x = 0;
-//     y = 0;
-//     z = 0;
-//     w = 0;
-//   }
-//
-//   void updateValues(float x1, float y1, float z1, float w1)
-//   {
-//     x = x1;
-//     y = y1;
-//     z = z1;
-//     w = w1;
-//   }
-// };
 
 class markerRviz
 {
@@ -97,15 +76,6 @@ public:
 
   }
 
-  // assumes axis is already normalised
-  // void changeToQuaternion(float ax, float ay, float az) {
-  //
-  //   // x = ax * s;
-  //   // y = ay * s;
-  //   // z = az * s;
-  //   // w = cos(a1.angle/2);
-  //   quater.updateValues(ax * s, ay * s, az * s, cos(ax/2));
-  // }
 
 private:
   //Robot position parameters
@@ -115,8 +85,6 @@ private:
   float x_angle;
   float y_angle;
   float angle_pos;
-
-  // quaternion quater = new quaternion();
 };
 
 

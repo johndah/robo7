@@ -6,10 +6,12 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   visualization_msgs
+  tf
+  nav_msgs
 )
 
 catkin_package(
- CATKIN_DEPENDS roscpp std_msgs geometry_msgs visualization_msgs
+ CATKIN_DEPENDS roscpp std_msgs geometry_msgs visualization_msgs tf nav_msgs
 )
 
 
@@ -21,3 +23,7 @@ include_directories(
 add_executable(torviz src/torviz.cpp)
 target_link_libraries(torviz ${catkin_LIBRARIES})
 add_dependencies(torviz torviz_cpp)
+
+add_executable(torviz src/robotrviz.cpp)
+target_link_libraries(torviz ${catkin_LIBRARIES})
+add_dependencies(torviz robotrviz_cpp)
