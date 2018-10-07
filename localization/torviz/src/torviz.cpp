@@ -48,7 +48,7 @@ public:
 
     //Transform angles to quaternion
     // quater = new quaternion;
-    float s = sin(angle_pos/2);
+    float s = sin(z_angle/2);
 
 
     marker.header.frame_id = "map";
