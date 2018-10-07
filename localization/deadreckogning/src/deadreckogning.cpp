@@ -178,7 +178,7 @@ private:
    float wrapAngle( double angle )
    {
     float twoPi = 2.0 * pi;
-    return angle - twoPi * floor( angle / twoPi );
+    return angle - twoPi * floor( angle / twoPi ) - pi;
   }
 };
 
