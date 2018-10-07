@@ -18,6 +18,7 @@ float des_w;
 // From rosparam get /robot_description/
 double wheel_separation = 0.2198; // center of track to center of track
 double wheel_radius = 0.049;
+double max_allowed_speed = 25; //rad.s-1
 
 
 std::clock_t last_msg;
@@ -56,6 +57,15 @@ int main(int argc, char **argv)
 
     float des_l = (des_v - (wheel_separation / 2) * des_w) / wheel_radius;
     float des_r = (des_v + (wheel_separation / 2) * des_w) / wheel_radius;
+
+    if (des_l > max_allowed_speed)
+		{des_l = max_allowed_speed;}
+		else if (des_l < -max_allowed_speed)
+		{des_l = -max_allowed_speed;}
+		if (des_r > max_allowed_speed)
+		{des_r = max_allowed_speed;}
+		else if (des_r < -max_allowed_speed)
+		{des_r = -max_allowed_speed;}
 
     //ROS_INFO("des_l: %e , des_r: %e", des_l, des_r);
 

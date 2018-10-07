@@ -22,7 +22,7 @@ public:
   //Initialisation
   float x_pos;
   float y_pos;
-  float angle_pos;
+  float z_angle;
 
   deadReckogning()
   {
@@ -30,7 +30,7 @@ public:
 
     x_pos = 0;
     y_pos = 0;
-    angle_pos = 0;
+    z_angle = 0;
 
     wheel_radius = 49/1000.0; //m
     wheel_distance = 219.8/1000.0; //m
@@ -98,7 +98,8 @@ public:
     //Update the position and orientation of the robot
     x_pos = x_pos + (lin_vel*Dt) * cos(angle_pos);
     y_pos = y_pos + (lin_vel*Dt) * sin(angle_pos);
-    angle_pos = angle_pos + (ang_vel*Dt);
+    z_angle = z_angle + (ang_vel*Dt);
+    z_angle = wrapAngle(z_angle);
 
     twist_msg.linear.x = x_pos;
     twist_msg.linear.y = y_pos;
@@ -106,7 +107,7 @@ public:
 
     twist_msg.angular.x = 0.0;
     twist_msg.angular.y = 0.0;
-    twist_msg.angular.z = angle_pos;
+    twist_msg.angular.z = z_angle;
 
     robot_position.publish(twist_msg);
   }
@@ -148,22 +149,36 @@ private:
 
 
   //Other useful function
-  int sgn(int v) {
+  int sgn(int v)
+  {
     if (v < 0) return -1;
     if (v > 0) return 1;
     return 0;
   }
 
-  float angular_motor_speed(int encod) {
+
+  float angular_motor_speed(int encod)
+  {
     return (2*pi/tics_per_rev)*encod/Dt;
   }
 
-  float linear_velocity(float left_wheel_speed, float right_wheel_speed) {
+
+  float linear_velocity(float left_wheel_speed, float right_wheel_speed)
+  {
     return wheel_radius*(right_wheel_speed + left_wheel_speed)/2;
   }
 
-  float angular_velocity(float left_wheel_speed, float right_wheel_speed) {
+
+  float angular_velocity(float left_wheel_speed, float right_wheel_speed)
+  {
     return wheel_radius*(right_wheel_speed - left_wheel_speed)/wheel_distance;
+  }
+
+
+   float wrapAngle( double angle )
+   {
+    float twoPi = 2.0 * pi;
+    return angle - twoPi * floor( angle / twoPi );
   }
 };
 
