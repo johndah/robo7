@@ -68,7 +68,7 @@ public:
     marker.scale.y = 0.14;
     marker.scale.z = 0.18;
     marker.color.a = 1.0; // Don't forget to set the alpha!
-    marker.color.r = 0.0;
+    marker.color.r = 1.0;
     marker.color.g = 1.0;
     marker.color.b = 0.0;
 
