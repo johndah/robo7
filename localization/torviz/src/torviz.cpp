@@ -7,6 +7,7 @@
 #include <geometry_msgs/Quaternion.h>
 #include <visualization_msgs/Marker.h>
 #include <nav_msgs/Odometry.h>
+#include <tf/transform_broadcaster.h>
 
 // Control @ 10 Hz
 double control_frequency = 10.0;
@@ -18,6 +19,8 @@ public:
   ros::NodeHandle n;
   ros::Subscriber robot_position;
   ros::Publisher marker_parameters;
+  tf::TransformBroadcaster br;
+  tf::Transform transform;
 
   markerRviz()
   {
@@ -36,7 +39,7 @@ public:
   {
       x_pos = msg->linear.x;
       y_pos = msg->linear.y;
-      angle_pos = msg->angular.z;
+      z_angle = msg->angular.z;
   }
 
   void updatePosition(){
@@ -57,10 +60,10 @@ public:
     marker.pose.position.x = x_pos;
     marker.pose.position.y = y_pos;
     marker.pose.position.z = z_pos;
-    marker.pose.orientation.x = 0;
-    marker.pose.orientation.y = 0;
-    marker.pose.orientation.z = angle_pos * s;
-    marker.pose.orientation.w = cos(angle_pos / 2);
+    marker.pose.orientation.x = x_angle;
+    marker.pose.orientation.y = y_angle;
+    marker.pose.orientation.z = z_angle * s;
+    marker.pose.orientation.w = cos(z_angle / 2);
     marker.scale.x = 1;
     marker.scale.y = 0.1;
     marker.scale.z = 0.1;
@@ -69,8 +72,10 @@ public:
     marker.color.g = 1.0;
     marker.color.b = 0.0;
 
-    //only if using a MESH_RESOURCE marker type:
-    //marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
+    //Set the frame centered on the robot
+    transform.setOrigin( tf::Vector3(x_pos, y_pos, z_pos) );
+    transform.setRotation( tf::Quaternion(x_angle, y_angle, z_angle*s, cos(z_angle/2)) );
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "laser"));
 
     marker_parameters.publish( marker );
 
@@ -84,7 +89,7 @@ private:
   float z_pos;
   float x_angle;
   float y_angle;
-  float angle_pos;
+  float z_angle;
 };
 
 
