@@ -96,8 +96,8 @@ public:
     lin_vel = linear_velocity(om_L, -om_R);
 
     //Update the position and orientation of the robot
-    x_pos = x_pos + (lin_vel*Dt) * cos(angle_pos);
-    y_pos = y_pos + (lin_vel*Dt) * sin(angle_pos);
+    x_pos = x_pos + (lin_vel*Dt) * cos(z_angle);
+    y_pos = y_pos + (lin_vel*Dt) * sin(z_angle);
     z_angle = z_angle + (ang_vel*Dt);
     z_angle = wrapAngle(z_angle);
 
