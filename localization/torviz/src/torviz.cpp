@@ -17,10 +17,13 @@ class markerRviz
 {
 public:
   ros::NodeHandle n;
+  ros::NodeHandle nh;
   ros::Subscriber robot_position;
   ros::Publisher marker_parameters;
   tf::TransformBroadcaster br;
   tf::Transform transform;
+  tf::TransformBroadcaster br2;
+  tf::Transform transform2;
 
   markerRviz()
   {
@@ -29,6 +32,7 @@ public:
     x_angle = 0;
     y_angle = 0;
     z_pos = 0;
+    nh.param<float>("/torviz/lidar_angle", lidar_angle, 0);
 
     robot_position = n.subscribe("/deadreckogning/Pos", 1000, &markerRviz::deadReckogning_callBack, this);
 
@@ -51,7 +55,7 @@ public:
     float s = sin(z_angle/2);
 
 
-    marker.header.frame_id = "laser";
+    marker.header.frame_id = "robot";
     marker.header.stamp = ros::Time();
     marker.ns = "map";
     marker.id = 0;
@@ -66,7 +70,7 @@ public:
     marker.pose.orientation.w = 0;
     marker.scale.x = 0.14;
     marker.scale.y = 0.14;
-    marker.scale.z = 0.18;
+    marker.scale.z = 0.1;
     marker.color.a = 1.0; // Don't forget to set the alpha!
     marker.color.r = 1.0;
     marker.color.g = 1.0;
@@ -77,7 +81,13 @@ public:
     tf::Quaternion q;
     q.setRPY(x_angle, y_angle, z_angle);
     transform.setRotation(q);
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "laser"));
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "robot"));
+
+    transform2.setOrigin( tf::Vector3(0, 0, 0) );
+    tf::Quaternion q2;
+    q2.setRPY(0, 0, lidar_angle);
+    transform2.setRotation(q2);
+    br2.sendTransform(tf::StampedTransform(transform2, ros::Time::now(), "robot", "laser"));
 
     marker_parameters.publish( marker );
 
@@ -92,6 +102,7 @@ private:
   float x_angle;
   float y_angle;
   float z_angle;
+  float lidar_angle;
 };
 
 

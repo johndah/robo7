@@ -13,6 +13,7 @@ class deadReckogning
 {
 public:
   ros::NodeHandle n;
+  ros::NodeHandle nh;
   ros::Subscriber encoder_Left;
   ros::Subscriber encoder_Right;
   ros::Subscriber estimated_L_speed;
@@ -28,9 +29,9 @@ public:
   {
     n = ros::NodeHandle("~");
 
-    x_pos = 0;
-    y_pos = 0;
-    z_angle = 0;
+    nh.param<float>("/deadreckogning/inital_x_pos", x_pos, 0);
+    nh.param<float>("/deadreckogning/inital_y_pos", y_pos, 0);
+    nh.param<float>("/deadreckogning/inital_z_angle", z_angle, 0);
 
     wheel_radius = 49/1000.0; //m
     wheel_distance = 219.8/1000.0; //m
