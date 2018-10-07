@@ -51,19 +51,19 @@ public:
     float s = sin(z_angle/2);
 
 
-    marker.header.frame_id = "map";
+    marker.header.frame_id = "laser";
     marker.header.stamp = ros::Time();
     marker.ns = "map";
     marker.id = 0;
-    marker.type = visualization_msgs::Marker::CYLINDER;
+    marker.type = visualization_msgs::Marker::ARROW;
     marker.action = visualization_msgs::Marker::ADD;
-    marker.pose.position.x = x_pos;
-    marker.pose.position.y = y_pos;
-    marker.pose.position.z = z_pos;
-    marker.pose.orientation.x = s * x_pos;
-    marker.pose.orientation.y = s * y_pos;
-    marker.pose.orientation.z = s * z_pos;
-    marker.pose.orientation.w = cos(z_angle / 2);
+    marker.pose.position.x = 0;
+    marker.pose.position.y = 0;
+    marker.pose.position.z = 0;
+    marker.pose.orientation.x = 0;
+    marker.pose.orientation.y = 0;
+    marker.pose.orientation.z = 0;
+    marker.pose.orientation.w = 0;
     marker.scale.x = 0.14;
     marker.scale.y = 0.14;
     marker.scale.z = 0.18;
@@ -74,7 +74,9 @@ public:
 
     //Set the frame centered on the robot
     transform.setOrigin( tf::Vector3(x_pos, y_pos, z_pos) );
-    transform.setRotation( tf::Quaternion(x_angle, y_angle, z_angle*s, cos(z_angle/2)) );
+    tf::Quaternion q;
+    q.setRPY(x_angle, y_angle, z_angle);
+    transform.setRotation(q);
     br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "laser"));
 
     marker_parameters.publish( marker );
