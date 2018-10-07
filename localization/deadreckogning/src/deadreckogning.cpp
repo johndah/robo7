@@ -29,9 +29,9 @@ public:
   {
     n = ros::NodeHandle("~");
 
-    nh.param<float>("/deadreckogning/inital_x_pos", x_pos, 0);
-    nh.param<float>("/deadreckogning/inital_y_pos", y_pos, 0);
-    nh.param<float>("/deadreckogning/inital_z_angle", z_angle, 0);
+    nh.param<float>("/deadreckogning/inital_x_pos", x_pos, 2);
+    nh.param<float>("/deadreckogning/inital_y_pos", y_pos, 2);
+    nh.param<float>("/deadreckogning/inital_z_angle", z_angle, 1);
 
     wheel_radius = 49/1000.0; //m
     wheel_distance = 219.8/1000.0; //m
@@ -179,7 +179,7 @@ private:
    float wrapAngle( double angle )
    {
     float twoPi = 2.0 * pi;
-    return angle - twoPi * floor( angle / twoPi ) - pi;
+    return angle - twoPi * floor( angle / twoPi );
   }
 };
 
