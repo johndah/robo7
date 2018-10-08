@@ -14,8 +14,9 @@
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
 
-  <include file="$(find rplidar_ros)/launch/view_rplidar.launch"/>
+  <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
 
-  <node pkg="rviz" type="rviz" name="rviz"
-        args="-d $(find torviz)/config/lab_maze.rviz"/>
+  <!-- <node pkg="rviz" type="rviz" name="rviz"
+        args="-d $(find torviz)/config/lab_maze.rviz"/> -->
+
 </launch>

@@ -42,20 +42,18 @@ public:
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
 
     //encoders values
-    encoder_L = 0;
-    encoder_R = 0;
-    count_L = 0;
-    count_R = 0;
-    prev_count_L = 0;
-    prev_count_R = 0;
-    //PWM values -> in order to know how it rotate
-    pwm_L = 0;
-    pwm_R = 0;
+    // encoder_L = 0;
+    // encoder_R = 0;
+    // count_L = 0;
+    // count_R = 0;
+    // prev_count_L = 0;
+    // prev_count_R = 0;
 
-    encoder_Left = n.subscribe("/l_motor/encoder", 1000, &deadReckogning::encoder_L_callBack, this);
-    encoder_Right = n.subscribe("/r_motor/encoder", 1000, &deadReckogning::encoder_R_callBack, this);
-    estimated_L_speed = n.subscribe("/l_motor/estimated_vel", 1000, &deadReckogning::speed_L_callBack, this);
-    estimated_R_speed = n.subscribe("/r_motor/estimated_vel", 1000, &deadReckogning::speed_R_callBack, this);
+
+    // encoder_Left = n.subscribe("/l_motor/encoder", 1000, &deadReckogning::encoder_L_callBack, this);
+    // encoder_Right = n.subscribe("/r_motor/encoder", 1000, &deadReckogning::encoder_R_callBack, this);
+    estimated_L_speed = n.subscribe("/l_motor/estimated_vel", 1000, &deadReckogning::estimated_speed_L_callBack, this);
+    estimated_R_speed = n.subscribe("/r_motor/estimated_vel", 1000, &deadReckogning::estimated_speed_R_callBack, this);
     robot_position = n.advertise<geometry_msgs::Twist>("Pos", 1000);
 
   }
@@ -70,12 +68,12 @@ public:
       count_R = msg->count;
   }
 
-  void speed_L_callBack(const std_msgs::Float32::ConstPtr &msg)
+  void estimated_speed_L_callBack(const std_msgs::Float32::ConstPtr &msg)
   {
       om_L = msg->data;
   }
 
-  void speed_R_callBack(const std_msgs::Float32::ConstPtr &msg)
+  void estimated_speed_R_callBack(const std_msgs::Float32::ConstPtr &msg)
   {
       om_R = msg->data;
   }
@@ -86,8 +84,8 @@ public:
     geometry_msgs::Twist twist_msg;
 
     //Update the differents count changes
-    encoder_L = count_L - prev_count_L;
-    encoder_R = count_R - prev_count_R;
+    // encoder_L = count_L - prev_count_L;
+    // encoder_R = count_R - prev_count_R;
 
     //Guess the values of both wheel's angular speeds with signs
     //om_L = angular_motor_speed(encoder_L);
