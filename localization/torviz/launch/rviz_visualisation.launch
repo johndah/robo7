@@ -11,7 +11,7 @@
   </node>
 
   <node pkg="torviz" type="torviz" name="torviz">
-    <param name="lidar_angle" type="double" value="0.0"/>
+    <param name="lidar_angle" type="double" value="3.14"/>
   </node>
 
   <include file="$(find rplidar_ros)/launch/view_rplidar.launch"/>
