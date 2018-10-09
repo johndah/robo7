@@ -19,3 +19,4 @@ include_directories(
 
 add_executable(twist_interpreter src/twist_interpreter.cpp)
 target_link_libraries(twist_interpreter ${catkin_LIBRARIES})
+add_dependencies(twist_interpreter ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) 
