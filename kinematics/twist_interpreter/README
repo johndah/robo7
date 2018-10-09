@@ -1,1 +1,1 @@
-Here an interpreter for the the twist message will reside. This interpreter will then in turn publish two angular velocities for each of the motor controlers. mot_ang_vel_R and mot_ang_vel_L
+Interpreter for the the twist message given by keyboard cotnroler or other controler. This interpreter publishes two angular velocities for each of the motor controlers in an robo7_msgs/WheelAngularVelocities message. 
