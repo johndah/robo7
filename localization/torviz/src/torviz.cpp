@@ -18,12 +18,16 @@ class markerRviz
 public:
   ros::NodeHandle n;
   ros::NodeHandle nh;
-  ros::Subscriber robot_position;
-  ros::Publisher marker_parameters;
+  ros::Subscriber robot_position1;
+  ros::Subscriber robot_position3;
+  ros::Publisher marker_parameters1;
+  ros::Publisher marker_parameters2;
   tf::TransformBroadcaster br;
   tf::Transform transform;
   tf::TransformBroadcaster br2;
   tf::Transform transform2;
+  tf::TransformBroadcaster br3;
+  tf::Transform transform3;
 
   markerRviz()
   {
@@ -34,9 +38,11 @@ public:
     z_pos = 0;
     nh.param<float>("/torviz/lidar_angle", lidar_angle, 0);
 
-    robot_position = n.subscribe("/deadreckogning/Pos", 1000, &markerRviz::deadReckogning_callBack, this);
+    robot_position1 = n.subscribe("/deadreckogning/Pos1", 1000, &markerRviz::deadReckogning_callBack, this);
+    robot_position3 = n.subscribe("/deadreckogning/Pos2", 1000, &markerRviz::deadReckogning3_callBack, this);
 
-    marker_parameters = n.advertise<visualization_msgs::Marker>("robotMarker", 1000);
+    marker_parameters1 = n.advertise<visualization_msgs::Marker>("robotMarker", 1000);
+    marker_parameters2 = n.advertise<visualization_msgs::Marker>("robotMarker2", 1000);
   }
 
   void deadReckogning_callBack(const geometry_msgs::Twist::ConstPtr &msg)
@@ -44,6 +50,13 @@ public:
       x_pos = msg->linear.x;
       y_pos = msg->linear.y;
       z_angle = msg->angular.z;
+  }
+
+  void deadReckogning3_callBack(const geometry_msgs::Twist::ConstPtr &msg)
+  {
+      x3_pos = msg->linear.x;
+      y3_pos = msg->linear.y;
+      z3_angle = msg->angular.z;
   }
 
   void updatePosition(){
@@ -89,7 +102,18 @@ public:
     transform2.setRotation(q2);
     br2.sendTransform(tf::StampedTransform(transform2, ros::Time::now(), "robot", "laser"));
 
-    marker_parameters.publish( marker );
+    transform3.setOrigin( tf::Vector3(x3_pos, y3_pos, z_pos) );
+    tf::Quaternion q3;
+    q3.setRPY(x_angle, y_angle, z3_angle);
+    transform3.setRotation(q3);
+    br3.sendTransform(tf::StampedTransform(transform3, ros::Time::now(), "map", "robot2"));
+
+    marker_parameters1.publish( marker );
+
+    //Non-linear model robot marker
+    marker.header.frame_id = "robot2";
+    marker.color.g = 0;
+    marker_parameters2.publish( marker );
 
   }
 
@@ -103,6 +127,9 @@ private:
   float y_angle;
   float z_angle;
   float lidar_angle;
+  float x3_pos;
+  float y3_pos;
+  float z3_angle;
 };
 
 
