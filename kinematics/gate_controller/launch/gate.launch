@@ -3,11 +3,11 @@
   <node pkg="arduino_servo_control" type="servo_control" name="arduino_servo_control" />
 
   <node pkg="gate_controller" type="gate_controller" name="gate_controller">
-    <param name="r_closed" type="int" value="10"/>
-    <param name="r_open" type="int" value="170"/>
+    <param name="r_closed" type="int" value="80"/>
+    <param name="r_open" type="int" value="31"/>
 
-    <param name="l_closed" type="int" value="80"/>
-    <param name="l_open" type="int" value="40"/>
+    <param name="l_closed" type="int" value="31"/>
+    <param name="l_open" type="int" value="80"/>
   </node>
 
 </launch>
