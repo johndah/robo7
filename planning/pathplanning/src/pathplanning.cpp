@@ -4,7 +4,26 @@
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Float32.h>
 
+//class PathPlanning;
+
+class Node
+{
+    public:
+        float pi;
+        float x, y, theta;
+
+        Node(float x, float y, float theta)
+        {
+            this->x = x;
+            this->y = y;
+            this->theta = theta;
+        }
+
+    
+};
+
 double control_frequency = 10.0;
+
 
 class PathPlanning
 {
@@ -14,7 +33,7 @@ public:
 
 
   //Initialisation
-  float x, y, theta;
+  float x0, y0, theta0;
 
   PathPlanning()
   {
@@ -36,13 +55,16 @@ public:
 
   void getPositionCallBack(const geometry_msgs::Twist::ConstPtr &msg)
   {
-      x = msg->linear.x;
-      y = msg->linear.y;
-      theta = msg->angular.z;
+      x0 = msg->linear.x;
+      y0 = msg->linear.y;
+      theta0 = msg->angular.z;
   }
 
   float getPath(){
-      return y;
+
+      Node node = Node(x0, y0, theta0);
+      
+      return node.x;
   }
 
  
@@ -63,7 +85,6 @@ private:
 
 
 
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "pathplanning");
@@ -76,7 +97,11 @@ int main(int argc, char **argv)
     while(path_planning.nh.ok())
     {
         randomInt = path_planning.getPath();
-        ROS_INFO("y: %f", randomInt);
+        
+        ROS_INFO("x: %f", randomInt);
+
+
+
         ros::spinOnce();
         loop_rate.sleep();
     }
