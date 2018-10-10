@@ -4,7 +4,13 @@
         args="_map_file:=$(find ras_maze_map)/maps/lab_maze_2018.txt"/>
         
 <!--        args="_map_file:=/home/john/catkin_ws/src/RoboticsAndAutonomousSystems/ras_maze/ras_maze_map/maps/lab_maze_2018.txt"/>
+<<<<<<< HEAD
         rgs="_map_file:=/home/ras17/catkin_ws/src/ras_project/ras_maze/ras_maze_map/maps/lab_maze_2018.txt"/>
+=======
+
+        rgs="_map_file:=/home/ras17/catkin_ws/src/ras_project/ras_maze/ras_maze_map/maps/lab_maze_2018.txt"/>
+
+>>>>>>> e0e3df1a4e1b17c36ca39b7de098d6faaec622cd
 -->
   <node pkg="pathplanning" type="pathplanning" name="pathplanning">
     <param name="initial_x_pos" type="double" value="0.215"/>
