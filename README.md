@@ -23,6 +23,9 @@ negative: forward
 encoder output range -30 ~ 30
 therefore, estimated angular velocity -25.387 ~ 25.387
 
+- wheel distance : 23.8 - 2.07 = 21.73 cm
+
+- wheel diameter : 9.76 cm
 ## Connect to NUCs
 ### Mobile NUC
 ```

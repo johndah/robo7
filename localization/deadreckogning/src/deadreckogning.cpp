@@ -7,7 +7,7 @@
 
 
 // Control @ 10 Hz
-double control_frequency = 100.0;
+double control_frequency = 10.0;
 
 class deadReckogning
 {
@@ -25,16 +25,21 @@ public:
   {
     n = ros::NodeHandle("~");
 
+    //Initialisation of the position
     nh.param<float>("/deadreckogning/initial_x_pos", x_pos, 0);
     nh.param<float>("/deadreckogning/initial_y_pos", y_pos, 0);
     nh.param<float>("/deadreckogning/initial_z_angle", z_angle, 0);
+
+    //Definition of the adjustment parameters
+    nh.param<float>("/deadreckogning/linear_adjustment", linear_adjustment, 1);
+    nh.param<float>("/deadreckogning/angular_adjustment", angular_adjustment, 1);
 
     x2_pos = x_pos;
     y2_pos = y_pos;
     z2_angle = z_angle;
 
-    wheel_radius = 49/1000.0; //m
-    wheel_distance = 219.8/1000.0; //m
+    wheel_radius = 976/2000.0; //m
+    wheel_distance = 217.3/1000.0; //m
     tics_per_rev = 897.96;
     pi = 3.14159265358979323846;
 
@@ -91,6 +96,7 @@ public:
     ang_dis = angular_distance_linearised(om_L, -om_R);
     lin_dis = linear_distance_linearised(om_L, -om_R);
 
+
     //Compute the non linear distances and angles
     arc_angle = angular_distance_linearised(om_L, -om_R);
     arc_distance = linear_distance_linearised(om_L, -om_R);
@@ -106,6 +112,11 @@ public:
     z2_angle += arc_angle;
     z2_angle = wrapAngle(z2_angle);
 
+    //Adjustment
+    x2_pos = linear_adjustment * x2_pos;
+    y2_pos = linear_adjustment * y2_pos;
+    z2_angle = angular_adjustment * z2_angle;
+
     twist_msg2.linear.x = x2_pos;
     twist_msg2.linear.y = y2_pos;
     twist_msg2.linear.z = 0;
@@ -114,11 +125,17 @@ public:
     twist_msg2.angular.y = 0;
     twist_msg2.angular.z = z2_angle;
 
+
     //Compute the linear distances and angles of the robot
     x_pos += (lin_dis * cos(z_angle));
     y_pos += (lin_dis * sin(z_angle));
     z_angle += ang_dis;
     z_angle = wrapAngle(z_angle);
+
+    //Adjustment
+    x_pos = linear_adjustment * x_pos;
+    y_pos = linear_adjustment * y_pos;
+    z_angle = angular_adjustment * z_angle;
 
     twist_msg.linear.x = x_pos;
     twist_msg.linear.y = y_pos;
@@ -152,7 +169,6 @@ private:
   //Other parameters
   float Dt; //ms - time between two consecutive iterations
 
-
   //encoders values
   int encoder_L;
   int encoder_R;
@@ -174,7 +190,9 @@ private:
   float arc_angle;
   float arc_distance;
 
-
+  //Adjustment parameters
+  float linear_adjustment;
+  float angular_adjustment;
 
   //Other useful function
   int sgn(int v)

@@ -8,6 +8,8 @@
     <param name="initial_x_pos" type="double" value="0.215"/>
     <param name="initial_y_pos" type="double" value="0.2"/>
     <param name="initial_z_angle" type="double" value="1.57079"/>
+    <param name="angular_adjustment" type="double" value="1.0"/>
+    <param name="linear_adjustment" type="double" value="1.0"/>
   </node>
 
   <node pkg="torviz" type="torviz" name="torviz">
