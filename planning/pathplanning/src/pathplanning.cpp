@@ -30,7 +30,7 @@ class Node
 
         }
 
-    
+
 };
 
 double control_frequency = 10.0;
@@ -52,12 +52,12 @@ public:
 
     robot_position = nh.subscribe("/deadreckogning/Pos", 1000, &PathPlanning::getPositionCallBack, this);
 
-    
+
     pi = 3.14159265358979323846;
 
     //Other parameters
 
-    
+
     dt = 1/control_frequency;
 
     //robot_position = nh.advertise<geometry_msgs::Twist>("Pos", 1000);
@@ -78,19 +78,19 @@ public:
       return 2*node.x;
   }
 
- 
+
 
   void updatePosition(){
     //Generate the future published twist msg
     geometry_msgs::Twist twist_msg;
 
-  
+
 
     //robot_position.publish(twist_msg);
   }
 
 private:
-  
+
   float pi, dt;
 };
 
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     while(path_planning.nh.ok())
     {
         randomInt = path_planning.getPath();
-        
+
         ROS_INFO("x: %f", randomInt);
 
         ros::spinOnce();

@@ -1,9 +1,15 @@
 <launch>
 
+  <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+
   <node pkg="ras_maze_map" type="ras_maze_map_node" name="maze_map"
         args="_map_file:=$(find ras_maze_map)/maps/lab_maze_2018.txt"/>
-        
 
+  <!-- <node pkg="pathplanning" type="pathplanning" name="pathplanning">
+    <param name="initial_x_pos" type="double" value="0.215"/>
+    <param name="initial_y_pos" type="double" value="0.2"/>
+    <param name="initial_z_angle" type="double" value="1.57"/>
+  </node> -->
 
   <node pkg="deadreckogning" type="deadreckogning" name="deadreckogning">
     <param name="initial_x_pos" type="double" value="0.215"/>
@@ -11,20 +17,17 @@
     <param name="initial_z_angle" type="double" value="1.57"/>
   </node>
 
-  <node pkg="planning" type="pathplanning" name="pathplanning">
-    <param name="initial_x_pos" type="double" value="0.215"/>
-    <param name="initial_y_pos" type="double" value="0.2"/>
-    <param name="initial_z_angle" type="double" value="1.57"/>
-  </node>
-
-
-  <!--
   <node pkg="visualization" type="visualization" name="visualization">
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
-  <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
-  -->
+
+  <node pkg="ransac" type="scan_to_coordinates" name="scan_to_coordinates">
+    <param name="lidar_angle" type="double" value="3.14"/>
+  </node>
+
+  <node pkg="visualization" type="laserXY" name="laserXY"/>
+
   <node pkg="rviz" type="rviz" name="rviz"
-      args="-d $(find visualization)/config/lab_maze.rviz"/>
+        args="-d $(find visualization)/config/lab_maze.rviz"/>
 
 </launch>

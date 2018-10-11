@@ -8,10 +8,12 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   tf
   nav_msgs
+  sensor_msgs
+  robo7_msgs
 )
 
 catkin_package(
- CATKIN_DEPENDS roscpp std_msgs geometry_msgs visualization_msgs tf nav_msgs
+ CATKIN_DEPENDS roscpp std_msgs geometry_msgs visualization_msgs tf nav_msgs sensor_msgs robo7_msgs
 )
 
 
@@ -22,4 +24,8 @@ include_directories(
 
 add_executable(visualization src/visualization.cpp)
 target_link_libraries(visualization ${catkin_LIBRARIES})
-add_dependencies(visualization ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) 
+add_dependencies(visualization ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(laserXY src/laserXY.cpp)
+target_link_libraries(laserXY ${catkin_LIBRARIES})
+add_dependencies(laserXY ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

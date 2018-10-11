@@ -19,6 +19,8 @@ public:
 
 	MotorControllerNode()
 	{
+		max_speed = 25.387;
+		max_motor_input = 100;
 		counts_pr = 897.96;
 		control_freq = 100;
 		dt = 1/control_freq;
@@ -141,8 +143,8 @@ private:
 	float dt;
 	float counts_pr;
 
-	float max_speed = 25.387;
-	float max_motor_input = 100;
+	float max_speed;
+	float max_motor_input;
 };
 
 int main(int argc, char **argv)
