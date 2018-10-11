@@ -61,7 +61,7 @@ public:
 
     encoder_Left = n.subscribe("/l_motor/encoder", 1000, &deadReckogning::encoder_L_callBack, this);
     encoder_Right = n.subscribe("/r_motor/encoder", 1000, &deadReckogning::encoder_R_callBack, this);
-    robot_position1 = n.advertise<geometry_msgs::Twist>("Pos1", 1000);
+    robot_position1 = n.advertise<geometry_msgs::Twist>("Pos", 1000);
     robot_position2 = n.advertise<geometry_msgs::Twist>("Pos2", 1000);
 
   }

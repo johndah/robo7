@@ -11,13 +11,19 @@ class Node
 {
     public:
         float pi;
-        float x, y, theta;
+        float x, y, theta, control, time, path_x, path_y, path_cost, cost_to_come;
 
-        Node(float x, float y, float theta)
+        Node(float x, float y, float theta, float control, float time, float path_x, float path_y, float path_cost, float cost_to_come)
         {
             this->x = x;
             this->y = y;
             this->theta = theta;
+            this->control = control;
+            this->time = time;
+            this->path_x = path_x;
+            this->path_y = path_y;
+            this->path_cost = path_cost;
+            this->cost_to_come = cost_to_come;
         }
 };
 
@@ -38,7 +44,7 @@ public:
   {
     nh = ros::NodeHandle("~");
 
-    robot_position = nh.subscribe("/deadreckogning/Pos1", 1000, &PathPlanning::getPositionCallBack, this);
+    robot_position = nh.subscribe("/deadreckogning/Pos", 1000, &PathPlanning::getPositionCallBack, this);
 
     
     pi = 3.14159265358979323846;
