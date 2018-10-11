@@ -4,7 +4,8 @@
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Float32.h>
 
-//class PathPlanning;
+
+class PathPlanning;
 
 class Node
 {
@@ -18,8 +19,6 @@ class Node
             this->y = y;
             this->theta = theta;
         }
-
-    
 };
 
 double control_frequency = 10.0;
@@ -39,7 +38,7 @@ public:
   {
     nh = ros::NodeHandle("~");
 
-    robot_position = nh.subscribe("/deadreckogning/Pos", 1000, &PathPlanning::getPositionCallBack, this);
+    robot_position = nh.subscribe("/deadreckogning/Pos1", 1000, &PathPlanning::getPositionCallBack, this);
 
     
     pi = 3.14159265358979323846;
@@ -63,8 +62,8 @@ public:
   float getPath(){
 
       Node node = Node(x0, y0, theta0);
-      
-      return node.x;
+      ROS_INFO("Init node with 2x: %f", 2*x0);
+      return 2*node.x;
   }
 
  
@@ -89,7 +88,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "pathplanning");
 
-    PathPlanning path_planning;
+    PathPlanning path_planning = PathPlanning();
     float randomInt;
 
     ros::Rate loop_rate(control_frequency);
@@ -99,8 +98,6 @@ int main(int argc, char **argv)
         randomInt = path_planning.getPath();
         
         ROS_INFO("x: %f", randomInt);
-
-
 
         ros::spinOnce();
         loop_rate.sleep();

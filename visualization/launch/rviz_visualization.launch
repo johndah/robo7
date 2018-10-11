@@ -4,17 +4,19 @@
         args="_map_file:=$(find ras_maze_map)/maps/lab_maze_2018.txt"/>
         
 
-  <node pkg="pathplanning" type="pathplanning" name="pathplanning">
+
+  <node pkg="deadreckogning" type="deadreckogning" name="deadreckogning">
     <param name="initial_x_pos" type="double" value="0.215"/>
     <param name="initial_y_pos" type="double" value="0.2"/>
     <param name="initial_z_angle" type="double" value="1.57"/>
   </node>
 
-   <node pkg="deadreckogning" type="deadreckogning" name="deadreckogning">
+  <node pkg="planning" type="pathplanning" name="pathplanning">
     <param name="initial_x_pos" type="double" value="0.215"/>
     <param name="initial_y_pos" type="double" value="0.2"/>
     <param name="initial_z_angle" type="double" value="1.57"/>
   </node>
+
 
   <!--
   <node pkg="visualization" type="visualization" name="visualization">
@@ -22,7 +24,7 @@
   </node>
   <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
   -->
-   <node pkg="rviz" type="rviz" name="rviz"
-        args="-d $(find visualization)/config/lab_maze.rviz"/>
+  <node pkg="rviz" type="rviz" name="rviz"
+      args="-d $(find visualization)/config/lab_maze.rviz"/>
 
 </launch>

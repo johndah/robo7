@@ -145,6 +145,8 @@ public:
     twist_msg.angular.y = 0;
     twist_msg.angular.z = z_angle;
 
+    ROS_INFO("Publishing in deadreckogning with x: %f", x_pos);
+
     //Send the datas
     robot_position1.publish(twist_msg);
     robot_position2.publish(twist_msg2);
