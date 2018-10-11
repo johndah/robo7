@@ -24,7 +24,13 @@ class Node
             this->path_y = path_y;
             this->path_cost = path_cost;
             this->cost_to_come = cost_to_come;
+
+            this->parent = Null
+            this->successor = Null
+
         }
+
+    
 };
 
 double control_frequency = 10.0;
