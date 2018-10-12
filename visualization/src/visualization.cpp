@@ -10,7 +10,7 @@
 #include <tf/transform_broadcaster.h>
 
 // Control @ 10 Hz
-double control_frequency = 10.0;
+double control_frequency = 100.0;
 
 
 class markerRviz
@@ -68,8 +68,8 @@ public:
     float s = sin(z_angle/2);
 
 
-    marker.header.frame_id = "robot";
-    marker.header.stamp = ros::Time();
+    marker.header.frame_id = "laser";
+    marker.header.stamp = ros::Time::now();
     marker.ns = "map";
     marker.id = 0;
     marker.type = visualization_msgs::Marker::ARROW;
@@ -94,13 +94,13 @@ public:
     tf::Quaternion q;
     q.setRPY(x_angle, y_angle, z_angle);
     transform.setRotation(q);
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "robot"));
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "laser"));
 
-    transform2.setOrigin( tf::Vector3(0, 0, 0) );
-    tf::Quaternion q2;
-    q2.setRPY(0, 0, lidar_angle);
-    transform2.setRotation(q2);
-    br2.sendTransform(tf::StampedTransform(transform2, ros::Time::now(), "robot", "laser"));
+    // transform2.setOrigin( tf::Vector3(0, 0, 0) );
+    // tf::Quaternion q2;
+    // q2.setRPY(0, 0, lidar_angle);
+    // transform2.setRotation(q2);
+    // br2.sendTransform(tf::StampedTransform(transform2, ros::Time::now(), "robot", "laser"));
 
     transform3.setOrigin( tf::Vector3(x3_pos, y3_pos, z_pos) );
     tf::Quaternion q3;
