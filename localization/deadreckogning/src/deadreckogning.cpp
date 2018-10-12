@@ -31,8 +31,8 @@ public:
     nh.param<float>("/deadreckogning/initial_z_angle", z_angle, 0);
 
     //Definition of the adjustment parameters
-    nh.param<float>("/deadreckogning/linear_adjustment", linear_adjustment, 1);
-    nh.param<float>("/deadreckogning/angular_adjustment", angular_adjustment, 1);
+    nh.param<float>("/deadreckogning/linear_adjustment", linear_adjustment, 0);
+    nh.param<float>("/deadreckogning/angular_adjustment", angular_adjustment, 0);
 
     x2_pos = x_pos;
     y2_pos = y_pos;
@@ -113,9 +113,9 @@ public:
     z2_angle = wrapAngle(z2_angle);
 
     //Adjustment
-    x2_pos = linear_adjustment * x2_pos;
-    y2_pos = linear_adjustment * y2_pos;
-    z2_angle = angular_adjustment * z2_angle;
+    x2_pos = linear_adjustment + x2_pos;
+    y2_pos = linear_adjustment + y2_pos;
+    z2_angle = angular_adjustment + z2_angle;
 
     twist_msg2.linear.x = x2_pos;
     twist_msg2.linear.y = y2_pos;
@@ -133,9 +133,9 @@ public:
     z_angle = wrapAngle(z_angle);
 
     //Adjustment
-    x_pos = linear_adjustment * x_pos;
-    y_pos = linear_adjustment * y_pos;
-    z_angle = angular_adjustment * z_angle;
+    x_pos = linear_adjustment + x_pos;
+    y_pos = linear_adjustment + y_pos;
+    z_angle = angular_adjustment + z_angle;
 
     twist_msg.linear.x = x_pos;
     twist_msg.linear.y = y_pos;
