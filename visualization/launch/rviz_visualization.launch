@@ -23,9 +23,12 @@
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
 
-  <node pkg="visualization" type="lidar_plot" name="lidar_plot">
+  <node pkg="tf" name="lidar_plot" type="static_transform_publisher" args="0 0 0.1 0 0 3.14 /robot /laser 100" />
+
+  <!-- <node pkg="visualization" type="lidar_plot" name="lidar_plot">
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
+  -->
 
   <node pkg="ransac" type="scan_to_coordinates" name="scan_to_coordinates">
     <param name="lidar_angle" type="double" value="3.14"/>
