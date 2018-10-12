@@ -31,7 +31,7 @@ class Node
             this->successor = Null
 
             this->tolerance_radius = 1e-1;
-            this->tolerance_angle = pi/2;
+            this->tolerance_angle = pi/8;
         }
 };
 
