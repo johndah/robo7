@@ -11,7 +11,7 @@
 using Eigen::MatrixXd;
 
 // Control @ 10 Hz
-double control_frequency = 100.0;
+double control_frequency = 20.0;
 
 class scan_to_coordinates
 {

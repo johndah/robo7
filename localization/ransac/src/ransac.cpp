@@ -14,6 +14,79 @@ using Eigen::MatrixXd;
 // Control @ 10 Hz
 double control_frequency = 10.0;
 
+class LinearLeastSquareModel2D
+{
+public:
+  float Err;
+  std::vector<float> coef;
+
+  LinearLeastSquareModel2D(std::vector<float> X, std::vector<float> Y)
+  {
+    X_vector = X;
+    Y_vector = Y;
+    int n = X.size();
+  }
+
+  void coefficientComputing()
+  {
+    coef = std::vector<float>(2, 0.0);
+    if ( n == 1 )
+    {
+      coef[0] = 0.0;
+      coef[1] = Y_vector[0];
+    }
+
+  //  Average X and Y.
+    xbar = 0.0;
+    ybar = 0.0;
+    for ( i = 0; i < n; i++ )
+    {
+      xbar = xbar + X_vector[i];
+      ybar = ybar + Y_vector[i];
+    }
+    xbar = xbar / ( double ) n;
+    ybar = ybar / ( double ) n;
+  //
+  //  Compute Beta.
+  //
+    top = 0.0;
+    bot = 0.0;
+    for ( i = 0; i < n; i++ )
+    {
+      top = top + ( X_vector[i] - xbar ) * ( Y_vector[i] - ybar );
+      bot = bot + ( X_vector[i] - xbar ) * ( X_vector[i] - xbar );
+    }
+    coef[0] = top / bot;
+    coef[1] = ybar - a * xbar;
+  }
+
+  void errorComputation()
+  {
+    for(int i = 0; i < n; i++)
+    {
+      Err_vector[i] = coef[0] * X_vector + coef[1];
+      Err += (Err_vector[i] - Y_vector) * (Err_vector[i] - Y_vector);
+    }
+
+  }
+
+
+private:
+  //Dataset parameters
+  std::vector<float> X_vector;
+  std::vector<float> Y_vector;
+  int n;
+
+  //Inner parameters
+  float xbar;
+  float ybar;
+  float top;
+  float bot;
+  std::vector<float> Err_vector;
+};
+
+
+
 class ransac
 {
 public:
@@ -56,12 +129,11 @@ public:
 
   }
 
-  void random_picked(std::vector<float> XY_datas, int n_rand)
+  void random_picked(int length, int n_rand)
   {
     for(int i = 0; i < n_rand; i++)
     {
         rand_indx = rand() % length;
-        XY_random_datas(i) = XY_datas(rand_indx);
     }
   }
 
@@ -92,7 +164,8 @@ private:
   int iter;
 
   //Variables for random_picked() function
-  int rand_indx;
+  std::vector<float> model_indx;
+  std::vector<float> test_indx;
 };
 
 
