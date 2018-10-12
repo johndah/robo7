@@ -65,7 +65,7 @@ public:
 
     t = ros::Time::now();
 
-    marker.header.frame_id = "laser";
+    marker.header.frame_id = "robot";
     marker.header.stamp = t;
     marker.ns = "map";
     marker.id = 0;
@@ -91,7 +91,7 @@ public:
     tf::Quaternion q;
     q.setRPY(x_angle, y_angle, z_angle);
     transform.setRotation(q);
-    br.sendTransform(tf::StampedTransform(transform, t, "map", "laser"));
+    br.sendTransform(tf::StampedTransform(transform, t, "map", "robot"));
 
     // transform2.setOrigin( tf::Vector3(0, 0, 0) );
     // tf::Quaternion q2;
@@ -138,7 +138,7 @@ private:
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "torviz");
+    ros::init(argc, argv, "visualization");
 
     markerRviz marker_rviz;
 

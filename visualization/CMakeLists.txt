@@ -29,3 +29,7 @@ add_dependencies(visualization ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORT
 add_executable(laserXY src/laserXY.cpp)
 target_link_libraries(laserXY ${catkin_LIBRARIES})
 add_dependencies(laserXY ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(plot_lidar src/plot_lidar.cpp)
+target_link_libraries(plot_lidar ${catkin_LIBRARIES})
+add_dependencies(plot_lidar ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
