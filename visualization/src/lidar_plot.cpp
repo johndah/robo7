@@ -40,7 +40,7 @@ public:
 
 private:
   //Time constant
-  ros::Time() t;
+  ros::Time t;
   float lidar_angle;
 };
 

@@ -129,7 +129,7 @@ private:
   float z3_angle;
 
   //Time constant
-  ros::Time() t;
+  ros::Time t;
 };
 
 
