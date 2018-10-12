@@ -127,15 +127,15 @@ public:
 
 
     //Compute the linear distances and angles of the robot
-    x_pos += (lin_dis * cos(z_angle));
-    y_pos += (lin_dis * sin(z_angle));
-    z_angle += ang_dis;
+    x_pos += (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
+    y_pos += (lin_dis * sin(z_angle)) * (1 + linear_adjustment);
+    z_angle += ang_dis * (1 + angular_adjustment);
     z_angle = wrapAngle(z_angle);
 
     //Adjustment
-    x_pos = linear_adjustment + x_pos;
-    y_pos = linear_adjustment + y_pos;
-    z_angle = angular_adjustment + z_angle;
+    // x_pos = linear_adjustment + x_pos;
+    // y_pos = linear_adjustment + y_pos;
+    // z_angle = angular_adjustment + z_angle;
 
     twist_msg.linear.x = x_pos;
     twist_msg.linear.y = y_pos;
