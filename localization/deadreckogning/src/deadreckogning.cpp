@@ -38,7 +38,7 @@ public:
     y2_pos = y_pos;
     z2_angle = z_angle;
 
-    wheel_radius = 976/2000.0; //m
+    wheel_radius = 97.6/2000.0; //m
     wheel_distance = 217.3/1000.0; //m
     tics_per_rev = 897.96;
     pi = 3.14159265358979323846;
