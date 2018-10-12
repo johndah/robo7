@@ -24,7 +24,7 @@ public:
   lidar_plot()
   {
     n = ros::NodeHandle("~");
-    nh.param<float>("/plot_lidar/lidar_angle", lidar_angle, 0);
+    nh.param<float>("/lidar_plot/lidar_angle", lidar_angle, 0);
   }
 
   void updatePosition(){
