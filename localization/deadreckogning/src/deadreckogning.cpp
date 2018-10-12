@@ -59,10 +59,10 @@ public:
     //Other parameters
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
 
-    encoder_Left = n.subscribe("/l_motor/encoder", 1000, &deadReckogning::encoder_L_callBack, this);
-    encoder_Right = n.subscribe("/r_motor/encoder", 1000, &deadReckogning::encoder_R_callBack, this);
-    robot_position1 = n.advertise<geometry_msgs::Twist>("Pos", 1000);
-    robot_position2 = n.advertise<geometry_msgs::Twist>("Pos2", 1000);
+    encoder_Left = n.subscribe("/l_motor/encoder", 10, &deadReckogning::encoder_L_callBack, this);
+    encoder_Right = n.subscribe("/r_motor/encoder", 10, &deadReckogning::encoder_R_callBack, this);
+    robot_position1 = n.advertise<geometry_msgs::Twist>("Pos", 10);
+    robot_position2 = n.advertise<geometry_msgs::Twist>("Pos2", 10);
 
   }
 
