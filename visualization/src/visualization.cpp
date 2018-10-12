@@ -63,13 +63,10 @@ public:
     //Generate the future published twist msg
     visualization_msgs::Marker marker;
 
-    //Transform angles to quaternion
-    // quater = new quaternion;
-    float s = sin(z_angle/2);
-
+    t = ros::Time::now();
 
     marker.header.frame_id = "laser";
-    marker.header.stamp = ros::Time::now();
+    marker.header.stamp = t;
     marker.ns = "map";
     marker.id = 0;
     marker.type = visualization_msgs::Marker::ARROW;
@@ -94,7 +91,7 @@ public:
     tf::Quaternion q;
     q.setRPY(x_angle, y_angle, z_angle);
     transform.setRotation(q);
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "laser"));
+    br.sendTransform(tf::StampedTransform(transform, t, "map", "laser"));
 
     // transform2.setOrigin( tf::Vector3(0, 0, 0) );
     // tf::Quaternion q2;
@@ -106,7 +103,7 @@ public:
     tf::Quaternion q3;
     q3.setRPY(x_angle, y_angle, z3_angle);
     transform3.setRotation(q3);
-    br3.sendTransform(tf::StampedTransform(transform3, ros::Time::now(), "map", "robot2"));
+    br3.sendTransform(tf::StampedTransform(transform3, t, "map", "robot2"));
 
     marker_parameters1.publish( marker );
 
@@ -130,6 +127,9 @@ private:
   float x3_pos;
   float y3_pos;
   float z3_angle;
+
+  //Time constant
+  ros::Time() t;
 };
 
 
