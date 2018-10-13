@@ -73,7 +73,7 @@ public:
       current_angle = msg->angular.z;
   }
 
-  void updateICP()
+  void updateICP_lib()
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_source (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_target (new pcl::PointCloud<pcl::PointXYZ>);
@@ -107,7 +107,7 @@ public:
     icp.setInputSource (cloud_source);
     icp.setInputTarget (cloud_target);
     // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-    icp.setMaxCorrespondenceDistance (10);
+    icp.setMaxCorrespondenceDistance (1);
     // Set the maximum number of iterations (criterion 1)
     icp.setMaximumIterations (50);
     // Set the transformation epsilon (criterion 2)
@@ -137,6 +137,69 @@ public:
     matrix_values.publish(twist_msg);
   }
 
+  void updateICP()
+  {
+    int k = 0;
+    wall_X_centered = vector<float>(converted_X_coordinates.size(), 0);
+    wall_Y_centered = vector<float>(converted_X_coordinates.size(), 0);
+    X_centered = vector<float>(converted_X_coordinates.size(), 0);
+    Y_centered = vector<float>(converted_X_coordinates.size(), 0);
+    while((k<max_iter)&&(err_val > dist_threshold))
+    {
+      closest_ind = findAllClosePoints(X_moved, Y_moved, wall_X_coordinates, wall_Y_coordinates);
+      meanValues();
+      centered_point();
+      transform();
+      move_Src_points();
+      final_x_trans += trans_x;
+      final_y_trans += trans_y;
+      final_theta_rot += rot_theta;
+      err_val = errorComputation(X_moved, Y_moved, wall_X_close, wall_Y_close);
+      k++;
+    }
+  }
+
+  void meanValues()
+  {
+    mean_Xsrc = meanListValue(X_moved);
+    mean_Ysrc = meanListValue(Y_moved);
+    mean_Xtgr = meanListValue(wall_X_close);
+    mean_Ytgr = meanListValue(wall_Y_close);
+  }
+
+  void centered_point()
+  {
+    for(int i=0; i<X_moved.size(); i++)
+    {
+      wall_X_centered[i] = wall_X_close[i]/mean_Xtgr;
+      wall_Y_centered[i] = wall_Y_close[i]/mean_Ytgr;
+      X_centered[i] = X_moved[i]/mean_Xsrc;
+      Y_centered[i] = Y_moved[i]/mean_Ysrc;
+    }
+  }
+
+  void transform()
+  {
+    trans_x = mean_Xsrc - mean_Xtgr;
+    trans_y = mean_Ysrc - mean_Ytgr;
+    rot_theta = 0;
+    for(int i=0; i<X_moved.size(); i++)
+    {
+      rot_theta += computeRotation(X_centered[i], Y_centered[i], wall_X_centered[i], wall_Y_centered[i])/length;
+    }
+  }
+
+  void move_Src_points()
+  {
+    for(int i=0; i<X_moved.size(); i++)
+    {
+      X_moved = X_centered[i]*cos(rot_theta) - Y_centered * sin(rot_theta) + mean_Xsrc;
+      Y_moved = X_centered[i]*cos(rot_theta) + Y_centered * sin(rot_theta) + mean_Ysrc;
+    }
+  }
+
+
+
 private:
   //Localization main parameters
   float current_x;
@@ -144,10 +207,36 @@ private:
   float current_angle;
 
   //ICP parameters
-  float delta_T;
+  float dist_threshold;
+  int max_iter;
+  //Find close points
+  vector<float> wall_X_close;
+  vector<float> wall_Y_close;
+  //Centered Vectors
+  vector<float> wall_X_centered;
+  vector<float> wall_Y_centered;
+  vector<float> X_centered;
+  vector<float> Y_centered;
+  //Moved vectors after translation/rotation
+  vector<float> X_moved;
+  vector<float> Y_moved;
+  //Translatio/rotation after an iteration
+  float trans_x;
+  float trans_y;
+  float rot_theta;
+
+  //ICP results
+  float final_x_trans;
+  float final_y_trans;
+  float final_theta_rot;
+
+
+  //ICP library
   Eigen::Matrix4f transformation;
   pcl::PointCloud<pcl::PointXYZ> cloud_source_registered;
   vector<float> mat_val;
+
+
 
 
   //Lidar function parameters
@@ -166,6 +255,99 @@ private:
 
   //other parameters
   float pi;
+
+
+  float pointDistance(float x1, float y1, float x2, float y2)
+  {
+    return sqrt(pow(x1-x2, 2) + pow(y1-y2, 2));
+  }
+
+  int findCloserPoint_index(float x1, float y1, vector<float> X2, vector<float> Y2)
+  {
+    int ind = 0;
+    float least = pointDistance(x1, y1, X2[0], Y2[0]);
+    for(int i=1; i<X1.size(); i++)
+    {
+      if(pointDistance(x1, y1, X2[i], Y2[i]) < least)
+      {
+        ind = i;
+        least = pointDistance(x1, y1, X2[i], Y2[i]);
+      }
+    }
+    return i;
+  }
+
+  vector<int> findAllClosePoints(vector<float> X1, vector<float> Y1, vector<float> X2, vector<float> Y2)
+  {
+    vector<int> ind_list;
+    int mid_ind;
+    ind_list = vector<int>(X1.size(), 0);
+    wall_X_close = vector<int>(X1.size(), 0);
+    wall_Y_close = vector<int>(X1.size(), 0);
+    for(int i=0; i<X1.size(); i++)
+    {
+      mid_ind = findCloserPoint_index(X1[i], Y1[i], X2, Y2);
+      ind_list[i] = mid_ind;
+      wall_X_close[i] = wall_X_coordinates[mid_ind];
+      wall_Y_close[i] = wall_Y_coordinates[mid_ind];
+    }
+    return ind_list;
+  }
+
+  float meanListValue(vector<int> V)
+  {
+    float mean = 0;
+    int l = V.size();
+    for(int i=0; i<l; i++)
+    {
+      mean += V[i]/l;
+    }
+    return mean;
+  }
+
+  float computeRotation(float x1, float y1, float x2, float y2)
+  {
+    if((x1!=0)&&(x2!=0))
+    {
+      float xy1 = y1/x1;
+      float xy2 = y2/x2;
+      if(xy1==xy2){return 0;}
+      else{float ang = atan((xy1+xy2)/1-xy1*xy2);}
+      if((xy1*xy2>1)&&(xy1>0)){return wrapAngle(ang+pi);}
+      else if((xy1*xy2>1)&&(xy1<0)){return wrapAngle(ang-pi);}
+      else{return wrapAngle(ang);}
+    }
+    else if((x1==0)&&(x2==0))
+    {
+      if(y1*y2>0){return 0;}
+      else{return pi/2;}
+    }
+    else if((x1==0))
+    {
+      return wrapAngle(-atan(y2/x2));
+    }
+    else
+    {
+      return wrapAngle(atan(y1/x1));
+    }
+
+
+  }
+
+  float wrapAngle( double angle )
+  {
+    float twoPi = 2.0 * pi;
+    return angle - twoPi * floor( angle / twoPi );
+  }
+
+  float errorComputation(vector<float> X1, vector<float> Y1, vector<float> X2, vector<float> Y2)
+  {
+    float err;
+    for(int i=0; i<X1.size(); i++)
+    {
+      err += pointDistance(X1[i], Y1[i], X2[i], Y2[i])/X1.size();
+    }
+  }
 };
 
 
