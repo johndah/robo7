@@ -25,9 +25,11 @@ public:
     n = ros::NodeHandle("~");
     length = 0;
 
-    XY_coordinates = n.subscribe("/scan_to_coordinates/point_cloud_coordinates", 1000, &laserXY::coordinates_callBack, this);
+    //XY_coordinates = n.subscribe("/scan_to_coordinates/point_cloud_coordinates", 1000, &laserXY::coordinates_callBack, this);
+    XY_coordinates = n.subscribe("/maze_map/wall_coordinates", 1000, &laserXY::coordinates_callBack, this);
 
-    point_cloud = n.advertise<sensor_msgs::PointCloud>("laserXY", 1000);
+
+    point_cloud = n.advertise<sensor_msgs::PointCloud>("/laserXY", 1000);
   }
 
   void coordinates_callBack(const robo7_msgs::XY_coordinates::ConstPtr &msg)
@@ -53,7 +55,7 @@ public:
     }
 
     points.points = point_list;
-    points.header.frame_id = "robot";
+    points.header.frame_id = "map";
 
     point_cloud.publish( points );
 

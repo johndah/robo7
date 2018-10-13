@@ -19,12 +19,13 @@ public:
   ros::NodeHandle n;
   ros::NodeHandle nh;
   ros::Subscriber laser_scan;
+  ros::Subscriber robot_position;
   ros::Publisher point_coordinates;
 
   scan_to_coordinates()
   {
     n = ros::NodeHandle("~");
-    a = 1;
+    a = 2;
 
     //Dealing with the shifted angle of the lidar in the robot frame
     nh.param<float>("/scan_to_coordinates/lidar_angle", shifted_angle, 0);
@@ -34,8 +35,9 @@ public:
     //Other parameters
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
 
-    laser_scan = n.subscribe("/scan", 1000, &scan_to_coordinates::laser_scan_callBack, this);
-    point_coordinates = n.advertise<robo7_msgs::XY_coordinates>("point_cloud_coordinates", 1000);
+    laser_scan = n.subscribe("/scan", 1, &scan_to_coordinates::laser_scan_callBack, this);
+    robot_position = n.subscribe("/deadreckogning/Pos", 1, &scan_to_coordinates::position_callBack, this);
+    point_coordinates = n.advertise<robo7_msgs::XY_coordinates>("point_cloud_coordinates", 1);
   }
 
   void laser_scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
@@ -47,6 +49,13 @@ public:
       points_intensities = msg->intensities;
       range_min = msg->range_min;
       range_max = msg->range_max;
+  }
+
+  void position_callBack(const geometry_msgs::Twist::ConstPtr &msg)
+  {
+      robot_x = msg->linear.x;
+      robot_y = msg->linear.y;
+      robot_theta = msg->angular.z;
   }
 
 
@@ -93,8 +102,8 @@ public:
       {
         if(points_intensities[i] > 0.0)
         {
-          converted_X_coordinates[length] = points_distances[i] * cos(angle);
-          converted_Y_coordinates[length] = points_distances[i] * sin(angle);
+          converted_X_coordinates[length] = points_distances[i] * (cos(angle)*cos(robot_theta) - sin(angle)*sin(robot_theta)) + robot_x;
+          converted_Y_coordinates[length] = points_distances[i] * (cos(angle)*sin(robot_theta) + sin(angle)*cos(robot_theta)) + robot_y;
           length++;
         }
         angles_[i] = angle;
@@ -125,6 +134,11 @@ private:
   float angle_increment;
   std::vector<float> points_distances;
   std::vector<float> points_intensities;
+
+  //Datas extracted from the robot position
+  float robot_x;
+  float robot_y;
+  float robot_theta;
 
   //Create the final table
   float angle;
