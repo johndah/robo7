@@ -107,11 +107,11 @@ public:
     icp.setInputSource (cloud_source);
     icp.setInputTarget (cloud_target);
     // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-    icp.setMaxCorrespondenceDistance (1);
+    icp.setMaxCorrespondenceDistance (10);
     // Set the maximum number of iterations (criterion 1)
     icp.setMaximumIterations (50);
     // Set the transformation epsilon (criterion 2)
-    icp.setTransformationEpsilon (1e-3);
+    icp.setTransformationEpsilon (1);
     // Set the euclidean distance difference epsilon (criterion 3)
     icp.setEuclideanFitnessEpsilon (1);
     // Perform the alignment
