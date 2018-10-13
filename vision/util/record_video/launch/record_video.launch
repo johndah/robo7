@@ -1,0 +1,8 @@
+<launch>
+
+  <include file="$(find realsense_camera)/launch/sr300_nodelet_rgbd.launch"/>
+
+  <node pkg="image_converter" type="image_converter" name="image_conveter" 
+        args="_dir:="/home/jtao/catkin_ws/data/out.avi" />
+
+</launch>

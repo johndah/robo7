@@ -38,3 +38,12 @@ therefore, estimated angular velocity -25.387 ~ 25.387
 
 
 ## Dead reckoning
+
+
+## Computer Vision
+
+```c++
+// install opencv
+sudo apt-get install ros-kinetic-vision-opencv
+```
+
