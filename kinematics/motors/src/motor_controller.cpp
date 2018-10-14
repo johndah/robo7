@@ -35,6 +35,8 @@ public:
 		I = std::vector<float>(2, 0);
 		D = std::vector<float>(2, 0);
 
+		threshold = 10;
+
 		nh.param<float>("/motor_controller/l_P", P[0], 0);
 		nh.param<float>("/motor_controller/r_P", P[1], 0);
 		nh.param<float>("/motor_controller/l_I", I[0], 0);
@@ -117,6 +119,16 @@ public:
 		else if (r_pwm_msg.data < -max_motor_input)
 		{r_pwm_msg.data = -max_motor_input;}
 
+		if((desired_w[0] == 0)&&(sgn(l_pwm_msg.data)*l_pwm_msg.data < threshold))
+		{
+			l_pwm_msg.data = 0;
+		}
+
+		if((desired_w[1] == 0)&&(sgn(r_pwm_msg.data)*r_pwm_msg.data < threshold))
+		{
+			r_pwm_msg.data = 0;
+		}
+
 		ROS_INFO("Left pwm: %f", l_pwm_msg.data);
 		ROS_INFO("Right pwm: %f", r_pwm_msg.data);
 		ROS_INFO("Error : %f", error[0]);
@@ -145,6 +157,15 @@ private:
 
 	float max_speed;
 	float max_motor_input;
+
+	float threshold;
+
+	int sgn(float v)
+	{
+	  if (v < 0) return -1;
+	  else if (v > 0) return 1;
+	  else return 0;
+	}
 };
 
 int main(int argc, char **argv)

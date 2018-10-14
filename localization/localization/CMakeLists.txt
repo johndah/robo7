@@ -23,7 +23,3 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
 )
-
-add_executable(ICP src/ICP.cpp)
-target_link_libraries(ICP ${catkin_LIBRARIES})
-add_dependencies(ICP ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

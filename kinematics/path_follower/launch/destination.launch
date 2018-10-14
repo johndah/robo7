@@ -1,0 +1,12 @@
+<launch>
+
+  <node pkg="path_follower" type="path_follower" name="path_follower">
+    <param name="P" type="double" value="3"/>
+  </node>
+
+  <node pkg="path_follower" type="destination_point" name="destination_point">
+    <param name="x_destination" type="double" value="2"/>
+    <param name="y_destination" type="double" value="0.2"/>
+  </node>
+
+</launch>
