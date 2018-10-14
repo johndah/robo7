@@ -206,7 +206,7 @@ class PathPlanning
 		}
 
 		return paths_msg;
-		}s
+		}
 	}
 
 	float distanceSquared(Node node1, Node node2)
