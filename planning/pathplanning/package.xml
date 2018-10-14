@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>planning</name>
+  <name>pathplanning</name>
   <version>0.0.0</version>
   <description>The planning package</description>
 
@@ -32,10 +32,6 @@
   <exec_depend>phidgets</exec_depend>
   
 
-
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- Other tools can request additional information be placed here -->
-
   </export>
 </package>

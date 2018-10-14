@@ -15,6 +15,8 @@ add_message_files(
   Odometry.msg
   ControllerParams.msg
   XY_coordinates.msg
+  path.msg
+  paths.msg
 )
 
 generate_messages(

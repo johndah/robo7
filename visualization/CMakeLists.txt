@@ -37,3 +37,7 @@ add_dependencies(lidar_plot ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_
 add_executable(dest_point_plot src/dest_point_plot.cpp)
 target_link_libraries(dest_point_plot ${catkin_LIBRARIES})
 add_dependencies(dest_point_plot ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(paths src/paths.cpp)
+target_link_libraries(paths ${catkin_LIBRARIES})
+add_dependencies(paths ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
