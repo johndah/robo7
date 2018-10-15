@@ -4,11 +4,13 @@ project(gate_controller)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  geometry_msgs
+  robo7_srvs
   arduino_servo_control
 )
 
 catkin_package(
- CATKIN_DEPENDS roscpp std_msgs arduino_servo_control
+ CATKIN_DEPENDS roscpp std_msgs geometry_msgs arduino_servo_control
 )
 
 include_directories(
