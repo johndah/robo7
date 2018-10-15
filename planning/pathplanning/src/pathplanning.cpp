@@ -6,7 +6,6 @@
 #include <robo7_msgs/path.h>
 #include <robo7_msgs/paths.h>
 
-
 class PathPlanning;
 
 float xt = 2, yt = 2;
@@ -17,9 +16,10 @@ class Node
   public:
 	float x, y, theta;
 	float control, time;
-	std::vector<float> path_x, path_y;
 	float path_cost, cost_to_come;
 	float tolerance_radius, tolerance_angle;
+	Node* parent;
+	std::vector<float> path_x, path_y;
 	//std::vector<Node> parent, successor;
 
 	Node(float x, float y, float theta, float control, float time, std::vector<float> path_x, std::vector<float> path_y, float path_cost, float cost_to_come)
@@ -34,7 +34,7 @@ class Node
 		this->path_cost = path_cost;
 		this->cost_to_come = cost_to_come;
 
-		this->tolerance_radius = 1e-1;
+		this->tolerance_radius = 3e-1;
 		this->tolerance_angle = pi / 8;
 	}
 
@@ -47,6 +47,22 @@ class Node
 	{
 		return sqrt(pow(x - xt, 2.0) + pow(y - yt, 2.0));
 	}
+
+	bool inCollision()
+	{
+		// Todo
+		return false;
+	}
+
+	/*
+	bool isClose(Node other, PathPlanning path_planning)
+	{
+		bool position = path_planning.distanceSquared(this, other);
+		bool orientation = abs(theta - other.theta);
+
+		return position <= tolerance_radius && orientation <= tolerance_angle;
+	}
+	*/
 };
 
 double control_frequency = 10.0;
@@ -54,7 +70,7 @@ double control_frequency = 10.0;
 class PathPlanning
 {
   public:
-  	ros::NodeHandle nh;
+	ros::NodeHandle nh;
 	ros::Subscriber robot_position;
 
 	//Initialisation
@@ -144,68 +160,93 @@ class PathPlanning
 		std::vector<float> path_x, path_y;
 		std::vector<Node> successors, alive_nodes, dead_nodes;
 
-		
 		goal_radius_tolerance = .3;
 
 		if (position_updated)
 		{
 
-		Node node_start = Node(x0, y0, pi/2, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f);
-		Node node_target = Node(xt, yt, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f);
+			Node node_start = Node(x0, y0, pi / 2, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f);
+			Node node_target = Node(xt, yt, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f);
 
-		alive_nodes.push_back(node_start);
+			alive_nodes.push_back(node_start);
 
-		//ROS_INFO("s: %d", (int)alive_nodes.size());
-		while (!alive_nodes.empty())
-		{
-			Node &node_current = alive_nodes[0];
-			float cost = node_current.getCost();
-
-			for (int i = 0; i < alive_nodes.size(); i++)
+			//ROS_INFO("s: %d", (int)alive_nodes.size());
+			while (!alive_nodes.empty())
 			{
-				Node &node = alive_nodes[i];
+				Node &node_current = alive_nodes[0];
+				float cost = node_current.getCost();
 
-				if (node.getCost() < cost)
+				for (int i = 0; i < alive_nodes.size(); i++)
 				{
-					node_current = node;
-					cost = node.getCost();
+					Node &node = alive_nodes[i];
+
+					if (node.getCost() < cost)
+					{
+						node_current = node;
+						cost = node.getCost();
+					}
 				}
-			
+
+				if (distanceSquared(node_current, node_target) < goal_radius_tolerance)
+				{
+					ROS_INFO("Goal reached");
+				}
+
+				// Remove nodeCurrent from alivenodes
+				//alive_nodes.erase(std::remove(alive_nodes.begin(), alive_nodes.end(), &node_current), alive_nodes.end());
+				dead_nodes.push_back(node_current);
+
+				successors = getSuccessorNodes(node_start);
+
+				for (int i = 0; i < successors.size(); i++)
+				{
+					Node &node_successor = successors[i];
+
+					node_successor.parent = &node_current;
+					//node_successor.successor = node_current;
+
+					if (node_successor.inCollision())
+					{
+						dead_nodes.push_back(node_current);
+					}
+					else
+					{
+						bool match = false;
+						for (int j = 0; j < alive_nodes.size(); j++)
+						{
+							Node &alive_node = alive_nodes[j];
+							/*
+							if (alive_node.isClose(node_current, this))
+							{
+								match = true;
+							}
+							*/
+
+							node_successor.parent = &node_current;
+						}
+					}
+
+					ROS_INFO("Size %d", (int)alive_nodes.size());
+
+					break;
+				}
+
+				robo7_msgs::path path_msg;
+				robo7_msgs::paths paths_msg;
+
+				for (int i = 0; i < successors.size(); i++)
+				{
+
+					ROS_INFO("i: %d size: %d", i, (int)successors[i].path_x.size());
+
+					path_msg.path_x = successors[i].path_x;
+					path_msg.path_y = successors[i].path_y;
+
+					paths_msg.paths.push_back(path_msg);
+				}
+
+				return paths_msg;
 			}
-			
-			if (distanceSquared(node_current, node_target) < goal_radius_tolerance)
-			{
-				ROS_INFO("Goal reached");
-			}
-
-			ROS_INFO("Size %d", (int)alive_nodes.size());
-
-			//alive_nodes.erase(std::remove(alive_nodes.begin(), alive_nodes.end(), &node_current), alive_nodes.end());
-
-			ROS_INFO("Size %d", (int)alive_nodes.size());
-
-			
-			break;
-		}
-
-
-		successors = getSuccessorNodes(node_start);
-
-		robo7_msgs::path path_msg;
-		robo7_msgs::paths paths_msg;
-
-		for (int i = 0; i < successors.size(); i++)
-		{
-
-			ROS_INFO("i: %d size: %d", i, (int)successors[i].path_x.size());
-
-			path_msg.path_x = successors[i].path_x;
-			path_msg.path_y = successors[i].path_y;
-
-			paths_msg.paths.push_back(path_msg);
-		}
-
-		return paths_msg;
 		}
 	}
 
@@ -226,7 +267,6 @@ int main(int argc, char **argv)
 	nh = ros::NodeHandle("~");
 
 	ros::Publisher paths_pub = nh.advertise<robo7_msgs::paths>("paths_vector", 1000);
-
 
 	PathPlanning path_planning = PathPlanning(nh);
 

@@ -1,14 +1,14 @@
 <launch>
 
-  <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
   <!--
+  <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
   -->
 
   <node pkg="ras_maze_map" type="ras_maze_map_node" name="maze_map"
         args="_map_file:=$(find deadreckogning)/maps/lab_maze_2018.txt"/>
 
-  <node pkg="localization" type="ICP" name="ICP"/>
  <!--
+  <node pkg="localization" type="ICP" name="ICP"/>
   -->
   <node pkg="deadreckogning" type="deadreckogning" name="deadreckogning">
     <param name="initial_x_pos" type="double" value="0.215"/>
@@ -32,6 +32,8 @@
   <node pkg="ransac" type="scan_to_coordinates" name="scan_to_coordinates">
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
+  <!--
+  -->
 
   <node pkg="visualization" type="laserXY" name="laserXY"/>
 
@@ -39,7 +41,5 @@
 
   <node pkg="rviz" type="rviz" name="rviz"
         args="-d $(find visualization)/config/lab_maze.rviz"/>
-  <!--
-  -->
 
 </launch>
