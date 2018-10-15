@@ -93,8 +93,8 @@ public:
       vector<vector<Point> > contours;
       vector<Vec4i> hierarchy;
       findContours(result, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-       
-      std::vector<Rect> boundRect(contours.size()); 
+
+      std::vector<Rect> boundRect(contours.size());
 
       // draw rectangle
       Mat origImg = cv_ptr->image;
@@ -102,7 +102,7 @@ public:
 
       for (int i=0; i<contours.size(); i++)
       {
-        if (contours[i].size() > 80)
+        if (contours[i].size() > 30)
         {
           ROS_INFO("object size: %d", contours[i].size());
 
@@ -112,7 +112,7 @@ public:
           Point center = (boundRect[i].tl()+boundRect[i].br())/2;
           circle(origImg, center, 2, Scalar(0,0,255), 2, 8, 0);
 
-          
+
 
           if (pCloud_cam.width != 0)
           {
