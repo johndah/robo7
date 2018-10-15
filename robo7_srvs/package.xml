@@ -1,0 +1,21 @@
+<package>
+ <name>robo7_srvs</name>
+  <version>0.1.0</version>
+  <description>
+    Services for robo7 project.
+  </description>
+  <license>BSD</license>
+
+  <author email= "jacobbj@kth.se">Jacob</author>
+  <maintainer email="jacobbj@kth.se">Jacob</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+
+  <run_depend>message_runtime</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>std_msgs</run_depend>
+
+</package>

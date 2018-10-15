@@ -1,0 +1,4 @@
+# request
+geometry_msgs/Twist object_pos  # position of the object to pickup, in the map coordinates
+---
+bool success  # True if the pickup sequence was sucsessful
