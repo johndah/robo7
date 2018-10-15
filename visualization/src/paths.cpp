@@ -1,20 +1,66 @@
+
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
-
+#include "std_msgs/Float32MultiArray.h"
+#include <robo7_msgs/paths.h>
 #include <cmath>
+#include <vector>
+#include <geometry_msgs/Twist.h>
 
-int main( int argc, char** argv )
+//std_msgs::Float32MultiArray path_x;
+std::vector<std::vector<float> > paths_x, paths_y;
+std::vector<float> path_x_msg, path_y_msg;
+double control_frequency = 10.0;
+int number_paths = 0;
+
+class Paths
+{
+public:
+  ros::Subscriber robot_position;
+  ros::Subscriber paths_sub;
+
+  //Initialisation
+  float x0, y0, theta0;
+
+  Paths(ros::NodeHandle nh)
+  {
+
+    paths_sub = nh.subscribe("/pathplanning/paths_vector", 1000, &Paths::pathsCallback, this);
+  }
+
+  void pathsCallback(const robo7_msgs::paths::ConstPtr &paths_msg)
+  {
+
+    paths_x.clear();
+    paths_y.clear();
+
+    for (int i = 0; i < paths_msg->paths.size(); i++)
+    {
+
+      paths_x.push_back(paths_msg->paths[i].path_x);
+      paths_y.push_back(paths_msg->paths[i].path_y);
+    }
+   
+  }
+};
+
+int main(int argc, char **argv)
 {
   ros::init(argc, argv, "paths");
   ros::NodeHandle n;
+
+  Paths paths = Paths(n);
+
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("Paths", 10);
 
-  ros::Rate r(30);
+  ros::Rate loop_rate(control_frequency);
 
   float f = 0.0;
+
   while (ros::ok())
   {
 
+    std::vector<visualization_msgs::Marker> point_sets;
     visualization_msgs::Marker points, line_strip;
     points.header.frame_id = line_strip.header.frame_id = "/map";
     points.header.stamp = line_strip.header.stamp = ros::Time::now();
@@ -28,74 +74,49 @@ int main( int argc, char** argv )
     points.type = visualization_msgs::Marker::SPHERE;
     line_strip.type = visualization_msgs::Marker::LINE_STRIP;
 
-
-
-    // POINTS markers use x and y scale for width/height respectively
     points.scale.x = 0.05;
     points.scale.y = 0.05;
     points.scale.z = 0.05;
 
-    // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
     line_strip.scale.x = 0.01;
     line_strip.scale.y = 0.01;
     line_strip.scale.z = 0.01;
 
-    // Points are green
     line_strip.color.g = 1.0f;
     line_strip.color.a = 1.0;
 
-    // Line strip is blue
     points.color.b = 1.0;
     points.color.a = 1.0;
 
- 
-  
-    for (uint32_t i = 0; i < 3; ++i)
+
+    geometry_msgs::Point p;
+
+    for (int i = 0; i < paths_x.size(); i++)
     {
 
-        geometry_msgs::Point p;
-        p.x = i;
-        p.y = i*i;
+      for (int j = 0; j < paths_x[i].size(); j++)
+      {
+        //ROS_INFO("i: %d size: %f", i, (float)paths_x[i][j]);
+        p.x = paths_x[i][j];
+        p.y = paths_y[i][j];
         p.z = 0;
-
-
-      points.points.push_back(p);
-      line_strip.points.push_back(p);
-
-  
+        line_strip.points.push_back(p);
       }
+        point_sets.push_back(line_strip);
 
-
-
-  /*
-
-    // Create the vertices for the points and lines
-    for (uint32_t i = 0; i < 100; ++i)
-    {
-      float y = 5 * sin(f + i / 100.0f * 2 * M_PI);
-      float z = 5 * cos(f + i / 100.0f * 2 * M_PI);
-
-      geometry_msgs::Point p;
-      p.x = (int32_t)i - 50;
-      p.y = y;
-      p.z = z;
-
-      points.points.push_back(p);
-      line_strip.points.push_back(p);
-
-      // The line list needs two points for each line
-      
-      .points.push_back(p);
-      p.z += 1.0;
-      line_list.points.push_back(p);
+        //marker_pub.publish(line_strip);
+        p.x = paths_x[i][ paths_x[i].size()-2];
+        p.y = paths_y[i][ paths_x[i].size()-2];
+        p.z = 0;
+        points.points.push_back(p);
     }
 
-  */
+ 
     marker_pub.publish(points);
     marker_pub.publish(line_strip);
+    //marker_pub.publish(point_sets);
 
-    r.sleep();
-
-    f += 0.04;
+    ros::spinOnce();
+    loop_rate.sleep();
   }
 }

@@ -17,4 +17,6 @@
 
   <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" />
 
+  <node pkg="path_follower" type="breaker" name="breaker" />
+
 </launch>

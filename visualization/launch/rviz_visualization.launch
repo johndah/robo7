@@ -8,7 +8,8 @@
         args="_map_file:=$(find deadreckogning)/maps/lab_maze_2018.txt"/>
 
   <node pkg="localization" type="ICP" name="ICP"/>
-
+ <!--
+  -->
   <node pkg="deadreckogning" type="deadreckogning" name="deadreckogning">
     <param name="initial_x_pos" type="double" value="0.215"/>
     <param name="initial_y_pos" type="double" value="0.2"/>
@@ -17,10 +18,7 @@
     <param name="angular_adjustment" type="double" value="0.0235"/>
   </node>
 
-  <node pkg="planning" type="pathplanning" name="pathplanning">
-    <param name="initial_x_pos" type="double" value="0.215"/>
-    <param name="initial_y_pos" type="double" value="0.2"/>
-    <param name="initial_z_angle" type="double" value="1.57"/>
+  <node pkg="pathplanning" type="pathplanning" name="pathplanning">
   </node>
 
   <node pkg="visualization" type="visualization" name="visualization">
@@ -37,6 +35,7 @@
 
   <node pkg="visualization" type="laserXY" name="laserXY"/>
 
+  <node pkg="visualization" type="dest_point_plot" name="dest_point_plot"/>
 
   <node pkg="rviz" type="rviz" name="rviz"
         args="-d $(find visualization)/config/lab_maze.rviz"/>
