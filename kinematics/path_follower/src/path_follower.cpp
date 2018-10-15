@@ -131,12 +131,14 @@ int main(int argc, char **argv)
   ros::Subscriber breaker = n.subscribe("/break_info", 1, break_callBack);
   ros::Publisher desired_velocity = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
   ros::Publisher dest_point = n.advertise<geometry_msgs::Twist>("/point_destination_robot", 1);
+  ros::Publisher robot_arrived = n.advertise<std_msgs::Bool>("/robot_arrived", 1);
   // ros::Publisher help = n.advertise<geometry_msgs::Twist>("/help_info", 1);
 
   ros::Rate loop_rate(freq);
 
   ROS_INFO("Running twist_interpreter");
 
+  stds_msg::Bool is_robot_arrived;
   geometry_msgs::Twist help_msg;
   geometry_msgs::Twist point_plot;
 
@@ -199,7 +201,10 @@ int main(int argc, char **argv)
     help_msg.angular.x = x_point_robot;
     help_msg.linear.z = y_point_robot;
 
-    dest_point.publish(point_plot);
+    is_robot_arrived.data = arrived;
+
+    robot_arrived.publish( arrived );
+    dest_point.publish( point_plot);
     desired_velocity.publish(desire_vel);
     // help.publish(help_msg);
     loop_rate.sleep();
