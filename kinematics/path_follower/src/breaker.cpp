@@ -40,6 +40,7 @@ int M_cam_max = 10;
 
 //Breaker boolean
 bool break_info;
+bool obstacle_cam;
 
 //Datas extracted from LaserScan
 float angle_min;
@@ -67,6 +68,11 @@ void laser_scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
     points_intensities = msg->intensities;
     range_min = msg->range_min;
     range_max = msg->range_max;
+}
+
+void obstacle_callBack(const std_msgs::Bool::ConstPtr &msg)
+{
+  obstacle_cam = msg->data;
 }
 
 void vel_L_callBack(const std_msgs::Float32::ConstPtr &msg)
@@ -107,8 +113,9 @@ int main(int argc, char **argv)
   ros::Subscriber laser_scan = n.subscribe("/scan", 1, &laser_scan_callBack);
   ros::Subscriber estim_L_om = n.subscribe("/l_motor/estimated_vel", 1, &vel_L_callBack);
   ros::Subscriber estim_R_om = n.subscribe("/r_motor/estimated_vel", 1, &vel_R_callBack);
+  ros::Subscriber obstacle_sub = n.subscribe("/obstacle/flag", 1, &obstacle_callBack);
   ros::Publisher breaker = n.advertise<std_msgs::Bool>("/break_info", 1);
-  ros::Publisher help = n.advertise<geometry_msgs::Twist>("/help_info", 1);
+  // ros::Publisher help = n.advertise<geometry_msgs::Twist>("/help_info", 1);
 
   ros::Rate loop_rate(freq);
 
@@ -148,6 +155,10 @@ int main(int argc, char **argv)
                 M_close++;
               }
       }
+      if(obstacle_cam)
+      {
+        M_close += M_max;
+      }
     }
     else if(way_moving > 0)
     {
@@ -163,6 +174,8 @@ int main(int argc, char **argv)
       }
     }
 
+
+
     if(M_close > M_max){break_info = true;}
     if(M_close < M_max){break_info = false;}
 
@@ -176,7 +189,7 @@ int main(int argc, char **argv)
     help_msg.angular.z = lin_threshold;
 
     breaker.publish(bool_msg);
-    help.publish(help_msg);
+    // help.publish(help_msg);
     loop_rate.sleep();
 
   }

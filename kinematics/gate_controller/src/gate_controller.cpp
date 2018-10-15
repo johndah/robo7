@@ -28,20 +28,20 @@ public:
 		robot_pos_sub = n.subscribe("/deadreckogning/Pos", 1, &PickupAtServer::robotPosCallback, this);
 		robot_at_point_sub = n.subscribe("/robot_arrived", 1, &PickupAtServer::robotAtPointCallback, this);
 		go_to_pub = n.advertise<geometry_msgs::Twist>("/destination_point", 1);
-		pickup_at_service = n.advertiseService("pickup_at", &PickupAtServer::pickupSequence, this);
+		pickup_at_service = n.advertiseService("/pickup_at", &PickupAtServer::pickupSequence, this);
 
 	}
 
-	void robotAtPointCallback(const geometry_msgs::Twist::ConstPtr &msg)
+	void robotPosCallback(const geometry_msgs::Twist::ConstPtr &msg)
 	{
     robot_pos_x = msg->linear.x;
 		robot_pos_y = msg->linear.y;
 		robot_pos_tet = msg->angular.z;
 	}
 
-	void robotPosCallback(const std_msgs::Bool::ConstPtr &msg)
+	void robotAtPointCallback(const std_msgs::Bool::ConstPtr &msg)
 	{
-    robot_pos_x = msg->data;
+    at_point = msg->data;
 	}
 
 
@@ -52,7 +52,7 @@ public:
 
 		if (ros::service::call("/arduino_servo_control/set_servo_angles", ang))
 		{
-				ROS_DEBUG("Gate opened");
+				ROS_INFO("Gate opened");
 		}
   }
 
@@ -63,31 +63,42 @@ public:
 
 		if (ros::service::call("/arduino_servo_control/set_servo_angles", ang))
 		{
-				ROS_DEBUG("Gate closed");
+				ROS_INFO("Gate closed");
 		}
 	}
 
 	bool pickupSequence(robo7_srvs::PickupAt::Request &req,
          robo7_srvs::PickupAt::Response &res)
 	{
- 		geometry_msgs::Twist obejct_pos_robot = req.object_pos;
 	  ROS_INFO("Pickup sequence started");
+
+		geometry_msgs::Twist obejct_pos_robot = req.object_pos;
 
 		openGate();
 		// placeholder sleep
 		usleep(2*1000000);
 
+		ROS_INFO("Computing object position");
+
 		geometry_msgs::Twist object_pos;
 		object_pos.linear.x = (obejct_pos_robot.linear.x * cos(robot_pos_tet) + obejct_pos_robot.linear.y * sin(robot_pos_tet)) + robot_pos_x;
 		object_pos.linear.y = (obejct_pos_robot.linear.x * sin(robot_pos_tet) + obejct_pos_robot.linear.y * cos(robot_pos_tet)) + robot_pos_y;
 
+		ROS_INFO("Publishing position");
+
 		go_to_pub.publish(object_pos);
 
 		usleep(1000000);
+		at_point = false;
+
+		ROS_INFO("destination updated");
 
 		while (!at_point){
-			// do nothing
+			// usleep(1000000);
+		  ros::spinOnce();
 		}
+
+		// usleep(5*1000000);
 
 		closeGate();
 		// placeholder sleep
@@ -119,13 +130,15 @@ int main(int argc, char **argv)
 
 	ros::Rate loop_rate(100);
 
-	ROS_DEBUG("Gate controller server running");
+	ROS_INFO("Gate controller server running");
 
-	while (gate_controller_server.n.ok())
-	{
-		ros::spinOnce();
-		loop_rate.sleep();
-	}
+	ros::spin();
+	// while (gate_controller_server.n.ok())
+	// {
+	// 	ROS_INFO("In");
+	// 	ros::spinOnce();
+	// 	loop_rate.sleep();
+	// }
 
 	return 0;
 }

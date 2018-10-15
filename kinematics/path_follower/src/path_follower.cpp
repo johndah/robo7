@@ -42,7 +42,7 @@ bool danger;
 float P = 1;
 float dist_left;
 float diff_angle;
-float dist_threshold = 0.1;
+float dist_threshold = 0.05;
 float angle_ref_max = pi/4;
 
 bool arrived;
@@ -56,14 +56,15 @@ double duration;
 void destination_callback(const geometry_msgs::Twist::ConstPtr &msg)
 {
   dest_twist = *msg;
-  if((x_point != dest_twist.linear.x)||(y_point != dest_twist.linear.y))
-  {
-    new_point = true;
-  }
-  else
-  {
-    new_point = false;
-  }
+  arrived = false;
+  // if((x_point != dest_twist.linear.x)||(y_point != dest_twist.linear.y))
+  // {
+  //   new_point = true;
+  // }
+  // else
+  // {
+  //   new_point = false;
+  // }
   x_point = dest_twist.linear.x;
   y_point = dest_twist.linear.y;
   last_msg = std::clock();
@@ -132,13 +133,13 @@ int main(int argc, char **argv)
   ros::Publisher desired_velocity = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
   ros::Publisher dest_point = n.advertise<geometry_msgs::Twist>("/point_destination_robot", 1);
   ros::Publisher robot_arrived = n.advertise<std_msgs::Bool>("/robot_arrived", 1);
-  // ros::Publisher help = n.advertise<geometry_msgs::Twist>("/help_info", 1);
+  ros::Publisher help = n.advertise<geometry_msgs::Twist>("/help_info", 1);
 
   ros::Rate loop_rate(freq);
 
   ROS_INFO("Running twist_interpreter");
 
-  stds_msg::Bool is_robot_arrived;
+  std_msgs::Bool is_robot_arrived;
   geometry_msgs::Twist help_msg;
   geometry_msgs::Twist point_plot;
 
@@ -155,28 +156,26 @@ int main(int argc, char **argv)
     dist_left = sqrt(pow(x_point_robot,2) + pow(y_point_robot,2));
     diff_angle = findangle(x_point_robot, y_point_robot);
 
+    if(dist_left < dist_threshold)
+    {
+        arrived = true;
+        desire_vel.linear.x = 0;
+        desire_vel.angular.z = 0;
+    }
+
     if((!arrived)&&(!problem))
     {
-      if(dist_left < dist_threshold)
+      if(sgn(diff_angle)*diff_angle > angle_ref_max)
       {
-          arrived = true;
-          desire_vel.linear.x = 0;
-          desire_vel.angular.z = 0;
+        help_msg.linear.x = 1;
+        desire_vel.linear.x = 0;
+        desire_vel.angular.z = P * diff_angle;
       }
       else
       {
-        if(sgn(diff_angle)*diff_angle > angle_ref_max)
-        {
-          help_msg.linear.x = 1;
-          desire_vel.linear.x = 0;
-          desire_vel.angular.z = P * diff_angle;
-        }
-        else
-        {
-          help_msg.linear.x = 0;
-          desire_vel.linear.x = aver_lin_vel;
-          desire_vel.angular.z = P * diff_angle;
-        }
+        help_msg.linear.x = 0;
+        desire_vel.linear.x = aver_lin_vel;
+        desire_vel.angular.z = P * diff_angle;
       }
     }
     else if(problem)
@@ -185,28 +184,26 @@ int main(int argc, char **argv)
       desire_vel.angular.z = 0;
     }
 
-    if(new_point)
-    {
-      help_msg.linear.y = 1;
-      arrived = false;
-      // problem = false;
-    }
+    // if(dist_left > dist_threshold)
+    // {
+    //   arrived = false;
+    // }
 
-    // if(arrived){help_msg.angular.x = 1;}else{help_msg.angular.x = 0;}
+    if(arrived){help_msg.angular.x = 1;}else{help_msg.angular.x = 0;}
     // if(problem){help_msg.linear.z = 1;}else{help_msg.linear.z = 0;}
 
 
     help_msg.angular.y = diff_angle;
     help_msg.angular.z = angle_ref_max;
-    help_msg.angular.x = x_point_robot;
+    // help_msg.angular.x = x_point_robot;
     help_msg.linear.z = y_point_robot;
 
     is_robot_arrived.data = arrived;
 
-    robot_arrived.publish( arrived );
+    robot_arrived.publish( is_robot_arrived );
     dest_point.publish( point_plot);
     desired_velocity.publish(desire_vel);
-    // help.publish(help_msg);
+    help.publish(help_msg);
     loop_rate.sleep();
   }
 
