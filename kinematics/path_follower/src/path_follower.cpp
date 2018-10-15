@@ -31,7 +31,7 @@ float robot_y;
 float robot_theta;
 
 // Average velocity of the robot
-float aver_lin_vel = 0.3;
+float aver_lin_vel;
 float x_point_robot;
 float y_point_robot;
 
@@ -95,20 +95,43 @@ int sgn(float v)
   else return 0;
 }
 
+float findangle(float x, float y)
+{
+  if(x==0)
+  {
+    return pi*sgn(y);
+  }
+  else if((x<0)&&(y>0))
+  {
+    return atan(y/x) + pi;
+  }
+  else if ((x<0)&&(y<0))
+  {
+    return atan(y/x) - pi;
+  }
+  else
+  {
+    return atan(y/x);
+  }
+  // return atan(x/y);
+}
+
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "path_follower");
 
   ros::NodeHandle n("~");
 
-  n.param<float>("/path_follower/P", P, 0);
+  n.param<float>("/path_follower/angle_P", P, 0);
+  n.param<float>("/path_follower/linear_speed", aver_lin_vel, 0);
 
   ros::Subscriber twist_sub = n.subscribe("/destination_point", 1, destination_callback);
   ros::Subscriber robot_position = n.subscribe("/deadreckogning/Pos", 1, position_callBack);
   ros::Subscriber breaker = n.subscribe("/break_info", 1, break_callBack);
   ros::Publisher desired_velocity = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
   ros::Publisher dest_point = n.advertise<geometry_msgs::Twist>("/point_destination_robot", 1);
-  ros::Publisher help = n.advertise<geometry_msgs::Twist>("/help_info", 1);
+  // ros::Publisher help = n.advertise<geometry_msgs::Twist>("/help_info", 1);
 
   ros::Rate loop_rate(freq);
 
@@ -128,7 +151,7 @@ int main(int argc, char **argv)
     point_plot.linear.y = y_point_robot;
 
     dist_left = sqrt(pow(x_point_robot,2) + pow(y_point_robot,2));
-    diff_angle = atan(y_point_robot/x_point_robot);
+    diff_angle = findangle(x_point_robot, y_point_robot);
 
     if((!arrived)&&(!problem))
     {
@@ -178,7 +201,7 @@ int main(int argc, char **argv)
 
     dest_point.publish(point_plot);
     desired_velocity.publish(desire_vel);
-    help.publish(help_msg);
+    // help.publish(help_msg);
     loop_rate.sleep();
   }
 

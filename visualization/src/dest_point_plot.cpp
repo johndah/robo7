@@ -36,8 +36,8 @@ public:
 
   void updatePoint()
   {
-    geometry_msgs::Point point;
     geometry_msgs::PointStamped pointer;
+    geometry_msgs::Point point;
     std_msgs::Header _header;
 
     _header.frame_id = "robot";

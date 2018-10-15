@@ -11,7 +11,7 @@ geometry_msgs::Twist dest_twist;
 geometry_msgs::Twist pos_twist;
 geometry_msgs::Twist desire_vel;
 
-int freq = 10;
+int freq = 30;
 float pi = 3.14159;
 int break_scalar = 5;
 
@@ -24,6 +24,8 @@ double max_allowed_speed = 25; //rad.s-1
 int way_moving;
 float L_vel;
 float R_vel;
+float lin_velocity;
+float lin_threshold = 0.1;
 
 //Ellipse form of non possible zone
 float a = 0.15 + 0.07;
@@ -104,21 +106,30 @@ int main(int argc, char **argv)
 
   ros::Subscriber laser_scan = n.subscribe("/scan", 1, &laser_scan_callBack);
   ros::Subscriber estim_L_om = n.subscribe("/l_motor/estimated_vel", 1, &vel_L_callBack);
-  ros::Subscriber estim_R_om = n.subscribe("/l_motor/estimated_vel", 1, &vel_R_callBack);
+  ros::Subscriber estim_R_om = n.subscribe("/r_motor/estimated_vel", 1, &vel_R_callBack);
   ros::Publisher breaker = n.advertise<std_msgs::Bool>("/break_info", 1);
-  // ros::Publisher help = n.advertise<geometry_msgs::Twist>("/help_info", 1);
+  ros::Publisher help = n.advertise<geometry_msgs::Twist>("/help_info", 1);
 
   ros::Rate loop_rate(freq);
 
   std_msgs::Bool bool_msg;
-  // geometry_msgs::Twist help_msg;
+  geometry_msgs::Twist help_msg;
 
 
   while (ros::ok())
   {
     ros::spinOnce();
 
-    way_moving = sgn(linear_speed(L_vel, R_vel));
+    lin_velocity = linear_speed(L_vel, -R_vel);
+    if(lin_velocity < lin_threshold)
+    {
+      way_moving = 0;
+    }
+    else
+    {
+      way_moving = sgn(lin_velocity);
+    }
+
 
 
     //Number of points too close
@@ -138,7 +149,7 @@ int main(int argc, char **argv)
               }
       }
     }
-    else
+    else if(way_moving > 0)
     {
       for(int i=0; i<points_distances.size(); i++)
       {
@@ -157,12 +168,15 @@ int main(int argc, char **argv)
 
     bool_msg.data = break_info;
 
-    // help_msg.linear.x = way_moving;
-    // help_msg.angular.x = wrapAngle(-pi/2 + lidar_angle);
-    // help_msg.angular.y = wrapAngle(pi/2 + lidar_angle);
+    help_msg.linear.x = way_moving;
+    help_msg.linear.y = lin_velocity;
+    help_msg.linear.z = lin_threshold;
+    help_msg.angular.x = L_vel;
+    help_msg.angular.y = R_vel;
+    help_msg.angular.z = lin_threshold;
 
     breaker.publish(bool_msg);
-    // help.publish(help_msg);
+    help.publish(help_msg);
     loop_rate.sleep();
 
   }

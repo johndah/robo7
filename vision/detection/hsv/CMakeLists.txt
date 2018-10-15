@@ -37,3 +37,12 @@ ${OpenCV_LIBRARIES})
 
 add_dependencies(color_detect ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) 
 
+
+add_executable(obstacle_detection src/obstacle_detection.cpp)
+
+target_link_libraries(obstacle_detection 
+${catkin_LIBRARIES} 
+${OpenCV_LIBRARIES})
+
+add_dependencies(obstacle_detection ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) 
+
