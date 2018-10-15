@@ -1,8 +1,8 @@
 <launch>
 
-  <!--
+  
   <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
-  -->
+
 
   <node pkg="ras_maze_map" type="ras_maze_map_node" name="maze_map"
         args="_map_file:=$(find deadreckogning)/maps/lab_maze_2018.txt"/>

@@ -172,6 +172,10 @@ int main(int argc, char **argv)
                 M_close++;
               }
       }
+      if(obstacle_cam)
+      {
+        M_close += M_max;
+      }
     }
 
 
