@@ -44,14 +44,6 @@ public:
     {
       pCloud_cam = msg;
 
-      // ROS_INFO("width: %d", msg.width);
-      // ROS_INFO("height: %d", msg.height);
-      // ROS_INFO("row_step: %d", msg.row_step);
-      // ROS_INFO("point_step: %d", msg.point_step);
-      // ROS_INFO("offset x: %d", msg.fields[0].offset);
-      // ROS_INFO("offset y: %d", msg.fields[1].offset);
-      // ROS_INFO("offset z: %d", msg.fields[2].offset);
-
     }
 
     geometry_msgs::Point pixelTo3DPoint(const sensor_msgs::PointCloud2 pCloud, const int u, const int v)
@@ -95,7 +87,7 @@ public:
   		cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
 
       // binary image filtered by color threshold
-      Mat result = HSVthreshold::colorFilter(cv_ptr->image, 0-1, 180, 125-1, 255, 84-1, 164, 6, 0);
+      Mat result = HSVthreshold::colorFilter(cv_ptr->image, 40-1, 72, 84-1, 255, 54-1, 146, 2, 6);
 
       // find contours
       vector<vector<Point> > contours;
@@ -106,6 +98,8 @@ public:
 
       // draw rectangle
       Mat origImg = cv_ptr->image;
+      geometry_msgs::Point pos;
+
       for (int i=0; i<contours.size(); i++)
       {
         if (contours[i].size() > 80)
@@ -118,32 +112,43 @@ public:
           Point center = (boundRect[i].tl()+boundRect[i].br())/2;
           circle(origImg, center, 2, Scalar(0,0,255), 2, 8, 0);
 
-          //
-          geometry_msgs::Point temp;
-          geometry_msgs::Point pos;
+          
 
           if (pCloud_cam.width != 0)
           {
-
-            for (int j=0; i<4; j++)
+            pos = pixelTo3DPoint(pCloud_cam, center.x, center.y);
+            if (isnan(pos.x))
             {
-              for (int k=0; k<2; k++)
+              // get other 4 pixels around center
+              for (int j=-1; j<2; j=j+2)
               {
-                temp = pixelTo3DPoint(pCloud_cam, center.x, center.y);
-              }
+                pos = pixelTo3DPoint(pCloud_cam, center.x + j, center.y);
+                if (!isnan(pos.x))
+                  break;
 
+                for (int k=-1; j<2; k=k+2)
+                {
+                  pos = pixelTo3DPoint(pCloud_cam, center.x, center.y + k);
+
+                  if (!isnan(pos.x))
+                    break;
+                }
+                if (!isnan(pos.x))
+                  break;
+              }
             }
+
             ROS_INFO("center x: %d", center.x);
             ROS_INFO("center y: %d", center.y);
-            ROS_INFO("x: %f", p.x);
-            ROS_INFO("y: %f", p.y);
-            ROS_INFO("z: %f", p.z);
-
+            ROS_INFO("final_x: %f", pos.x);
+            ROS_INFO("final_y: %f", pos.y);
+            ROS_INFO("final_z: %f", pos.z);
           }
 
         }
       }
 
+      obj_pos_pub.publish(pos);
       imshow("Original image", origImg);
       cv::waitKey(3);
 
