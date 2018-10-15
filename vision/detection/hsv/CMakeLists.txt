@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_transport
   std_msgs
+  geometry_msgs
   roscpp
 )
 
@@ -13,7 +14,7 @@ find_package(OpenCV REQUIRED)
 
 catkin_package(
   DEPENDS
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge image_transport
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge geometry_msgs image_transport
 )
 
 include_directories(include 
@@ -27,4 +28,12 @@ ${catkin_LIBRARIES}
 ${OpenCV_LIBRARIES})
 
 add_dependencies(adjust_threshold ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) 
+
+add_executable(color_detect src/color_detect.cpp)
+
+target_link_libraries(color_detect 
+${catkin_LIBRARIES} 
+${OpenCV_LIBRARIES})
+
+add_dependencies(color_detect ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) 
 
