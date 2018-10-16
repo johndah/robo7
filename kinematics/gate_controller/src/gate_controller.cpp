@@ -76,7 +76,6 @@ public:
 
 		openGate();
 		// placeholder sleep
-		usleep(2*1000000);
 
 		ROS_INFO("Computing object position");
 
@@ -86,11 +85,12 @@ public:
 
 		ROS_INFO("Publishing position");
 
+		usleep(1000000);
 		go_to_pub.publish(object_pos);
 
-		usleep(1000000);
 		at_point = false;
 
+		usleep(1000000);
 		ROS_INFO("destination updated");
 
 		while (!at_point){
@@ -98,7 +98,7 @@ public:
 		  ros::spinOnce();
 		}
 
-		// usleep(5*1000000);
+		usleep(2*1000000);
 
 		closeGate();
 		// placeholder sleep

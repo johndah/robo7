@@ -1,0 +1,22 @@
+<launch>
+
+  <include file="$(find motors)/launch/motors.launch"/>
+
+  <include file="$(find gate_controller)/launch/gate.launch"/>
+
+  <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" output="screen"/>
+
+  <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>
+
+  <!--
+   <node pkg="localization" type="ICP" name="ICP"/>
+   -->
+   <node pkg="deadreckogning" type="deadreckogning" name="deadreckogning">
+     <param name="initial_x_pos" type="double" value="0.215"/>
+     <param name="initial_y_pos" type="double" value="0.2"/>
+     <param name="initial_z_angle" type="double" value="1.57"/>
+     <param name="linear_adjustment" type="double" value="0.0481"/>
+     <param name="angular_adjustment" type="double" value="0.0235"/>
+   </node>
+
+</launch>

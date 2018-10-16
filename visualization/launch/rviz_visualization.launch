@@ -1,31 +1,22 @@
 <launch>
 
-  
+
   <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
 
 
   <node pkg="ras_maze_map" type="ras_maze_map_node" name="maze_map"
         args="_map_file:=$(find deadreckogning)/maps/lab_maze_2018.txt"/>
 
- <!--
-  <node pkg="localization" type="ICP" name="ICP"/>
-  -->
-  <node pkg="deadreckogning" type="deadreckogning" name="deadreckogning">
-    <param name="initial_x_pos" type="double" value="0.215"/>
-    <param name="initial_y_pos" type="double" value="0.2"/>
-    <param name="initial_z_angle" type="double" value="1.57"/>
-    <param name="linear_adjustment" type="double" value="0.0481"/>
-    <param name="angular_adjustment" type="double" value="0.0235"/>
-  </node>
-
-  <node pkg="pathplanning" type="pathplanning" name="pathplanning">
-  </node>
+  <!-- <node pkg="pathplanning" type="pathplanning" name="pathplanning">
+  </node> -->
 
   <node pkg="visualization" type="visualization" name="visualization">
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
 
   <node pkg="tf" name="lidar_plot" type="static_transform_publisher" args="0 0 0.1 0 0 3.14 0 /robot /laser 100" />
+
+  <node pkg="tf" name="object_plot" type="static_transform_publisher" args="0.1 0 0.15 0 1.57 0 /robot /cam 100" />
 
   <node pkg="visualization" type="paths" name="paths"/>
 

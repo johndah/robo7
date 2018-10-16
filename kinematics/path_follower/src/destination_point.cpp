@@ -44,12 +44,9 @@ int main(int argc, char **argv)
   twist_point.linear.x = x_dest;
   twist_point.linear.y = y_dest;
 
-  while (ros::ok())
-  {
-    ros::spinOnce();
-    dest_point.publish(twist_point);
-    loop_rate.sleep();
-  }
+  ros::spinOnce();
+  dest_point.publish(twist_point);
+  loop_rate.sleep();
 
   return 0;
 }

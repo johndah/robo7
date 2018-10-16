@@ -70,7 +70,7 @@ int main(int argc, char **argv)
     //ROS_INFO("des_l: %e , des_r: %e", des_l, des_r);
 
     duration = ( std::clock() - last_msg ) / (double) CLOCKS_PER_SEC;
-    ROS_INFO("duration: %e", duration );
+    // ROS_INFO("duration: %e", duration );
     if(duration > msg_timeout){
       ref_vels.W_l = 0;
       ref_vels.W_r = 0;
