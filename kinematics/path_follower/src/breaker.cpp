@@ -28,8 +28,8 @@ float lin_velocity;
 float lin_threshold = 0.1;
 
 //Ellipse form of non possible zone
-float a = 0.15 + 0.1;
-float b = 0.15;
+float a = 0.15 + 0.2;
+float b = 0.10;
 float c = sqrt(pow(a,2)-pow(b,2));
 
 //Couting points
