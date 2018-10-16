@@ -43,7 +43,7 @@ float P = 1;
 float dist_left;
 float diff_angle;
 float dist_threshold = 0.05;
-float angle_ref_max = pi/4;
+float angle_ref_max = pi/8;
 
 bool arrived;
 bool problem = false;
