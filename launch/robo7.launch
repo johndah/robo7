@@ -1,0 +1,7 @@
+<launch>
+
+  <include file="$(find robo7)/launch/hardware.launch"/>
+  <include file="$(find robo7)/launch/kinematics.launch"/>
+
+
+</launch>

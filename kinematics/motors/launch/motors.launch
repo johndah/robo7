@@ -1,10 +1,5 @@
 <launch>
 
-  <node pkg="phidgets" type="motor" name="l_motor"
-        args="_serial:=469412 _name:=l_motor _frequency:=10" />
-  <node pkg="phidgets" type="motor" name="r_motor"
-        args="_serial:=469741 _name:=r_motor _frequency:=10" />
-
   <node pkg="motors" type="motor_controller" name="motor_controller">
     <param name="l_P" type="double" value="0.8"/>
     <param name="l_I" type="double" value="7.5"/>
@@ -14,9 +9,5 @@
     <param name="r_I" type="double" value="7.25"/>
     <param name="r_D" type="double" value="0.001"/>
   </node>
-
-  <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" />
-
-  <node pkg="path_follower" type="breaker" name="breaker" />
 
 </launch>

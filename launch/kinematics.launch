@@ -1,0 +1,9 @@
+<launch>
+
+  <include file="$(find motors)/launch/motors.launch"/>
+
+  <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" output="screen"/>
+
+  <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>
+
+</launch>
