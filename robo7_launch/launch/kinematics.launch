@@ -21,7 +21,7 @@
 
 
    <node pkg="path_follower" type="path_follower" name="path_follower">
-     <param name="angle_P" type="double" value="2"/>
+     <param name="angle_P" type="double" value="1"/>
      <param name="linear_speed" type="double" value="0.3"/>
    </node>
 
