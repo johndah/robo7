@@ -26,13 +26,13 @@ public:
     n = ros::NodeHandle("~");
 
     //Initialisation of the position
-    nh.param<float>("/deadreckoning/initial_x_pos", x_pos, 0);
-    nh.param<float>("/deadreckoning/initial_y_pos", y_pos, 0);
-    nh.param<float>("/deadreckoning/initial_z_angle", z_angle, 0);
+    nh.param<float>("/dead_reckoning/initial_x_pos", x_pos, 0);
+    nh.param<float>("/dead_reckoning/initial_y_pos", y_pos, 0);
+    nh.param<float>("/dead_reckoning/initial_z_angle", z_angle, 0);
 
     //Definition of the adjustment parameters
-    nh.param<float>("/deadreckoning/linear_adjustment", linear_adjustment, 0);
-    nh.param<float>("/deadreckoning/angular_adjustment", angular_adjustment, 0);
+    nh.param<float>("/dead_reckoning/linear_adjustment", linear_adjustment, 0);
+    nh.param<float>("/dead_reckoning/angular_adjustment", angular_adjustment, 0);
 
     x2_pos = x_pos;
     y2_pos = y_pos;
@@ -145,7 +145,7 @@ public:
     twist_msg.angular.y = 0;
     twist_msg.angular.z = z_angle;
 
-    ROS_INFO("Publishing in deadreckoning with x: %f", x_pos);
+    ROS_INFO("Publishing in dead_reckoning with x: %f", x_pos);
 
     //Send the datas
     robot_position1.publish(twist_msg);
@@ -230,15 +230,15 @@ private:
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "deadreckoning");
+    ros::init(argc, argv, "dead_reckoning");
 
-    deadReckoning dead_reckoning;
+    deadReckoning _dead_reckoning;
 
     ros::Rate loop_rate(control_frequency);
 
-    while(dead_reckoning.n.ok())
+    while(_dead_reckoning.n.ok())
     {
-        dead_reckoning.updatePosition();
+        _dead_reckoning.updatePosition();
         ros::spinOnce();
         loop_rate.sleep();
     }
