@@ -1,0 +1,10 @@
+Blue Cube	      0.14	1.219
+Blue Triangle	  2.066	0.156
+Booby-trap	    0.19	1.56
+Green cube	    2.329	1.651
+Purple star	    2.305	3.043
+Purple cross	  1.083	2.986
+Red cube	      0.833	4.029
+Red hollow cube	0.635	3.914
+Orange star	    1.653	4.145
+Yellow sphere	  1.755	4.019

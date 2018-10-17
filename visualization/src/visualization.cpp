@@ -38,21 +38,21 @@ public:
     z_pos = 0;
     nh.param<float>("/visualization/lidar_angle", lidar_angle, 0);
 
-    robot_position1 = n.subscribe("/deadreckogning/Pos", 1, &markerRviz::deadReckogning_callBack, this);
-    robot_position3 = n.subscribe("/deadreckogning/Pos2", 1, &markerRviz::deadReckogning3_callBack, this);
+    robot_position1 = n.subscribe("/deadreckoning/Pos", 1, &markerRviz::deadReckoning_callBack, this);
+    robot_position3 = n.subscribe("/deadreckoning/Pos2", 1, &markerRviz::deadReckoning3_callBack, this);
 
     marker_parameters1 = n.advertise<visualization_msgs::Marker>("robotMarker", 1);
     marker_parameters2 = n.advertise<visualization_msgs::Marker>("robotMarker2", 1);
   }
 
-  void deadReckogning_callBack(const geometry_msgs::Twist::ConstPtr &msg)
+  void deadReckoning_callBack(const geometry_msgs::Twist::ConstPtr &msg)
   {
       x_pos = msg->linear.x;
       y_pos = msg->linear.y;
       z_angle = msg->angular.z;
   }
 
-  void deadReckogning3_callBack(const geometry_msgs::Twist::ConstPtr &msg)
+  void deadReckoning3_callBack(const geometry_msgs::Twist::ConstPtr &msg)
   {
       x3_pos = msg->linear.x;
       y3_pos = msg->linear.y;
