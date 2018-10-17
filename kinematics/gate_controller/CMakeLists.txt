@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 catkin_package(
- CATKIN_DEPENDS roscpp std_msgs geometry_msgs arduino_servo_control
+ CATKIN_DEPENDS roscpp std_msgs geometry_msgs robo7_srvs arduino_servo_control
 )
 
 include_directories(

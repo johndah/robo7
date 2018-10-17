@@ -1,9 +1,8 @@
 # gate_controller
 
-Opens and closes the gate ("gripper") based on a <std_msgs/Bool> message on the
-<gate_closed> topic.
-
-For example:gate_closed, true closes the gate
+The gate controller listen to service calls on ""/gate_controller/pickup_at"
+with a twist message of where to pick up the object. The twist message is in
+relation to the robot position
 
 requires:
 ```

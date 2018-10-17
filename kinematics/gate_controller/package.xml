@@ -11,9 +11,9 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>roscpp</build_depend>
-  <build_depend>robo7_srvs</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
+  <build_depend>robo7_srvs</build_depend>
   <build_depend>arduino_servo_control</build_depend>
 
   <build_export_depend>roscpp</build_export_depend>
@@ -23,9 +23,9 @@
   <build_export_depend>arduino_servo_control</build_export_depend>
 
   <exec_depend>roscpp</exec_depend>
-  <exec_depend>robo7_srvs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>robo7_srvs</exec_depend>
   <exec_depend>arduino_servo_control</exec_depend>
 
 
