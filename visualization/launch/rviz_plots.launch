@@ -3,9 +3,6 @@
   <node pkg="ras_maze_map" type="ras_maze_map_node" name="maze_map"
         args="_map_file:=$(find deadreckogning)/maps/lab_maze_2018.txt"/>
 
-  <!-- <node pkg="pathplanning" type="pathplanning" name="pathplanning">
-  </node> -->
-
   <node pkg="visualization" type="visualization" name="visualization">
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
@@ -14,13 +11,11 @@
 
   <node pkg="tf" name="object_plot" type="static_transform_publisher" args="0.1 0 0.15 0 1.57 0 /robot /cam 100" />
 
-  <node pkg="visualization" type="paths" name="paths"/>
-
   <node pkg="ransac" type="scan_to_coordinates" name="scan_to_coordinates">
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
-  <!--
-  -->
+
+  <node pkg="visualization" type="paths" name="paths" output = "screen"/>
 
   <node pkg="visualization" type="laserXY" name="laserXY"/>
 
