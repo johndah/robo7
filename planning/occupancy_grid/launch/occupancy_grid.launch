@@ -1,0 +1,15 @@
+<launch>
+
+  <node pkg="occupancy_grid" type="occupancy_grid" name="occupancy_grid"
+    output="screen">
+
+    <!-- [m] Minimum distance should be at least the robot radius (0.13) -->
+    <param name="min_distance" type="double" value="0.14"/>
+
+    <!--  [m] Distance outside of the min distance where the occupancy grid will
+          smooth the values gradually-->
+    <param name="smooth_distance" type="double" value="0.05"/>
+
+  </node>
+
+</launch>

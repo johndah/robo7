@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS std_msgs message_generation geometry_msg
 add_service_files(
   FILES
   PickupAt.srv
+  IsGridOccupied.srv
 )
 
 

@@ -1,0 +1,13 @@
+# Request
+# The position in x,y coordinates
+
+float32 x
+float32 y
+
+---
+
+# Response
+# 0-1 depending on how occupied the position is.
+# 1 means impossible to drive, 0 is absolutely free. 
+
+float32 occupancy
