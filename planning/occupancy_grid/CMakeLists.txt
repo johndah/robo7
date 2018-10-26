@@ -16,6 +16,6 @@ include_directories(
  ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(gate_controller src/occupancy_grid_server.cpp)
-target_link_libraries(gate_controller ${catkin_LIBRARIES})
-add_dependencies(gate_controller ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(occupancy_grid_server src/occupancy_grid_server.cpp)
+target_link_libraries(occupancy_grid_server ${catkin_LIBRARIES})
+add_dependencies(occupancy_grid_server ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
