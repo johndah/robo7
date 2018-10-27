@@ -8,13 +8,14 @@
 
 class PathPlanning;
 
-float xt = 3, yt = 3;
+bool path_found = false;
 float pi = 3.14159265358979323846;
+float x_target = 2.0, y_target = 2.0, theta_target = pi/2;
+
 
 class Node
 {
   public:
-	//template <class T>;
 	float x, y, theta;
 	float control, time;
 	float path_cost, cost_to_come;
@@ -35,7 +36,7 @@ class Node
 		this->path_cost = path_cost;
 		this->cost_to_come = cost_to_come;
 
-		this->tolerance_radius = 3e-3;
+		this->tolerance_radius = 1e-1;
 		this->tolerance_angle = pi / 8;
 	}
 
@@ -46,7 +47,7 @@ class Node
 
 	float getHeuristicCost()
 	{
-		return sqrt(pow(x - xt, 2.0) + pow(y - yt, 2.0));
+		return sqrt(pow(x - x_target, 2.0) + pow(y - y_target, 2.0));
 	}
 
 	float distanceSquared(Node other_node)
@@ -56,8 +57,8 @@ class Node
 
 	bool inCollision()
 	{
-		// Todo
-		return false;
+		//return false;
+		return this->x > 3.0 || this->x < 0.0 || this->y > 3.0 || this->y < 0.0;
 	}
 
 	bool isClose(Node other)
@@ -75,17 +76,18 @@ class PathPlanning
 {
   public:
 	ros::NodeHandle nh;
-	ros::Publisher paths_pub;
+	ros::Publisher paths_pub, start_goal_pub;
 	ros::Subscriber robot_position;
 
 	//Initialisation
 	float x0, y0, theta0, position_updated;
 
-	PathPlanning(ros::NodeHandle nh, ros::Publisher paths_pub)
+	PathPlanning(ros::NodeHandle nh, ros::Publisher paths_pub, ros::Publisher start_goal_pub)
 	{
 
 		this->nh = nh;
 		this->paths_pub = paths_pub;
+		this->start_goal_pub = start_goal_pub;
 		robot_position = nh.subscribe("/deadreckogning/Pos", 1000, &PathPlanning::getPositionCallBack, this);
 
 	}
@@ -102,33 +104,37 @@ class PathPlanning
 
 	std::vector<Node> getSuccessorNodes(Node node)
 	{
-		float delta, delta_resolution, angular_velocity, angle_diff_tol, cost_to_come;
+		float delta, delta_resolution, steering_angle_max, angle_diff_tol, angular_velocity_resolution, cost_to_come, path_length;
 		std::vector<Node> successors;
 
-		delta_resolution = pi / 4.0;
+
+		path_length = 0.8;
+		steering_angle_max = pi/2;
+		angular_velocity_resolution = pi / 10;
 
 		angle_diff_tol = 1e-1;
 
-		for (float delta = -pi; delta < pi; delta += delta_resolution)
+
+		for (float angular_velocity = -steering_angle_max; angular_velocity <= steering_angle_max; angular_velocity += angular_velocity_resolution)
 		{
 			float x, y, theta, path_cost, dt, t;
 			x = node.x;
 			y = node.y;
 			theta = node.theta;
 
-			angular_velocity = -pi / 4.0 * (float)((theta - delta > 0) - (theta - delta < -1.0e-3));
+			//angular_velocity = -pi / 4.0 * (float)((theta - delta > 0) - (theta - delta < -1.0e-3));
 			//ROS_INFO("x: %f    y %f   th %f   delta %f   angular_velocity %f    path_cost: %f   t: %f", (float)((theta - delta > 0) - (theta - delta < 0)), y, theta, delta, angular_velocity, (float)(theta - delta > 0), theta - delta);
 
 			t = 0.0;
 			dt = 0.04;
 
 			std::vector<float> path_x, path_y;
-			path_cost = 0.0f;
+			//path_cost = 0.0f;
 			cost_to_come = node.cost_to_come;
 
 			//while (std::abs(delta - theta) > angle_diff_tol)
 			//for (int i = 0; i < 50; i++)
-			while (t < 1)
+			while (t < path_length)
 			{
 				//ROS_INFO("x: %f    y %f   th %f   delta %f   angular_velocity %f    path_cost: %f   t: %f", x, y, theta, delta, angular_velocity, path_cost, t);
 				float diff = std::abs(delta - theta);
@@ -140,13 +146,13 @@ class PathPlanning
 				path_x.push_back(x);
 				path_y.push_back(y);
 
-				path_cost += sqrt(pow(cos(theta), 2.0) + pow(sin(theta), 2.0));
+				//path_cost += sqrt(pow(cos(theta), 2.0) + pow(sin(theta), 2.0));
 			}
 			//ROS_INFO("delta: %f    theta %f ", delta, theta);
 
 			cost_to_come += path_cost;
 
-			Node successor_node = Node(x, y, theta, angular_velocity, t, path_x, path_y, path_cost, cost_to_come);
+			Node successor_node = Node(x, y, theta, angular_velocity, t, path_x, path_y, path_length, cost_to_come);
 
 			successors.push_back(successor_node);
 		}
@@ -156,26 +162,35 @@ class PathPlanning
 
 	robo7_msgs::paths getPath()
 	{
-		float randomInt, goal_radius_tolerance;
+		float randomInt, goal_radius_tolerance, angle_tolerance;
 		std::vector<float> path_x, path_y;
+		std::vector<float> start_goal_x(2), start_goal_y(2);
 		std::vector<Node> successors, alive_nodes, dead_nodes;
-		robo7_msgs::path path_msg;
+		robo7_msgs::path path_msg, start_goal_msg;
 		robo7_msgs::paths paths_msg;
 
-		goal_radius_tolerance = .3;
+		goal_radius_tolerance = .2;
+		angle_tolerance = pi/4;
 
 		if (position_updated)
 		{
 
 			Node node_start = Node(x0, y0, pi / 2, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f);
-			Node node_target = Node(xt, yt, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f);
+			Node node_target = Node(x_target, y_target, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f);
 
 			alive_nodes.push_back(node_start);
 
+			start_goal_x[0] = x0;
+			start_goal_x[1] = x_target;
+			start_goal_y[0] = y0;
+			start_goal_y[1] = y_target;
+
+			start_goal_msg.path_x = start_goal_x;
+			start_goal_msg.path_y = start_goal_y;
+
 			while (!alive_nodes.empty())
 			{
-				//ROS_INFO("size alive: %d", (int)alive_nodes.size());
-				//ROS_INFO("size dead: %d", (int)dead_nodes.size());
+				start_goal_pub.publish(start_goal_msg);
 				Node &node_current = alive_nodes[0];
 				node_current.alive_node_index = 0;
 				float cost = node_current.getCost();
@@ -192,9 +207,11 @@ class PathPlanning
 					}
 				}
 
-				if (node_current.distanceSquared(node_target) < goal_radius_tolerance)
+				if (node_current.distanceSquared(node_target) < goal_radius_tolerance  && std::abs(node_current.theta - theta_target) < angle_tolerance)
 				{
 					ROS_INFO("Goal reached");
+					path_found = true;
+					break;
 				}
 
 				alive_nodes.erase(alive_nodes.begin() + node_current.alive_node_index);
@@ -265,16 +282,15 @@ int main(int argc, char **argv)
 	nh = ros::NodeHandle("~");
 
 	ros::Publisher paths_pub = nh.advertise<robo7_msgs::paths>("paths_vector", 1000);
+	ros::Publisher start_goal_pub = nh.advertise<robo7_msgs::path>("start_goal", 1000);
 
-
-
-	PathPlanning path_planning = PathPlanning(nh, paths_pub);
+	PathPlanning path_planning = PathPlanning(nh, paths_pub, start_goal_pub);
 
 	ros::Rate loop_rate(control_frequency);
 
 	robo7_msgs::paths paths_msg;
 
-	while (nh.ok())
+	while (nh.ok() && !path_found)
 	{
 		paths_msg = path_planning.getPath();
 
