@@ -9,7 +9,7 @@ geometry_msgs::Twist dest_twist;
 geometry_msgs::Twist pos_twist;
 geometry_msgs::Twist desire_vel;
 
-int freq = 10;
+int freq = 30;
 float pi = 3.14159;
 int break_scalar = 5;
 
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
   n.param<float>("/path_follower/linear_speed", aver_lin_vel, 0);
 
   ros::Subscriber twist_sub = n.subscribe("/destination_point", 1, destination_callback);
-  ros::Subscriber robot_position = n.subscribe("/deadreckogning/Pos", 1, position_callBack);
+  ros::Subscriber robot_position = n.subscribe("/dead_reckoning/Pos", 1, position_callBack);
   ros::Subscriber breaker = n.subscribe("/break_info", 1, break_callBack);
   ros::Publisher desired_velocity = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
   ros::Publisher dest_point = n.advertise<geometry_msgs::Twist>("/point_destination_robot", 1);
@@ -184,10 +184,10 @@ int main(int argc, char **argv)
       desire_vel.angular.z = 0;
     }
 
-    // if(dist_left > dist_threshold)
-    // {
-    //   arrived = false;
-    // }
+    if(dist_left > dist_threshold)
+    {
+      arrived = false;
+    }
 
     if(arrived){help_msg.angular.x = 1;}else{help_msg.angular.x = 0;}
     // if(problem){help_msg.linear.z = 1;}else{help_msg.linear.z = 0;}

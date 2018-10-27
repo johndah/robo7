@@ -9,7 +9,7 @@
 // Control @ 10 Hz
 double control_frequency = 100.0;
 
-class deadReckogning
+class deadReckoning
 {
 public:
   ros::NodeHandle n;
@@ -21,18 +21,18 @@ public:
   ros::Publisher robot_position1;
   ros::Publisher robot_position2;
 
-  deadReckogning()
+  deadReckoning()
   {
     n = ros::NodeHandle("~");
 
     //Initialisation of the position
-    nh.param<float>("/deadreckogning/initial_x_pos", x_pos, 0);
-    nh.param<float>("/deadreckogning/initial_y_pos", y_pos, 0);
-    nh.param<float>("/deadreckogning/initial_z_angle", z_angle, 0);
+    nh.param<float>("/dead_reckoning/initial_x_pos", x_pos, 0);
+    nh.param<float>("/dead_reckoning/initial_y_pos", y_pos, 0);
+    nh.param<float>("/dead_reckoning/initial_z_angle", z_angle, 0);
 
     //Definition of the adjustment parameters
-    nh.param<float>("/deadreckogning/linear_adjustment", linear_adjustment, 0);
-    nh.param<float>("/deadreckogning/angular_adjustment", angular_adjustment, 0);
+    nh.param<float>("/dead_reckoning/linear_adjustment", linear_adjustment, 0);
+    nh.param<float>("/dead_reckoning/angular_adjustment", angular_adjustment, 0);
 
     x2_pos = x_pos;
     y2_pos = y_pos;
@@ -59,8 +59,8 @@ public:
     //Other parameters
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
 
-    encoder_Left = n.subscribe("/l_motor/encoder", 10, &deadReckogning::encoder_L_callBack, this);
-    encoder_Right = n.subscribe("/r_motor/encoder", 10, &deadReckogning::encoder_R_callBack, this);
+    encoder_Left = n.subscribe("/l_motor/encoder", 10, &deadReckoning::encoder_L_callBack, this);
+    encoder_Right = n.subscribe("/r_motor/encoder", 10, &deadReckoning::encoder_R_callBack, this);
     robot_position1 = n.advertise<geometry_msgs::Twist>("Pos", 10);
     robot_position2 = n.advertise<geometry_msgs::Twist>("Pos2", 10);
 
@@ -145,7 +145,7 @@ public:
     twist_msg.angular.y = 0;
     twist_msg.angular.z = z_angle;
 
-    ROS_INFO("Publishing in deadreckogning with x: %f", x_pos);
+    ROS_INFO("Publishing in dead_reckoning with x: %f", x_pos);
 
     //Send the datas
     robot_position1.publish(twist_msg);
@@ -230,15 +230,15 @@ private:
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "deadreckogning");
+    ros::init(argc, argv, "dead_reckoning");
 
-    deadReckogning dead_reckogning;
+    deadReckoning _dead_reckoning;
 
     ros::Rate loop_rate(control_frequency);
 
-    while(dead_reckogning.n.ok())
+    while(_dead_reckoning.n.ok())
     {
-        dead_reckogning.updatePosition();
+        _dead_reckoning.updatePosition();
         ros::spinOnce();
         loop_rate.sleep();
     }

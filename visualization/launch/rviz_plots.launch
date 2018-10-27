@@ -1,7 +1,10 @@
 <launch>
 
-  <node pkg="ras_maze_map" type="ras_maze_map_node" name="maze_map"
-        args="_map_file:=$(find deadreckogning)/maps/lab_maze_2018.txt"/>
+  <!-- <node pkg="ras_maze_map" type="ras_maze_map_node" name="maze_map"
+        args="_map_file:=$(find deadrckoning)/maps/lab_maze_2018.txt"/> -->
+
+  <node pkg="own_map" type="own_map" name="own_map"
+        args="_map_file:=$(find own_map)/maps/lab_maze_2018.txt"/>
 
   <node pkg="visualization" type="visualization" name="visualization">
     <param name="lidar_angle" type="double" value="3.14"/>

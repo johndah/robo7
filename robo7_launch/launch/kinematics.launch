@@ -11,7 +11,7 @@
     <!--
    <node pkg="localization" type="ICP" name="ICP"/>
    -->
-   <node pkg="deadreckogning" type="deadreckogning" name="deadreckogning">
+   <node pkg="dead_reckogning" type="dead_reckogning" name="dead_reckogning">
      <param name="initial_x_pos" type="double" value="0.215"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
