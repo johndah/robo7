@@ -11,7 +11,7 @@
     <!--
    <node pkg="localization" type="ICP" name="ICP"/>
    -->
-   <node pkg="dead_reckogning" type="dead_reckogning" name="dead_reckogning">
+   <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning">
      <param name="initial_x_pos" type="double" value="0.215"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
@@ -21,6 +21,13 @@
 
   <!--
    -->
+  
+ <node pkg="occupancy_grid" type="occupancy_grid_server" name="occupancy_grid_server" output="screen">
+    <param name="min_distance" type="double" value="0.13"/>
+    <param name="smoothing_kernel_size" type="int" value="3"/>
+    <param name="grid_square_size" type="double" value="0.02"/>
+  </node>  
+
   <node pkg="pathplanning" type="pathplanning" name="pathplanning" output="screen"/>
 
   <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>

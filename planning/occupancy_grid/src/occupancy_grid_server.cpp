@@ -106,7 +106,7 @@ public:
 					stra += "0";
 				}
 			}
-			ROS_INFO(stra.c_str());
+			//ROS_INFO(stra.c_str());
 	 	}
 	}
 
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 	ROS_INFO("Occupancy grid server running");
 
 	occupancy_grid_server.updateGridSize();
-	occupancy_grid_server.printGrid();
+	//occupancy_grid_server.printGrid();
 
 	ros::spin();
 

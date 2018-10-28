@@ -5,17 +5,19 @@
 #include <std_msgs/Float32.h>
 #include <robo7_msgs/path.h>
 #include <robo7_msgs/paths.h>
+#include "robo7_srvs/IsGridOccupied.h"
 
 class PathPlanning;
 
 bool path_found = false;
 float pi = 3.14159265358979323846;
-float x_target = 2.0, y_target = 2.0, theta_target = pi/2;
-
+float x_target = 2.0, y_target = 2.0, theta_target = pi / 2;
 
 class Node
 {
   public:
+	ros::ServiceClient occupancy_client;
+	robo7_srvs::IsGridOccupied occupancy_srv;
 	float x, y, theta;
 	float control, time;
 	float path_cost, cost_to_come;
@@ -24,7 +26,7 @@ class Node
 	std::vector<float> path_x, path_y;
 	int alive_node_index;
 
-	Node(float x, float y, float theta, float control, float time, std::vector<float> path_x, std::vector<float> path_y, float path_cost, float cost_to_come)
+	Node(float x, float y, float theta, float control, float time, std::vector<float> path_x, std::vector<float> path_y, float path_cost, float cost_to_come, ros::ServiceClient occupancy_client)
 	{
 		this->x = x;
 		this->y = y;
@@ -38,6 +40,8 @@ class Node
 
 		this->tolerance_radius = 1e-1;
 		this->tolerance_angle = pi / 8;
+
+		this->occupancy_client = occupancy_client;
 	}
 
 	float getCost()
@@ -57,8 +61,20 @@ class Node
 
 	bool inCollision()
 	{
-		//return false;
-		return this->x > 3.0 || this->x < 0.0 || this->y > 3.0 || this->y < 0.0;
+		this->occupancy_srv.request.x = this->x;
+		this->occupancy_srv.request.y = this->y;
+		if (this->occupancy_client.call(this->occupancy_srv))
+		{
+			ROS_INFO("Getting occupancy in collision detectino");
+			return (int)this->occupancy_srv.response.occupancy;
+		}
+		else
+		{
+
+			ROS_INFO("Not occupancy in collision detectino");
+
+			return this->x > 3.0 || this->x < 0.0 || this->y > 3.0 || this->y < 0.0;
+		}
 	}
 
 	bool isClose(Node other)
@@ -78,17 +94,18 @@ class PathPlanning
 	ros::NodeHandle nh;
 	ros::Publisher paths_pub, start_goal_pub;
 	ros::Subscriber robot_position;
+	ros::ServiceClient occupancy_client;
 
 	//Initialisation
 	float x0, y0, theta0, position_updated;
 
 	PathPlanning(ros::NodeHandle nh, ros::Publisher paths_pub, ros::Publisher start_goal_pub)
 	{
-
 		this->nh = nh;
 		this->paths_pub = paths_pub;
 		this->start_goal_pub = start_goal_pub;
-		robot_position = nh.subscribe("/deadreckogning/Pos", 1000, &PathPlanning::getPositionCallBack, this);
+		robot_position = nh.subscribe("/dead_reckoning/Pos", 1000, &PathPlanning::getPositionCallBack, this);
+		this->occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
 
 	}
 
@@ -107,13 +124,11 @@ class PathPlanning
 		float delta, delta_resolution, steering_angle_max, angle_diff_tol, angular_velocity_resolution, cost_to_come, path_length;
 		std::vector<Node> successors;
 
-
 		path_length = 0.8;
-		steering_angle_max = pi/2;
+		steering_angle_max = pi / 2;
 		angular_velocity_resolution = pi / 10;
 
 		angle_diff_tol = 1e-1;
-
 
 		for (float angular_velocity = -steering_angle_max; angular_velocity <= steering_angle_max; angular_velocity += angular_velocity_resolution)
 		{
@@ -152,7 +167,7 @@ class PathPlanning
 
 			cost_to_come += path_cost;
 
-			Node successor_node = Node(x, y, theta, angular_velocity, t, path_x, path_y, path_length, cost_to_come);
+			Node successor_node = Node(x, y, theta, angular_velocity, t, path_x, path_y, path_length, cost_to_come, occupancy_client);
 
 			successors.push_back(successor_node);
 		}
@@ -170,13 +185,13 @@ class PathPlanning
 		robo7_msgs::paths paths_msg;
 
 		goal_radius_tolerance = .2;
-		angle_tolerance = pi/4;
+		angle_tolerance = pi / 4;
 
 		if (position_updated)
 		{
 
-			Node node_start = Node(x0, y0, pi / 2, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f);
-			Node node_target = Node(x_target, y_target, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f);
+			Node node_start = Node(x0, y0, pi / 2, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f, occupancy_client);
+			Node node_target = Node(x_target, y_target, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f, occupancy_client);
 
 			alive_nodes.push_back(node_start);
 
@@ -207,7 +222,7 @@ class PathPlanning
 					}
 				}
 
-				if (node_current.distanceSquared(node_target) < goal_radius_tolerance  && std::abs(node_current.theta - theta_target) < angle_tolerance)
+				if (node_current.distanceSquared(node_target) < goal_radius_tolerance && std::abs(node_current.theta - theta_target) < angle_tolerance)
 				{
 					ROS_INFO("Goal reached");
 					path_found = true;
