@@ -15,14 +15,22 @@
   <node pkg="tf" name="object_plot" type="static_transform_publisher" args="0.1 0 0.15 0 1.57 0 /robot /cam 100" />
 
 
-  <node pkg="ransac" type="scan_to_coordinates" name="scan_to_coordinates">
+  <!-- <node pkg="ransac" type="scan_to_coordinates" name="scan_to_coordinates">
     <param name="lidar_angle" type="double" value="3.14"/>
-  </node>
+  </node> -->
   <!--
   -->
 
   <node pkg="visualization" type="laserXY" name="laserXY"/>
 
+  <node pkg="visualization" type="plot_map" name="plot_map"/>
+
+  <node pkg="visualization" type="plot_map_corners" name="plot_map_corners"/>
+
+  <node pkg="visualization" type="plot_lidar_corners" name="plot_lidar_corners"/>
+
   <node pkg="visualization" type="dest_point_plot" name="dest_point_plot"/>
+
+  <node pkg="visualization" type="wall_lidar_plot" name="wall_lidar_plot" output="screen"/>
 
 </launch>

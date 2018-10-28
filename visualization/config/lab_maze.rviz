@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /RPLidarLaserScan1
+        - /LidarScan1
       Splitter Ratio: 0.5
     Tree Height: 787
   - Class: rviz/Selection
@@ -26,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: RPLidarLaserScan
+    SyncSource: LidarScan
 Visualization Manager:
   Class: ""
   Displays:
@@ -66,7 +66,7 @@ Visualization Manager:
       Max Intensity: 4096
       Min Color: 0; 0; 0
       Min Intensity: 0
-      Name: RPLidarLaserScan
+      Name: LidarScan
       Position Transformer: XYZ
       Queue Size: 1000
       Selectable: true
@@ -78,22 +78,44 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud
+      Color: 255; 255; 255
+      Color Transformer: Intensity
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: OwnMapDiscretized
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.00999999978
+      Style: Flat Squares
+      Topic: /plot_map
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /visualization/robotMarker
-      Name: Marker
+      Name: RobotPosition
       Namespaces:
         map: true
       Queue Size: 100
       Value: true
-    - Class: rviz/MarkerArray
-      Enabled: false
-      Marker Topic: /maze_map
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -112,7 +134,7 @@ Visualization Manager:
       Max Intensity: 4096
       Min Color: 0; 0; 0
       Min Intensity: 0
-      Name: PointCloud
+      Name: LidarMapCoordinates
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
@@ -124,12 +146,22 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
-    - Class: rviz/Marker
+    - Alpha: 1
+      Class: rviz/PointStamped
+      Color: 204; 41; 204
+      Enabled: false
+      History Length: 1
+      Name: TrajectoryPoint
+      Radius: 0.200000003
+      Topic: /point_ploted
+      Unreliable: false
+      Value: false
+    - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /Paths
-      Name: Marker
+      Marker Topic: /walls_array
+      Name: LidarWallArray
       Namespaces:
-        points_and_lines: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -137,20 +169,18 @@ Visualization Manager:
       Color: 204; 41; 204
       Enabled: false
       History Length: 1
-      Name: PointStamped
-      Radius: 0.200000003
-      Topic: /point_ploted
-      Unreliable: false
-      Value: false
-    - Alpha: 1
-      Class: rviz/PointStamped
-      Color: 204; 41; 204
-      Enabled: true
-      History Length: 1
-      Name: PointStamped
+      Name: ObjectCamera
       Radius: 0.200000003
       Topic: /object/pos_rviz
       Unreliable: false
+      Value: false
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /Paths
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
@@ -172,7 +202,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 7.83684826
+      Distance: 9.52362919
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -187,10 +217,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.949796915
+      Pitch: 1.56979632
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.84040129
+      Yaw: 1.58039999
     Saved: ~
 Window Geometry:
   Displays:

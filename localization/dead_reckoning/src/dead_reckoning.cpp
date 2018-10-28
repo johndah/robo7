@@ -145,7 +145,7 @@ public:
     twist_msg.angular.y = 0;
     twist_msg.angular.z = z_angle;
 
-    ROS_INFO("Publishing in dead_reckoning with x: %f", x_pos);
+    // ROS_INFO("Publishing in dead_reckoning with x: %f", x_pos);
 
     //Send the datas
     robot_position1.publish(twist_msg);
@@ -235,6 +235,8 @@ int main(int argc, char **argv)
     deadReckoning _dead_reckoning;
 
     ros::Rate loop_rate(control_frequency);
+
+    ROS_INFO("Dead_reckoning is turning");
 
     while(_dead_reckoning.n.ok())
     {

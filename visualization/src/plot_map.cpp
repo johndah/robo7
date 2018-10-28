@@ -13,23 +13,22 @@
 double control_frequency = 10.0;
 
 
-class laserXY
+class plot_map
 {
 public:
   ros::NodeHandle n;
   ros::Subscriber XY_coordinates;
   ros::Publisher point_cloud;
 
-  laserXY()
+  plot_map()
   {
     n = ros::NodeHandle("~");
     length = 0;
 
-    XY_coordinates = n.subscribe("/scan_to_coordinates/point_cloud_coordinates", 1000, &laserXY::coordinates_callBack, this);
-    // XY_coordinates = n.subscribe("/maze_map/wall_coordinates", 1000, &laserXY::coordinates_callBack, this);
+    // XY_coordinates = n.subscribe("/scan_to_coordinates/point_cloud_coordinates", 1000, &plot_map::coordinates_callBack, this);
+    XY_coordinates = n.subscribe("/own_map/wall_coordinates", 1000, &plot_map::coordinates_callBack, this);
 
-
-    point_cloud = n.advertise<sensor_msgs::PointCloud>("/laserXY", 1000);
+    point_cloud = n.advertise<sensor_msgs::PointCloud>("/own_map/plot_map", 1000);
   }
 
   void coordinates_callBack(const robo7_msgs::XY_coordinates::ConstPtr &msg)
@@ -77,15 +76,15 @@ private:
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "laserXY");
+    ros::init(argc, argv, "plot_map");
 
-    laserXY laser_XY_;
+    plot_map plot_map_;
 
     ros::Rate loop_rate(control_frequency);
 
-    while(laser_XY_.n.ok())
+    while(plot_map_.n.ok())
     {
-        laser_XY_.updateCoordinates();
+        plot_map_.updateCoordinates();
         ros::spinOnce();
         loop_rate.sleep();
     }

@@ -11,7 +11,7 @@
   <!--
    <node pkg="localization" type="ICP" name="ICP"/>
    -->
-   <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning">
+   <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning" output="screen">
      <param name="initial_x_pos" type="double" value="0.215"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
@@ -19,6 +19,7 @@
      <param name="angular_adjustment" type="double" value="0.0235"/>
    </node>
 
+   <node pkg="icp" type="icp" name="icp" output="screen"/>
 
    <node pkg="path_follower" type="path_follower" name="path_follower">
      <param name="angle_P" type="double" value="1"/>
@@ -29,5 +30,13 @@
      <param name="x_destination" type="double" value="0.215"/>
      <param name="y_destination" type="double" value="0.2"/>
    </node>
+
+   <node pkg="ransac" type="ransac" name="ransac" output="screen">
+     <param name="threshold" type="double" value="0.01"/>
+     <param name="maximum_distance_between_points" type="double" value="0.25"/>
+     <param name="minimum_point_for_a_wall" type="int" value="5"/>
+     <param name="minimum_point_for_a_gap" type="int" value="3"/>
+   </node>
+
 
 </launch>

@@ -1,0 +1,4 @@
+# request
+robo7_msgs/XY_coordinates point_cloud  # position of the object to pickup, in the map coordinates
+---
+bool success  # True if the pickup sequence was sucsessful
