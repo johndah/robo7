@@ -19,7 +19,19 @@ rosservice call /occupancy_grid/is_occupied "x: 2.0 y: 2.0"
 where x and y are coordinates in m.
 
 ## Visualize grid
-Uncomment the following in the main loop (bottom) to get a printout of the grid.
+The displayed visualization is rotated 90 deg! keep calm and pretend like its
+good, the service calls should give the correct results.
+
+Uncomment the two blocks of code in the gauss_filter() function:
 ```
-	//occupancy_grid_server.printGrid();
+namedWindow("Display window", cv::WINDOW_NORMAL );
+cv::resizeWindow("Display window", 600,600);
+imshow( "Display window", grid_in );
+cv::waitKey(0);
+```
+and
+```
+imshow( "Display window", grid_filtered );
+cv::waitKey(0);
+cvDestroyWindow("Display window");
 ```
