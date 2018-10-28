@@ -1,4 +1,5 @@
 #include <math.h>
+#include <algorithm>
 #include <vector>
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
@@ -22,7 +23,7 @@ class Node
 	float control, time;
 	float path_cost, cost_to_come;
 	float tolerance_radius, tolerance_angle;
-	Node *parent;
+	Node *parent = NULL;
 	std::vector<float> path_x, path_y;
 	int alive_node_index;
 
@@ -65,15 +66,12 @@ class Node
 		this->occupancy_srv.request.y = this->y;
 		if (this->occupancy_client.call(this->occupancy_srv))
 		{
-			ROS_INFO("Getting occupancy in collision detectino");
-			return (int)this->occupancy_srv.response.occupancy;
+			//ROS_INFO("x: %f   y: %f   occ: %f   coll: %d", this->occupancy_srv.request.x, this->occupancy_srv.request.y, this->occupancy_srv.response.occupancy, this->occupancy_srv.response.occupancy>0.9);
+			return this->occupancy_srv.response.occupancy > 0.9;
 		}
 		else
 		{
-
-			ROS_INFO("Not occupancy in collision detectino");
-
-			return this->x > 3.0 || this->x < 0.0 || this->y > 3.0 || this->y < 0.0;
+			return true;
 		}
 	}
 
@@ -84,6 +82,11 @@ class Node
 
 		return position <= tolerance_radius && orientation <= tolerance_angle;
 	}
+
+	bool is(Node other)
+	{
+		return x == other.x && y == other.y && theta == other.theta;
+	}
 };
 
 double control_frequency = 10.0;
@@ -92,21 +95,22 @@ class PathPlanning
 {
   public:
 	ros::NodeHandle nh;
-	ros::Publisher paths_pub, start_goal_pub;
+	ros::Publisher paths_pub, start_goal_pub, goal_path_pub;
 	ros::Subscriber robot_position;
 	ros::ServiceClient occupancy_client;
+	robo7_srvs::IsGridOccupied occupancy_srv;
 
 	//Initialisation
 	float x0, y0, theta0, position_updated;
 
-	PathPlanning(ros::NodeHandle nh, ros::Publisher paths_pub, ros::Publisher start_goal_pub)
+	PathPlanning(ros::NodeHandle nh, ros::Publisher paths_pub, ros::Publisher start_goal_pub, ros::Publisher goal_path_pub)
 	{
 		this->nh = nh;
 		this->paths_pub = paths_pub;
 		this->start_goal_pub = start_goal_pub;
+		this->goal_path_pub = goal_path_pub;
 		robot_position = nh.subscribe("/dead_reckoning/Pos", 1000, &PathPlanning::getPositionCallBack, this);
 		this->occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
-
 	}
 
 	void getPositionCallBack(const geometry_msgs::Twist::ConstPtr &msg)
@@ -124,18 +128,26 @@ class PathPlanning
 		float delta, delta_resolution, steering_angle_max, angle_diff_tol, angular_velocity_resolution, cost_to_come, path_length;
 		std::vector<Node> successors;
 
-		path_length = 0.8;
-		steering_angle_max = pi / 2;
-		angular_velocity_resolution = pi / 10;
+		path_length = 0.4;
+		steering_angle_max = pi;
+		angular_velocity_resolution = pi / 4;
 
 		angle_diff_tol = 1e-1;
 
 		for (float angular_velocity = -steering_angle_max; angular_velocity <= steering_angle_max; angular_velocity += angular_velocity_resolution)
 		{
-			float x, y, theta, path_cost, dt, t;
+			float x, y, theta, path_cost, dt, t, penalty_factor;
+			bool add_node;
 			x = node.x;
 			y = node.y;
 			theta = node.theta;
+
+			if (angular_velocity < angular_velocity_resolution){
+				penalty_factor = 0.7;
+			}
+			else
+				penalty_factor = 1.0;
+			
 
 			//angular_velocity = -pi / 4.0 * (float)((theta - delta > 0) - (theta - delta < -1.0e-3));
 			//ROS_INFO("x: %f    y %f   th %f   delta %f   angular_velocity %f    path_cost: %f   t: %f", (float)((theta - delta > 0) - (theta - delta < 0)), y, theta, delta, angular_velocity, (float)(theta - delta > 0), theta - delta);
@@ -144,8 +156,10 @@ class PathPlanning
 			dt = 0.04;
 
 			std::vector<float> path_x, path_y;
-			//path_cost = 0.0f;
+			path_cost = 0.0f;
 			cost_to_come = node.cost_to_come;
+
+			add_node = true;
 
 			//while (std::abs(delta - theta) > angle_diff_tol)
 			//for (int i = 0; i < 50; i++)
@@ -161,15 +175,36 @@ class PathPlanning
 				path_x.push_back(x);
 				path_y.push_back(y);
 
-				//path_cost += sqrt(pow(cos(theta), 2.0) + pow(sin(theta), 2.0));
+				Node successor_node = Node(x, y, theta, angular_velocity, t, path_x, path_y, path_cost, cost_to_come, occupancy_client);
+
+				if (successor_node.inCollision())
+				{
+					add_node = false;
+					break;
+				}
+
+				this->occupancy_srv.request.x = x;
+				this->occupancy_srv.request.y = y;
+
+				if (this->occupancy_client.call(this->occupancy_srv))
+				{
+					path_cost += this->occupancy_srv.response.occupancy*penalty_factor;
+				}
+				else
+				{
+					add_node = false;
+					break;
+				}
 			}
 			//ROS_INFO("delta: %f    theta %f ", delta, theta);
 
-			cost_to_come += path_cost;
+			if (add_node)
+			{
+				cost_to_come += path_cost;
 
-			Node successor_node = Node(x, y, theta, angular_velocity, t, path_x, path_y, path_length, cost_to_come, occupancy_client);
-
-			successors.push_back(successor_node);
+				Node successor_node = Node(x, y, theta, angular_velocity, t, path_x, path_y, path_cost, cost_to_come, occupancy_client);
+				successors.push_back(successor_node);
+			}
 		}
 
 		return successors;
@@ -178,14 +213,14 @@ class PathPlanning
 	robo7_msgs::paths getPath()
 	{
 		float randomInt, goal_radius_tolerance, angle_tolerance;
-		std::vector<float> path_x, path_y;
-		std::vector<float> start_goal_x(2), start_goal_y(2);
+		std::vector<float> path_x, path_y, goal_path_x, goal_path_y;
+		std::vector<float> start_goal_x(2), start_goal_y(2), start_goal_theta(2);
 		std::vector<Node> successors, alive_nodes, dead_nodes;
-		robo7_msgs::path path_msg, start_goal_msg;
-		robo7_msgs::paths paths_msg;
+		robo7_msgs::path path_msg, start_goal_msg, goal_path_msg;
+		robo7_msgs::paths paths_msg, goal_paths_msg;
 
 		goal_radius_tolerance = .2;
-		angle_tolerance = pi / 4;
+		angle_tolerance = pi;
 
 		if (position_updated)
 		{
@@ -199,9 +234,12 @@ class PathPlanning
 			start_goal_x[1] = x_target;
 			start_goal_y[0] = y0;
 			start_goal_y[1] = y_target;
+			//start_goal_theta[0] = theta0;
+			//start_goal_theta[1] = theta_target;
 
 			start_goal_msg.path_x = start_goal_x;
 			start_goal_msg.path_y = start_goal_y;
+			//start_goal_msg.path_theta = start_goal_theta;
 
 			while (!alive_nodes.empty())
 			{
@@ -226,6 +264,36 @@ class PathPlanning
 				{
 					ROS_INFO("Goal reached");
 					path_found = true;
+
+					std::vector<Node*> nodes;
+
+					/*
+					Node *node_current = node_current;
+					//nodes.push_back(node_current);
+
+					while (node_current->parent != NULL)
+					{
+						
+						//nodes.push_back(node_current);
+						//Node *node_current = node_current->parent;
+						//ROS_INFO("%f", node_current->x);
+						//break;
+					}
+
+					std::reverse(nodes.begin(), nodes.end());
+
+					for (int i = 0; i < nodes.size(); i++)
+					{
+						Node *node = nodes[i];
+
+						goal_path_msg.path_x = node->path_x;
+						goal_path_msg.path_y = node->path_y;
+						goal_paths_msg.paths.push_back(goal_path_msg);
+					}
+
+					goal_path_pub.publish(goal_paths_msg);
+					*/
+
 					break;
 				}
 
@@ -240,35 +308,60 @@ class PathPlanning
 					node_successor.parent = &node_current;
 					//node_successor.successor = node_current;
 
-					if (node_successor.inCollision())
+					bool in_dead_nodes = false;
+
+					for (int k = 0; k < dead_nodes.size(); k++)
 					{
-						dead_nodes.push_back(node_successor);
+						Node &dead_node = dead_nodes[k];
+
+						//if (node_successor.inCollision())
+						//ROS_INFO("Comparing x: %f=?%f  y: %f=?%f  th: %f=?%f", dead_node.x, node_successor.x, dead_node.y, node_successor.y, dead_node.theta, node_successor.theta);
+						if (node_successor.is(dead_node))
+						{
+							in_dead_nodes = true;
+							break;
+						}
+					}
+
+					if (!in_dead_nodes)
+					{
+
+						if (node_successor.inCollision())
+						{
+							dead_nodes.push_back(node_successor);
+						}
+						else
+						{
+							bool match = false;
+
+							for (int j = 0; j < alive_nodes.size(); j++)
+							{
+								Node &alive_node = alive_nodes[j];
+
+								if (alive_node.isClose(node_successor) && node_successor.getCost() < alive_node.getCost())
+								{
+									match = true;
+									alive_nodes.erase(alive_nodes.begin() + j);
+									dead_nodes.push_back(node_successor);
+									break;
+								}
+							}
+
+							if (!match)
+							{
+								alive_nodes.push_back(node_successor);
+								path_msg.path_x = node_successor.path_x;
+								path_msg.path_y = node_successor.path_y;
+								//std::vector<float> path_theta;
+								//path_msg.path_theta = path_theta;
+								paths_msg.paths.push_back(path_msg);
+								paths_pub.publish(paths_msg);
+							}
+						}
 					}
 					else
 					{
-						bool match = false;
-
-						for (int j = 0; j < alive_nodes.size(); j++)
-						{
-							Node &alive_node = alive_nodes[j];
-
-							if (alive_node.isClose(node_successor) && node_successor.getCost() < alive_node.getCost())
-							{
-								match = true;
-								alive_nodes.erase(alive_nodes.begin() + node_current.alive_node_index);
-								dead_nodes.push_back(node_successor);
-								break;
-							}
-						}
-
-						if (!match)
-						{
-							alive_nodes.push_back(node_successor);
-							path_msg.path_x = node_successor.path_x;
-							path_msg.path_y = node_successor.path_y;
-							paths_msg.paths.push_back(path_msg);
-							paths_pub.publish(paths_msg);
-						}
+						ROS_INFO("Occupied x: %f, y: %f ", node_successor.x, node_successor.y);
 					}
 				}
 			}
@@ -276,10 +369,11 @@ class PathPlanning
 			return paths_msg;
 		}
 
-		std::vector<float> empty_path_x, empty_path_y;
+		std::vector<float> empty_path_x, empty_path_y;//, empty_path_theta;
 
 		path_msg.path_x = empty_path_x;
 		path_msg.path_y = empty_path_y;
+		//path_msg.path_theta = empty_path_theta;
 		paths_msg.paths.push_back(path_msg);
 
 		return paths_msg;
@@ -298,8 +392,9 @@ int main(int argc, char **argv)
 
 	ros::Publisher paths_pub = nh.advertise<robo7_msgs::paths>("paths_vector", 1000);
 	ros::Publisher start_goal_pub = nh.advertise<robo7_msgs::path>("start_goal", 1000);
+	ros::Publisher goal_path_pub = nh.advertise<robo7_msgs::paths>("goal_path", 1000);
 
-	PathPlanning path_planning = PathPlanning(nh, paths_pub, start_goal_pub);
+	PathPlanning path_planning = PathPlanning(nh, paths_pub, start_goal_pub, goal_path_pub);
 
 	ros::Rate loop_rate(control_frequency);
 

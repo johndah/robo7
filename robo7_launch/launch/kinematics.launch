@@ -22,11 +22,13 @@
   <!--
    -->
   
- <node pkg="occupancy_grid" type="occupancy_grid_server" name="occupancy_grid_server" output="screen">
-    <param name="min_distance" type="double" value="0.13"/>
-    <param name="smoothing_kernel_size" type="int" value="3"/>
+  <node pkg="occupancy_grid" type="occupancy_grid_server" name="occupancy_grid_server"
+    output="screen">
     <param name="grid_square_size" type="double" value="0.02"/>
-  </node>  
+    <param name="min_distance" type="double" value="0.13"/>
+    <param name="smoothing_kernel_size" type="int" value="15"/>
+    <param name="smoothing_kernel_sd" type="int" value="3"/>
+  </node>
 
   <node pkg="pathplanning" type="pathplanning" name="pathplanning" output="screen"/>
 
