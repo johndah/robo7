@@ -25,7 +25,8 @@ public:
     n = ros::NodeHandle("~");
     length = 0;
 
-    XY_coordinates = n.subscribe("/scan_to_coordinates/point_cloud_coordinates", 1000, &laserXY::coordinates_callBack, this);
+    // XY_coordinates = n.subscribe("/scan_to_coordinates/point_cloud_coordinates", 1000, &laserXY::coordinates_callBack, this);
+    XY_coordinates = n.subscribe("/scan/point_cloud_coordinates", 1000, &laserXY::coordinates_callBack, this);
     // XY_coordinates = n.subscribe("/maze_map/wall_coordinates", 1000, &laserXY::coordinates_callBack, this);
 
 

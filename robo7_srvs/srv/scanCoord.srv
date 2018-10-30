@@ -1,0 +1,6 @@
+# request
+geometry_msgs/Twist robot_position
+sensor_msgs/LaserScan lidar_scan
+---
+robo7_msgs/XY_coordinates point_cloud_coordinates
+bool success  # True if the sequence was successful

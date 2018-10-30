@@ -1,25 +1,54 @@
 <launch>
 
-  <include file="$(find motors)/launch/motors.launch"/>
+   <include file="$(find motors)/launch/motors.launch"/>
 
-  <include file="$(find gate_controller)/launch/gate.launch"/>
+   <include file="$(find gate_controller)/launch/gate.launch"/>
 
-  <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" output="screen"/>
+   <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" output="screen"/>
 
-  <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>
+   <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>
 
-  <!--
-   <node pkg="localization" type="ICP" name="ICP"/>
-   -->
-   <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning" output="screen">
+   <!-- <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning" output="screen">
      <param name="initial_x_pos" type="double" value="0.215"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
      <param name="linear_adjustment" type="double" value="0.0481"/>
      <param name="angular_adjustment" type="double" value="0.0235"/>
+   </node> -->
+
+   <node pkg="ransac" type="lidar_map_coordinates" name="lidar_map_coordinates" output="screen">
+     <param name="lidar_angle" type="double" value="3.14"/>
+   </node>
+
+   <node pkg="ransac" type="scan_to_coordinates" name="scan_to_coordinates">
+     <param name="lidar_angle" type="double" value="3.14"/>
    </node>
 
    <node pkg="icp" type="icp" name="icp" output="screen"/>
+
+   <node pkg="ransac" type="ransac" name="ransac" output="screen">
+     <param name="threshold" type="double" value="0.02"/>
+     <param name="maximum_distance_between_points" type="double" value="0.25"/>
+     <param name="minimum_point_for_a_wall" type="int" value="5"/>
+     <param name="minimum_point_for_a_gap" type="int" value="3"/>
+   </node>
+
+   <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
+     <param name="initial_x_pos" type="double" value="0.215"/>
+     <param name="initial_y_pos" type="double" value="0.2"/>
+     <param name="initial_z_angle" type="double" value="1.57"/>
+     <param name="linear_adjustment" type="double" value="0.0481"/>
+     <param name="angular_adjustment" type="double" value="0.0235"/>
+     <param name="use_measure" type="bool" value="false"/>
+     <param name="time_between_two_measure" type="double" value="1.0"/>
+   </node>
+
+   <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
+     <param name="sigma_distance" type="double" value="0.1"/>
+     <param name="sigma_angle" type="double" value="0.05"/>
+   </node>
+
+   <node pkg="test_service" type="test_service" name="test_service" output="screen"/>
 
    <node pkg="path_follower" type="path_follower" name="path_follower">
      <param name="angle_P" type="double" value="1"/>
@@ -30,13 +59,5 @@
      <param name="x_destination" type="double" value="0.215"/>
      <param name="y_destination" type="double" value="0.2"/>
    </node>
-
-   <node pkg="ransac" type="ransac" name="ransac" output="screen">
-     <param name="threshold" type="double" value="0.01"/>
-     <param name="maximum_distance_between_points" type="double" value="0.25"/>
-     <param name="minimum_point_for_a_wall" type="int" value="5"/>
-     <param name="minimum_point_for_a_gap" type="int" value="3"/>
-   </node>
-
 
 </launch>

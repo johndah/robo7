@@ -2,6 +2,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/registration/icp.h>
+#include <Eigen/Geometry>
 
 #include <unistd.h>
 
@@ -48,6 +49,7 @@ public:
 	ICPServer()
 	{
 		// n.param<float>("/ransac/threshold", ransac_threshold, 0.01);
+		pi = 3.14159265358979323846;
 
 		corner_map_sub = n.subscribe("/own_map/map_corners", 1, &ICPServer::map_corners_Callback, this);
 		corner_lidar_sub = n.subscribe("/localization/ransac/corners", 1, &ICPServer::lidar_corners_Callback, this);
@@ -70,6 +72,7 @@ public:
 	bool ICPSequence(robo7_srvs::ICPAlgorithm::Request &req,
          robo7_srvs::ICPAlgorithm::Response &res)
 	{
+		former_point = req.current_position;
 
 		cloud_lidar = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
     cloud_map = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -106,11 +109,34 @@ public:
 	  icp.setInputSource(cloud_lidar);
 	  icp.setInputTarget(cloud_map);
 	  icp.align(Final);
-		// icp.hasConverged();
-		// icp.getFitnessScore();
-		// icp.getFinalTransformation();
+		converged = icp.hasConverged();
+		error = icp.getFitnessScore();
+		transformation_ = icp.getFinalTransformation();
 
-		res.success = true;
+		//Extract the robot position in the Vector4
+		forwardTransform();
+
+		//Transform the points with the icp transformation found
+		transform_points();
+
+		//Update the pose of the robot
+		inverseTransform();
+
+
+
+		res.success = converged;
+		res.error = error;
+		res.new_position = new_point;
+		for(int i=0; i<transformation_.cols(); i++)
+		{
+			res.transformation.line0.push_back(transformation_(0,i));
+			res.transformation.line1.push_back(transformation_(1,i));
+			res.transformation.line2.push_back(transformation_(2,i));
+			res.transformation.line3.push_back(transformation_(3,i));
+		}
+
+		corrected_pos_pub.publish( new_point );
+
 		return true;
 	}
 
@@ -122,7 +148,80 @@ private:
 	robo7_msgs::cornerList lidar_corner_list;
 	robo7_msgs::cornerList map_corner_list;
 
+	Eigen::Matrix4f transformation_;
+	float error;
+	bool converged;
+
+	geometry_msgs::Twist former_point;
+	geometry_msgs::Twist new_point;
+
+	Eigen::Vector4f the_point_;
+	Eigen::Vector4f other_point_;
+
+	float robot_angle_;
+	float pi;
+
+	float findangle(float x, float y)
+	{
+	  if(x==0)
+	  {
+	    return pi*sgn(y);
+	  }
+	  else if((x<0)&&(y>0))
+	  {
+	    return atan(y/x) + pi;
+	  }
+	  else if ((x<0)&&(y<0))
+	  {
+	    return atan(y/x) - pi;
+	  }
+	  else
+	  {
+	    return atan(y/x);
+	  }
+	  // return atan(x/y);
+	}
+
+	void forwardTransform()
+	{
+		the_point_(0) = former_point.linear.x;
+		the_point_(1) = former_point.linear.y;
+		the_point_(2) = former_point.linear.z;
+		the_point_(3) = 1;
+		robot_angle_ = former_point.angular.z;
+
+		other_point_(0) = the_point_(0) + cos(robot_angle_);
+		other_point_(1) = the_point_(1) + sin(robot_angle_);
+		other_point_(2) = the_point_(2);
+		other_point_(3) = 1;
+	}
+
+	void transform_points()
+	{
+		the_point_ = transformation_ * the_point_;
+		other_point_ = transformation_ * other_point_;
+	}
+
+	void inverseTransform()
+	{
+		robot_angle_ = findangle(other_point_(0)-the_point_(0), other_point_(1)-the_point_(1));
+
+		new_point.linear.x = the_point_(0);
+		new_point.linear.y = the_point_(1);
+		new_point.linear.z = the_point_(2);
+		new_point.angular.x = 0;
+		new_point.angular.y = 0;
+		new_point.angular.z = robot_angle_;
+	}
+
+	int sgn(float v)
+	{
+		if (v < 0) return -1;
+		else if (v > 0) return 1;
+		else return 0;
+	}
 };
+
 
 
 int main(int argc, char **argv)

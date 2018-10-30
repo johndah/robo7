@@ -29,3 +29,7 @@ add_dependencies(scan_to_coordinates ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_
 add_executable(ransac src/ransac.cpp)
 target_link_libraries(ransac ${catkin_LIBRARIES})
 add_dependencies(ransac ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(lidar_map_coordinates src/lidar_map_coordinates.cpp)
+target_link_libraries(lidar_map_coordinates ${catkin_LIBRARIES})
+add_dependencies(lidar_map_coordinates ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

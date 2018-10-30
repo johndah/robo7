@@ -1,5 +1,8 @@
 # request
-geometry_msgs/Twist current_position  # position of the object to pickup, in the map coordinates
+robo7_msgs/cornerList the_lidar_corners
+geometry_msgs/Twist current_position
 ---
+robo7_msgs/Matrix4 transformation
+float64 error
 geometry_msgs/Twist new_position
 bool success  # True if the sequence was successful
