@@ -12,7 +12,7 @@ class PathPlanning;
 
 bool path_found = false;
 float pi = 3.14159265358979323846;
-float x_target = 2.0, y_target = 2.0, theta_target = pi / 2;
+float x_target = 2.0, y_target = .2, theta_target = pi / 2;
 
 class Node
 {
@@ -47,7 +47,8 @@ class Node
 
 	float getCost()
 	{
-		return cost_to_come + getHeuristicCost();
+		//ROS_INFO("crC: %f, ctG: %f", cost_to_come, 20*getHeuristicCost());
+		return cost_to_come + 20*getHeuristicCost();
 	}
 
 	float getHeuristicCost()
@@ -100,6 +101,8 @@ class PathPlanning
 	ros::ServiceClient occupancy_client;
 	robo7_srvs::IsGridOccupied occupancy_srv;
 
+	float goal_radius_tolerance, angle_tolerance;
+
 	//Initialisation
 	float x0, y0, theta0, position_updated;
 
@@ -111,6 +114,9 @@ class PathPlanning
 		this->goal_path_pub = goal_path_pub;
 		robot_position = nh.subscribe("/dead_reckoning/Pos", 1000, &PathPlanning::getPositionCallBack, this);
 		this->occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
+		
+		goal_radius_tolerance = .03;
+		angle_tolerance = 2*pi;
 	}
 
 	void getPositionCallBack(const geometry_msgs::Twist::ConstPtr &msg)
@@ -127,10 +133,13 @@ class PathPlanning
 	{
 		float delta, delta_resolution, steering_angle_max, angle_diff_tol, angular_velocity_resolution, cost_to_come, path_length;
 		std::vector<Node> successors;
+		std::vector<float> path_x, path_y;
+		Node node_target = Node(x_target, y_target, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f, occupancy_client);
+
 
 		path_length = 0.4;
 		steering_angle_max = pi;
-		angular_velocity_resolution = pi / 4;
+		angular_velocity_resolution = pi / 2;
 
 		angle_diff_tol = 1e-1;
 
@@ -182,7 +191,10 @@ class PathPlanning
 					add_node = false;
 					break;
 				}
-
+				
+				if (successor_node.distanceSquared(node_target) < this->goal_radius_tolerance && std::abs(successor_node.theta - theta_target) < this->angle_tolerance)
+					break;
+				
 				this->occupancy_srv.request.x = x;
 				this->occupancy_srv.request.y = y;
 
@@ -212,19 +224,14 @@ class PathPlanning
 
 	robo7_msgs::paths getPath()
 	{
-		float randomInt, goal_radius_tolerance, angle_tolerance;
 		std::vector<float> path_x, path_y, goal_path_x, goal_path_y;
 		std::vector<float> start_goal_x(2), start_goal_y(2), start_goal_theta(2);
 		std::vector<Node> successors, alive_nodes, dead_nodes;
 		robo7_msgs::path path_msg, start_goal_msg, goal_path_msg;
 		robo7_msgs::paths paths_msg, goal_paths_msg;
 
-		goal_radius_tolerance = .2;
-		angle_tolerance = pi;
-
 		if (position_updated)
 		{
-
 			Node node_start = Node(x0, y0, pi / 2, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f, occupancy_client);
 			Node node_target = Node(x_target, y_target, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f, occupancy_client);
 
@@ -260,7 +267,7 @@ class PathPlanning
 					}
 				}
 
-				if (node_current.distanceSquared(node_target) < goal_radius_tolerance && std::abs(node_current.theta - theta_target) < angle_tolerance)
+				if (node_current.distanceSquared(node_target) < this->goal_radius_tolerance && std::abs(node_current.theta - theta_target) < this->angle_tolerance)
 				{
 					ROS_INFO("Goal reached");
 					path_found = true;
@@ -268,15 +275,16 @@ class PathPlanning
 					std::vector<Node*> nodes;
 
 					/*
-					Node *node_current = node_current;
-					//nodes.push_back(node_current);
+					Node* node_c = &node_current;
+					nodes.push_back(node_c);
 
-					while (node_current->parent != NULL)
+					while (node_c->parent != NULL)
 					{
 						
-						//nodes.push_back(node_current);
+						nodes.push_back(node_c);
 						//Node *node_current = node_current->parent;
-						//ROS_INFO("%f", node_current->x);
+						node_c = node_c->parent;
+						//ROS_INFO("%f", node_c->x);
 						//break;
 					}
 
