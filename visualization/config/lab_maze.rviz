@@ -88,13 +88,13 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /maze_map
       Name: MarkerArray
       Namespaces:
-        {}
+        world: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -176,7 +176,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.47233105
+      Distance: 9.24151516
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -191,10 +191,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.754797339
+      Pitch: 0.884797454
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.05041456
+      Yaw: 3.99041581
     Saved: ~
 Window Geometry:
   Displays:
@@ -212,5 +212,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 928
-  X: 65
+  X: 337
   Y: 24
