@@ -9,8 +9,9 @@
 #include <vector>
 #include <geometry_msgs/Twist.h>
 
-std::vector<std::vector<float> > paths_x, paths_y, goal_paths_x, goal_paths_y;//, goal_paths_theta;
-std::vector<float> start_goal_x(2), start_goal_y(2);//, start_goal_theta(2);
+typedef std::vector<float> float_vector;
+std::vector<float_vector> paths_x, paths_y, goal_paths_x, goal_paths_y; //, goal_paths_theta;
+float_vector start_goal_x(2), start_goal_y(2);                          //, start_goal_theta(2);
 double control_frequency = 10.0;
 int number_paths = 0;
 
@@ -28,7 +29,7 @@ public:
   {
     this->paths_sub = nh.subscribe("/pathplanning/paths_vector", 1000, &Paths::pathsCallback, this);
     this->start_goal_sub = nh.subscribe("/pathplanning/start_goal", 1000, &Paths::startGoalCallback, this);
-    this->goal_path_sub = nh.subscribe("/pathplanning/goal_path", 1000, &Paths::goalPathsCallback, this);
+    this->goal_path_sub = nh.subscribe("/pathplanning/goal_path", 1000, &Paths::goalPathCallback, this);
 
     this->marker_array_pub = marker_array_pub;
     this->paths_received = false;
@@ -61,10 +62,10 @@ public:
     start_goal_received = true;
   }
 
-  void goalPathsCallback(const robo7_msgs::paths::ConstPtr &goal_path_msg)
+  void goalPathCallback(const robo7_msgs::paths::ConstPtr &goal_path_msg)
   {
-    paths_x.clear();
-    paths_y.clear();
+    goal_paths_x.clear();
+    goal_paths_y.clear();
 
     for (int i = 0; i < goal_path_msg->paths.size(); i++)
     {
@@ -120,9 +121,8 @@ public:
         points_array_msg.markers[i].color.g = 0.0;
         points_array_msg.markers[i].color.b = 1.0;
         points_array_msg.markers[i].color.a = 1.0;
-
-
         */
+       
         for (int j = 0; j < paths_x[i].size(); j++)
         {
           p.x = paths_x[i][j];
@@ -140,9 +140,8 @@ public:
       geometry_msgs::Point p;
 
       goal_paths_msg.markers.resize(goal_paths_x.size());
-    
 
-      for (int i = 0; i < paths_x.size(); i++)
+      for (int i = 0; i < goal_paths_x.size(); i++)
       {
 
         goal_paths_msg.markers[i].header.frame_id = "/map";
@@ -153,9 +152,9 @@ public:
         goal_paths_msg.markers[i].id = i;
         goal_paths_msg.markers[i].type = visualization_msgs::Marker::LINE_STRIP;
 
-        goal_paths_msg.markers[i].scale.x = 0.03;
-        goal_paths_msg.markers[i].scale.y = 0.03;
-        goal_paths_msg.markers[i].scale.z = 0.03;
+        goal_paths_msg.markers[i].scale.x = 0.02;
+        goal_paths_msg.markers[i].scale.y = 0.02;
+        goal_paths_msg.markers[i].scale.z = 0.02;
 
         goal_paths_msg.markers[i].color.g = 1.0;
         goal_paths_msg.markers[i].color.a = 1.0;
@@ -173,7 +172,7 @@ public:
     if (this->start_goal_received)
     {
       start_goal_msg.markers.resize(2);
-      
+
       for (int i = 0; i < 2; i++)
       {
         start_goal_msg.markers[i].header.frame_id = "/map";
@@ -207,9 +206,9 @@ public:
       }
     }
 
-    //marker_array_pub.publish(points_array_msg);
     marker_array_pub.publish(curve_array_msg);
     marker_array_pub.publish(start_goal_msg);
+    marker_array_pub.publish(goal_paths_msg);
   }
 };
 
