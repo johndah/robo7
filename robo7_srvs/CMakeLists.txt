@@ -12,6 +12,7 @@ add_service_files(
   ICPAlgorithm.srv
   scanCoord.srv
   callServiceTest.srv
+  IsGridOccupied.srv
 )
 
 
