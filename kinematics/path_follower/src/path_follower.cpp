@@ -1,211 +1,137 @@
 #include <algorithm>
 #include <stdlib.h>     /* abs */
-#include "ros/ros.h"
-#include "geometry_msgs/Twist.h"
-#include "robo7_msgs/WheelAngularVelocities.h"
-#include "std_msgs/Bool.h"
+#include <ros/ros.h>
+#include <geometry_msgs/Twist.h>
+#include <robo7_msgs/destination_point.h>
+#include <robo7_msgs/trajectory.h>
+#include <robo7_srvs/PathFollowerSrv.h>
 
-geometry_msgs::Twist dest_twist;
-geometry_msgs::Twist pos_twist;
-geometry_msgs::Twist desire_vel;
+float control_frequency = 10.0;
 
-int freq = 30;
-float pi = 3.14159;
-int break_scalar = 5;
-
-double msg_timeout = 0.004; // acepted delay between msgs before stopping
-
-//Destination parameters
-float x_point = 0.215;
-float y_point = 0.2;
-bool new_point;
-
-// From rosparam get /robot_description/
-double wheel_separation = 0.2198; // center of track to center of track
-double wheel_radius = 0.049;
-double max_allowed_speed = 25; //rad.s-1
-
-//robot position
-float robot_x;
-float robot_y;
-float robot_theta;
-
-// Average velocity of the robot
-float aver_lin_vel;
-float x_point_robot;
-float y_point_robot;
-
-//Break info parameters
-bool danger;
-
-//Controller parameters
-float P = 1;
-float dist_left;
-float diff_angle;
-float dist_threshold = 0.05;
-float angle_ref_max = pi/8;
-
-bool arrived;
-bool problem = false;
-
-
-std::clock_t last_msg;
-double duration;
-
-
-void destination_callback(const geometry_msgs::Twist::ConstPtr &msg)
+class path_follower
 {
-  dest_twist = *msg;
-  arrived = false;
-  // if((x_point != dest_twist.linear.x)||(y_point != dest_twist.linear.y))
-  // {
-  //   new_point = true;
-  // }
-  // else
-  // {
-  //   new_point = false;
-  // }
-  x_point = dest_twist.linear.x;
-  y_point = dest_twist.linear.y;
-  last_msg = std::clock();
+public:
+  ros::NodeHandle n;
+  ros::Subscriber trajectory_sub;
+  ros::Subscriber robot_position;
+  ros::Publisher destination_pub;
+  ros::ServiceServer path_follower_service;
 
-}
+  path_follower()
+  {
+    n.param<float>("/path_follower/distance_to_destination_threshold", dest_threshold, 0.01);
 
-void position_callBack(const geometry_msgs::Twist::ConstPtr &msg)
-{
-  pos_twist = *msg;
-  robot_x = pos_twist.linear.x;
-  robot_y = pos_twist.linear.y;
-  robot_theta = pos_twist.angular.z;
-  last_msg = std::clock();
-}
+    current_point_to_follow = 0;
 
-void break_callBack(const std_msgs::Bool::ConstPtr &msg)
-{
-  danger = msg->data;
-  if(danger)
-  {
-    problem = true;
-  }
-}
+    trajectory_sub = n.subscribe("/pathplanning/trajectory", 1, &path_follower::trajectory_callBack, this);
+    robot_position = n.subscribe("/dead_reckoning/Pos", 1, &path_follower::position_callBack, this);
+    destination_pub = n.advertise<robo7_msgs::destination_point>("/kinematics/path_follower/destination_point", 1);
 
-int sgn(float v)
-{
-  if (v < 0) return -1;
-  else if (v > 0) return 1;
-  else return 0;
-}
+    path_follower_service = n.advertiseService("/kinematics/path_follower/path_follower", &path_follower::path_follower_Sequence, this);
+  }
 
-float findangle(float x, float y)
-{
-  if(x==0)
+  void position_callBack(const geometry_msgs::Twist::ConstPtr &msg)
   {
-    return pi*sgn(y);
+    robot_x = msg->linear.x;
+    robot_y = msg->linear.y;
+    robot_theta = msg->angular.z;
   }
-  else if((x<0)&&(y>0))
+
+  void trajectory_callBack(const robo7_msgs::trajectory::ConstPtr &msg)
   {
-    return atan(y/x) + pi;
+    // if(trajectory.number != 0)&&(trajectory.id_number != trajectory_array.id_number)
+    // {
+      trajectory_array = *msg;
+      // current_point_to_follow = 0;
+    // }
   }
-  else if ((x<0)&&(y<0))
+
+  void update_Destination_Point()
   {
-    return atan(y/x) - pi;
+    compute_distance_to_current_destination();
+
+    ROS_INFO("Distance to current point : %lf", distance_to_destination);
+
+    if(static_cast<int>(trajectory_array.trajectory_points.size()) > 0)
+    {
+      ROS_INFO("New_path");
+      if((distance_to_destination < trajectory_array.trajectory_points[current_point_to_follow].distance)&&(current_point_to_follow < static_cast<int>(trajectory_array.trajectory_points.size())))
+      {
+        ROS_INFO("Next_point");
+        current_point_to_follow += 1;
+        update_the_destination();
+      }
+    }
+
+    destination_pub.publish( the_destination );
   }
-  else
+
+  bool path_follower_Sequence(robo7_srvs::PathFollowerSrv::Request &req,
+         robo7_srvs::PathFollowerSrv::Response &res)
   {
-    return atan(y/x);
+    ROS_INFO("Start to follow the path");
+    arrived = false;
+    current_point_to_follow = 0;
+    while(!arrived)
+    {
+      ROS_INFO("Not arrived");
+      update_Destination_Point();
+      if((current_point_to_follow == 0)||(distance_to_destination < dest_threshold))
+      {
+        ROS_INFO("Arrived");
+        arrived = true;
+      }
+    }
+
+    res.success = true;
   }
-  // return atan(x/y);
-}
+
+
+private:
+  geometry_msgs::Twist dest_twist;
+  geometry_msgs::Twist desire_vel;
+  robo7_msgs::trajectory trajectory_array;
+  robo7_msgs::destination_point the_destination;
+
+  //robot position
+  float robot_x;
+  float robot_y;
+  float robot_theta;
+
+  //Point destination data
+  int current_point_to_follow;
+  float distance_to_destination;
+  float dest_threshold;
+  bool arrived;
+
+  void compute_distance_to_current_destination()
+  {
+    distance_to_destination = sqrt(pow(robot_x-trajectory_array.trajectory_points[current_point_to_follow].point_coord.x, 2) + pow(robot_y-trajectory_array.trajectory_points[current_point_to_follow].point_coord.y, 2));
+  }
+
+  void update_the_destination()
+  {
+    the_destination.destination.linear.x = trajectory_array.trajectory_points[current_point_to_follow].point_coord.x;
+    the_destination.destination.linear.y = trajectory_array.trajectory_points[current_point_to_follow].point_coord.y;
+    the_destination.destination.linear.z = trajectory_array.trajectory_points[current_point_to_follow].point_coord.z;
+
+    the_destination.speed = trajectory_array.trajectory_points[current_point_to_follow].speed;
+  }
+};
+
 
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "path_follower");
+    ros::init(argc, argv, "path_follower");
 
-  ros::NodeHandle n("~");
+    path_follower path_follower_;
 
-  n.param<float>("/path_follower/angle_P", P, 0);
-  n.param<float>("/path_follower/linear_speed", aver_lin_vel, 0);
+    ros::Rate loop_rate(control_frequency);
 
-  ros::Subscriber twist_sub = n.subscribe("/destination_point", 1, destination_callback);
-  ros::Subscriber robot_position = n.subscribe("/dead_reckoning/Pos", 1, position_callBack);
-  ros::Subscriber breaker = n.subscribe("/break_info", 1, break_callBack);
-  ros::Publisher desired_velocity = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
-  ros::Publisher dest_point = n.advertise<geometry_msgs::Twist>("/point_destination_robot", 1);
-  ros::Publisher robot_arrived = n.advertise<std_msgs::Bool>("/robot_arrived", 1);
-  ros::Publisher help = n.advertise<geometry_msgs::Twist>("/help_info", 1);
+    ROS_INFO("Path Follower running");
 
-  ros::Rate loop_rate(freq);
+    ros::spin();
 
-  ROS_INFO("Running twist_interpreter");
-
-  std_msgs::Bool is_robot_arrived;
-  geometry_msgs::Twist help_msg;
-  geometry_msgs::Twist point_plot;
-
-  while (ros::ok())
-  {
-    ros::spinOnce();
-
-    //Transforming the point in the robot frame
-    x_point_robot = (x_point - robot_x) * cos(robot_theta) + (y_point - robot_y) * sin(robot_theta);
-    y_point_robot = - (x_point - robot_x) * sin(robot_theta) + (y_point - robot_y) * cos(robot_theta);
-    point_plot.linear.x = x_point_robot;
-    point_plot.linear.y = y_point_robot;
-
-    dist_left = sqrt(pow(x_point_robot,2) + pow(y_point_robot,2));
-    diff_angle = findangle(x_point_robot, y_point_robot);
-
-    if(dist_left < dist_threshold)
-    {
-        arrived = true;
-        desire_vel.linear.x = 0;
-        desire_vel.angular.z = 0;
-    }
-
-    if((!arrived)&&(!problem))
-    {
-      if(sgn(diff_angle)*diff_angle > angle_ref_max)
-      {
-        help_msg.linear.x = 1;
-        desire_vel.linear.x = 0;
-        desire_vel.angular.z = P * diff_angle;
-      }
-      else
-      {
-        help_msg.linear.x = 0;
-        desire_vel.linear.x = aver_lin_vel;
-        desire_vel.angular.z = P * diff_angle;
-      }
-    }
-    else if(problem)
-    {
-      desire_vel.linear.x = 0;
-      desire_vel.angular.z = 0;
-    }
-
-    if(dist_left > dist_threshold)
-    {
-      arrived = false;
-    }
-
-    if(arrived){help_msg.angular.x = 1;}else{help_msg.angular.x = 0;}
-    // if(problem){help_msg.linear.z = 1;}else{help_msg.linear.z = 0;}
-
-
-    help_msg.angular.y = diff_angle;
-    help_msg.angular.z = angle_ref_max;
-    // help_msg.angular.x = x_point_robot;
-    help_msg.linear.z = y_point_robot;
-
-    is_robot_arrived.data = arrived;
-
-    robot_arrived.publish( is_robot_arrived );
-    dest_point.publish( point_plot);
-    desired_velocity.publish(desire_vel);
-    help.publish(help_msg);
-    loop_rate.sleep();
-  }
-
-  return 0;
+    return 0;
 }

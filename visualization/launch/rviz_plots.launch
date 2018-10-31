@@ -26,4 +26,6 @@
 
   <node pkg="visualization" type="wall_lidar_plot" name="wall_lidar_plot" output="screen"/>
 
+  <node pkg="visualization" type="plot_path_discretized" name="plot_path_discretized" output="screen"/>
+
 </launch>

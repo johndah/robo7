@@ -13,6 +13,7 @@ add_service_files(
   scanCoord.srv
   callServiceTest.srv
   IsGridOccupied.srv
+  PathFollowerSrv.srv
 )
 
 

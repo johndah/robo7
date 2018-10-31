@@ -12,6 +12,7 @@
 #include <robo7_srvs/RansacWall.h>
 #include <robo7_srvs/ICPAlgorithm.h>
 #include <robo7_srvs/callServiceTest.h>
+#include <robo7_srvs/PathFollowerSrv.h>
 
 
 
@@ -26,6 +27,7 @@ public:
   ros::ServiceClient scan_to_coord_srv;
   ros::ServiceClient ransac_srv;
   ros::ServiceClient icp_srv;
+  ros::ServiceClient path_follower_srv;
   ros::ServiceServer to_test_service;
 
   test_server()
@@ -37,6 +39,7 @@ public:
     scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
     laser_scan = n.subscribe("/scan", 1, &test_server::laser_scan_callBack, this);
 
+    path_follower_srv = n.serviceClient<robo7_srvs::PathFollowerSrv>("/kinematics/path_follower/path_follower");
 
     ransac_srv = n.serviceClient<robo7_srvs::RansacWall>("/localization/ransac");
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
@@ -67,6 +70,8 @@ public:
     robot_position.angular.y = 0;
     robot_position.angular.z = 1.57;
 
+    done = false;
+
     if(req.which_service == 0)
     {
       robo7_srvs::scanCoord::Request req1;
@@ -74,9 +79,19 @@ public:
       req1.robot_position = robot_position;
       req1.lidar_scan = the_lidar_scan;
       scan_to_coord_srv.call(req1, res1);
+      done = res1.success;
     }
 
-    res.success = true;
+    else if(req.which_service == 1)
+    {
+      robo7_srvs::PathFollowerSrv::Request req1;
+      robo7_srvs::PathFollowerSrv::Response res1;
+      req1.req = true;
+      path_follower_srv.call(req1, res1);
+      done = res1.success;
+    }
+
+    res.success = done;
 
     return true;
   }
@@ -85,6 +100,8 @@ public:
 private:
   sensor_msgs::LaserScan the_lidar_scan;
   geometry_msgs::Twist robot_position;
+
+  bool done;
 
 };
 

@@ -44,6 +44,8 @@ public:
 		nh.param<float>("/motor_controller/l_D", D[0], 0);
 		nh.param<float>("/motor_controller/r_D", D[1], 0);
 
+		nh.param<float>("/motor_controller/desire_velocity_threshold", des_threshold, 10);
+
 		// P[0] = 6;
 		// P[1] = 6;
 		// I[0] = 3;
@@ -119,12 +121,12 @@ public:
 		else if (r_pwm_msg.data < -max_motor_input)
 		{r_pwm_msg.data = -max_motor_input;}
 
-		if((desired_w[0] == 0)&&(sgn(l_pwm_msg.data)*l_pwm_msg.data < threshold))
+		if((desired_w[0] < des_threshold)&&(sgn(l_pwm_msg.data)*l_pwm_msg.data < threshold))
 		{
 			l_pwm_msg.data = 0;
 		}
 
-		if((desired_w[1] == 0)&&(sgn(r_pwm_msg.data)*r_pwm_msg.data < threshold))
+		if((desired_w[1] < des_threshold)&&(sgn(r_pwm_msg.data)*r_pwm_msg.data < threshold))
 		{
 			r_pwm_msg.data = 0;
 		}
@@ -159,6 +161,7 @@ private:
 	float max_motor_input;
 
 	float threshold;
+	float des_threshold;
 
 	int sgn(float v)
 	{

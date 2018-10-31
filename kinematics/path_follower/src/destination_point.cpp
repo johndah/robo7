@@ -3,6 +3,7 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
 #include "robo7_msgs/WheelAngularVelocities.h"
+#include "robo7_msgs/destination_point.h"
 
 geometry_msgs::Twist des_twist;
 robo7_msgs::WheelAngularVelocities ref_vels;
@@ -33,19 +34,22 @@ int main(int argc, char **argv)
   n.param<float>("/destination_point/x_destination", x_dest, 0.215);
   n.param<float>("/destination_point/y_destination", y_dest, 0.2);
 
-  ros::Publisher dest_point = n.advertise<geometry_msgs::Twist>("/destination_point", 1);
+  ros::Publisher dest_point = n.advertise<robo7_msgs::destination_point>("/kinematics/path_follower/destination_point", 1);
 
   ros::Rate loop_rate(freq);
 
-  ROS_INFO("Running twist_interpreter");
+  ROS_INFO("Running destination point to destination (x,y) = ( %lf , %lf )", x_dest, y_dest);
 
   geometry_msgs::Twist twist_point;
+  robo7_msgs::destination_point destination_point_;
 
   twist_point.linear.x = x_dest;
   twist_point.linear.y = y_dest;
 
+  destination_point_.destination = twist_point;
+
   ros::spinOnce();
-  dest_point.publish(twist_point);
+  dest_point.publish( destination_point_ );
   loop_rate.sleep();
 
   return 0;

@@ -24,6 +24,9 @@ add_message_files(
   Matrix3.msg
   MeasureFeedback.msg
   MeasureRequest.msg
+  trajectory_point.msg
+  trajectory.msg
+  destination_point.msg
 )
 
 generate_messages(

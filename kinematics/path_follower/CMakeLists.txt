@@ -7,10 +7,11 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   sensor_msgs
+  robo7_srvs
 )
 
 catkin_package(
- CATKIN_DEPENDS roscpp std_msgs robo7_msgs geometry_msgs sensor_msgs
+ CATKIN_DEPENDS roscpp std_msgs robo7_msgs geometry_msgs sensor_msgs robo7_srvs
 )
 
 include_directories(
@@ -22,10 +23,14 @@ add_executable(breaker src/breaker.cpp)
 target_link_libraries(breaker ${catkin_LIBRARIES})
 add_dependencies(breaker ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(path_follower src/path_follower.cpp)
-target_link_libraries(path_follower ${catkin_LIBRARIES})
-add_dependencies(path_follower ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(point_follower src/point_follower.cpp)
+target_link_libraries(point_follower ${catkin_LIBRARIES})
+add_dependencies(point_follower ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(destination_point src/destination_point.cpp)
 target_link_libraries(destination_point ${catkin_LIBRARIES})
 add_dependencies(destination_point ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(path_follower src/path_follower.cpp)
+target_link_libraries(path_follower ${catkin_LIBRARIES})
+add_dependencies(path_follower ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

@@ -1,0 +1,4 @@
+# request
+bool req
+---
+bool success  # True if the sequence was successful
