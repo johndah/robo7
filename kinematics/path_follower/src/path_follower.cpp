@@ -25,7 +25,7 @@ public:
 
     trajectory_sub = n.subscribe("/pathplanning/trajectory", 1, &path_follower::trajectory_callBack, this);
     robot_position = n.subscribe("/dead_reckoning/Pos", 1, &path_follower::position_callBack, this);
-    destination_pub = n.advertise<robo7_msgs::destination_point>("/kinematics/path_follower/destination_point", 1);
+    destination_pub = n.advertise<robo7_msgs::destination_point>("/kinematics/path_follower/dest_point", 1);
 
     path_follower_service = n.advertiseService("/kinematics/path_follower/path_follower", &path_follower::path_follower_Sequence, this);
   }
@@ -48,6 +48,8 @@ public:
 
   void update_Destination_Point()
   {
+    ros::spinOnce();
+
     compute_distance_to_current_destination();
 
     ROS_INFO("Distance to current point : %lf", distance_to_destination);
@@ -55,6 +57,8 @@ public:
     if(static_cast<int>(trajectory_array.trajectory_points.size()) > 0)
     {
       ROS_INFO("New_path");
+      ROS_INFO("distance_to_dest : %lf, distance_next_point : %lf", distance_to_destination,trajectory_array.trajectory_points[current_point_to_follow].distance);
+      ROS_INFO("Robot x,y : %lf, %lf", robot_x, robot_y);
       if((distance_to_destination < trajectory_array.trajectory_points[current_point_to_follow].distance)&&(current_point_to_follow < static_cast<int>(trajectory_array.trajectory_points.size())))
       {
         ROS_INFO("Next_point");
@@ -76,7 +80,7 @@ public:
     {
       ROS_INFO("Not arrived");
       update_Destination_Point();
-      if((current_point_to_follow == 0)||(distance_to_destination < dest_threshold))
+      if((current_point_to_follow == 0)||((distance_to_destination < dest_threshold)&&(current_point_to_follow == static_cast<int>(trajectory_array.trajectory_points.size()) - 1)))
       {
         ROS_INFO("Arrived");
         arrived = true;
@@ -131,7 +135,11 @@ int main(int argc, char **argv)
 
     ROS_INFO("Path Follower running");
 
-    ros::spin();
+    while(path_follower_.n.ok())
+    {
+      ros::spinOnce();
+      loop_rate.sleep();
+    }
 
     return 0;
 }

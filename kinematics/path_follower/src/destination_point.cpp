@@ -34,11 +34,11 @@ int main(int argc, char **argv)
   n.param<float>("/destination_point/x_destination", x_dest, 0.215);
   n.param<float>("/destination_point/y_destination", y_dest, 0.2);
 
-  ros::Publisher dest_point = n.advertise<robo7_msgs::destination_point>("/kinematics/path_follower/destination_point", 1);
+  ros::Publisher dest_point = n.advertise<robo7_msgs::destination_point>("/kinematics/path_follower/dest_point", 10);
 
   ros::Rate loop_rate(freq);
 
-  ROS_INFO("Running destination point to destination (x,y) = ( %lf , %lf )", x_dest, y_dest);
+  // ROS_INFO("Running destination point to destination (x,y) = ( %lf , %lf )", x_dest, y_dest);
 
   geometry_msgs::Twist twist_point;
   robo7_msgs::destination_point destination_point_;
@@ -48,9 +48,13 @@ int main(int argc, char **argv)
 
   destination_point_.destination = twist_point;
 
-  ros::spinOnce();
-  dest_point.publish( destination_point_ );
-  loop_rate.sleep();
+  for(int i=0; i<2; i++)
+  {
+    // ROS_INFO("%d",i);
+    ros::spinOnce();
+    dest_point.publish( destination_point_ );
+    loop_rate.sleep();
+  }
 
   return 0;
 }

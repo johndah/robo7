@@ -76,9 +76,9 @@
      <param name="y_destination" type="double" value="0.2"/>
    </node>
 
-   <!-- <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
+   <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
      <param name="distance_to_destination_threshold" type="double" value="0.05"/>
-   </node> -->
+   </node>
 
 
 
