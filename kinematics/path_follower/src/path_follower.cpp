@@ -44,6 +44,12 @@ public:
       trajectory_array = *msg;
       // current_point_to_follow = 0;
     // }
+    ROS_INFO("%ld", static_cast<int>(trajectory_array.trajectory_points.size()));
+    if( static_cast<int>(trajectory_array.trajectory_points.size()) > 0)
+    {
+      ROS_INFO("%lf, %lf", trajectory_array.trajectory_points[0].point_coord.x,  trajectory_array.trajectory_points[0].point_coord.y);
+    }
+
   }
 
   void update_Destination_Point()
