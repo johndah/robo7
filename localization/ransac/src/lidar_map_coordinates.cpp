@@ -125,7 +125,7 @@ public:
     lidar_points_corner.corners = the_corners_list;
 
     res.point_cloud_coordinates = point_XY;
-    res.lidar_points = lidar_points_corner;
+    res.the_lidar_point_cloud = lidar_points_corner;
     res.success = true;
     point_coordinates.publish( point_XY );
 
