@@ -125,7 +125,7 @@ class PathPlanning
 		this->nh = nh;
 		this->paths_pub = paths_pub;
 		this->start_goal_pub = start_goal_pub;
-		robot_position = nh.subscribe("/dead_reckoning/Pos", 1000, &PathPlanning::getPositionCallBack, this);
+		robot_position = nh.subscribe("/localization/kalman_filter/position", 1000, &PathPlanning::getPositionCallBack, this);
 		this->occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
 
 		goal_radius_tolerance = .03;
