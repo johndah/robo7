@@ -58,17 +58,17 @@ public:
 
     compute_distance_to_current_destination();
 
-    ROS_INFO("Distance to current point : %lf", distance_to_destination);
-    ROS_INFO("Point to follow : %lf, %lf", trajectory_array.trajectory_points[current_point_to_follow].point_coord.x,  trajectory_array.trajectory_points[current_point_to_follow].point_coord.y);
+    // ROS_INFO("Distance to current point : %lf", distance_to_destination);
+    // ROS_INFO("Point to follow : %lf, %lf", trajectory_array.trajectory_points[current_point_to_follow].point_coord.x,  trajectory_array.trajectory_points[current_point_to_follow].point_coord.y);
 
     if(static_cast<int>(trajectory_array.trajectory_points.size()) > 0)
     {
-      ROS_INFO("New_path");
-      ROS_INFO("distance_to_dest : %lf, distance_next_point : %lf", distance_to_destination,trajectory_array.trajectory_points[current_point_to_follow].distance);
-      ROS_INFO("Robot x,y : %lf, %lf", robot_x, robot_y);
+      // ROS_INFO("New_path");
+      // ROS_INFO("distance_to_dest : %lf, distance_next_point : %lf", distance_to_destination,trajectory_array.trajectory_points[current_point_to_follow].distance);
+      // ROS_INFO("Robot x,y : %lf, %lf", robot_x, robot_y);
       if(((distance_to_destination < trajectory_array.trajectory_points[current_point_to_follow].distance)||(distance_to_destination < dest_threshold))&&(current_point_to_follow < static_cast<int>(trajectory_array.trajectory_points.size())))
       {
-        ROS_INFO("Next_point");
+        // ROS_INFO("Next_point");
         current_point_to_follow += 1;
       }
       update_the_destination();
@@ -85,7 +85,7 @@ public:
     current_point_to_follow = 0;
     while(!arrived)
     {
-      ROS_INFO("Not arrived");
+      // ROS_INFO("Not arrived");
       update_Destination_Point();
       if(((distance_to_destination < dest_threshold)&&(current_point_to_follow == static_cast<int>(trajectory_array.trajectory_points.size()) - 1)))
       {
