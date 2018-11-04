@@ -23,7 +23,7 @@ public:
 
     current_point_to_follow = 0;
 
-    trajectory_sub = n.subscribe("/pathplanning/trajectory", 1, &path_follower::trajectory_callBack, this);
+    trajectory_sub = n.subscribe("/path_planning/trajectory", 1, &path_follower::trajectory_callBack, this);
     robot_position = n.subscribe("/localization/kalman_filter/position", 1, &path_follower::position_callBack, this);
     destination_pub = n.advertise<robo7_msgs::destination_point>("/kinematics/path_follower/dest_point", 1);
 

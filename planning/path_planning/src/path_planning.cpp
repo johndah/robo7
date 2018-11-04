@@ -37,17 +37,17 @@ class Node
 	float path_cost, cost_to_come, path_length, angular_velocity_resolution;
 	float tolerance_radius, tolerance_angle;
 	unsigned int node_id;
-	std::vector<float> path_x, path_y;
+	std::vector<float> path_x, path_y, path_theta;
 
-	Node(float x, float y, float theta, float angular_velocity, float time, std::vector<float> path_x, std::vector<float> path_y, float path_cost, float cost_to_come, ros::ServiceClient occupancy_client, unsigned int node_id)
+	Node(float x, float y, float theta, float angular_velocity, std::vector<float> path_x, std::vector<float> path_y, std::vector<float> path_theta, float path_cost, float cost_to_come, ros::ServiceClient occupancy_client, unsigned int node_id)
 	{
 		this->x = x;
 		this->y = y;
 		this->theta = theta;
 		this->angular_velocity = angular_velocity;
-		this->time = time;
 		this->path_x = path_x;
 		this->path_y = path_y;
+		this->path_theta = path_theta;
 		this->path_cost = path_cost;
 		this->cost_to_come = cost_to_come;
 
@@ -106,7 +106,6 @@ class Node
 	}
 };
 
-
 class PathPlanning
 {
   public:
@@ -150,12 +149,11 @@ class PathPlanning
 	{
 		float steering_angle_max, angle_diff_tol, cost_to_come, cost;
 		std::vector<node_ptr> successors;
-		std::vector<float> path_x, path_y;
-		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f, occupancy_client, this->node_id++);
+		std::vector<float> path_x, path_y, path_theta;
+		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
 
 		steering_angle_max = pi;
-		node->angular_velocity_resolution = pi/2;
-
+		node->angular_velocity_resolution = pi / 2;
 
 		angle_diff_tol = 1e-1;
 
@@ -193,8 +191,9 @@ class PathPlanning
 				t += dt;
 				path_x.push_back(x);
 				path_y.push_back(y);
+				path_theta.push_back(theta);
 
-				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, t, path_x, path_y, path_cost, cost_to_come, occupancy_client, this->node_id++);
+				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, this->node_id++);
 
 				if (successor_node->inCollision())
 				{
@@ -230,7 +229,7 @@ class PathPlanning
 			if (add_node)
 			{
 				cost_to_come += path_cost;
-				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, t, path_x, path_y, path_cost, cost_to_come, occupancy_client, this->node_id++);
+				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, this->node_id++);
 				successors.push_back(successor_node);
 			}
 		}
@@ -240,7 +239,7 @@ class PathPlanning
 
 	bool getPath()
 	{
-		std::vector<float> path_x, path_y, goal_path_x, goal_path_y;
+		std::vector<float> path_x, path_y, path_theta, goal_path_x, goal_path_y;
 		std::vector<float> start_goal_x(2), start_goal_y(2), start_goal_theta(2);
 		std::vector<node_ptr> successors, alive_nodes, dead_nodes;
 		robo7_msgs::path path_msg, start_goal_msg;
@@ -249,8 +248,8 @@ class PathPlanning
 		if (position_updated)
 		{
 
-			node_ptr node_start = std::make_shared<Node>(x0, y0, pi / 2, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f, occupancy_client, this->node_id++);
-			node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f, occupancy_client, this->node_id++);
+			node_ptr node_start = std::make_shared<Node>(x0, y0, pi / 2, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
+			node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
 
 			alive_nodes.push_back(node_start);
 
@@ -334,7 +333,6 @@ class PathPlanning
 
 			ROS_INFO("Path not found");
 		}
-
 	}
 
 	bool get_found_path(node_ptr node_current)
@@ -363,50 +361,38 @@ class PathPlanning
 			if (partitions > 0)
 			{
 
-				for (int i = 0; i <= partitions; i++)
+				for (int i = partitions; i >= 0; i--)
 				{
-					float t = 0;
-					float dt = partial_node->dt;
-					float x = partial_node_parent->x;
-					float y = partial_node_parent->y;
-					float theta = partial_node_parent->theta;
+
+					std::vector<float>::const_iterator i_x_0 = node_current->path_x.begin() + i * (int)(node_current->path_x.size() / (partitions + 1));
+					std::vector<float>::const_iterator i_x_end = i_x_0 + (int)(node_current->path_x.size() / (partitions + 1));
+
+					std::vector<float>::const_iterator i_y_0 = node_current->path_y.begin() + i * (int)(node_current->path_y.size() / (partitions + 1));
+					std::vector<float>::const_iterator i_y_end = i_y_0 + (int)(node_current->path_y.size() / (partitions + 1));
+
+					std::vector<float>::const_iterator i_theta_0 = node_current->path_theta.begin() + i * (int)(node_current->path_theta.size() / (partitions + 1));
+					std::vector<float>::const_iterator i_theta_end = i_theta_0 + (int)(node_current->path_theta.size() / (partitions + 1));
+
+					std::vector<float> path_x(i_x_0, i_x_end);
+					std::vector<float> path_y(i_y_0, i_y_end);
+					std::vector<float> path_theta(i_theta_0, i_theta_end);
+
+					float x = path_x[0];
+					float y = path_y[0];
+					float theta = path_theta[0];
 					float angular_velocity = partial_node->angular_velocity;
 					float path_cost = partial_node->path_cost / (partitions + 1);
 					float cost_to_come = partial_node->cost_to_come;
-					bool add_partial_node = true;
-					std::vector<float> path_x, path_y;
 
-					while (t <= partial_node->path_length / (partitions + 1))
-					{
+					cost_to_come += path_cost;
+					partial_node_parent = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, this->node_id++);
 
-						x += cos(theta) * dt;
-						y += sin(theta) * dt;
-						theta += angular_velocity * dt;
-
-						if (x == node_current->x && y == node_current->y)
-						{
-							add_partial_node = false;
-							break;
-						}
-
-						path_x.push_back(x);
-						path_y.push_back(y);
-
-						t += dt;
-					}
-
-					if (add_partial_node)
-					{
-
-						cost_to_come += path_cost;
-						partial_node_parent = std::make_shared<Node>(x, y, theta, angular_velocity, t, path_x, path_y, path_cost, cost_to_come, occupancy_client, this->node_id++);
-
-						partial_node->parent = partial_node_parent;
-						partial_node = partial_node_parent;
-						target_nodes.push_back(partial_node);
-					}
+					partial_node->parent = partial_node_parent;
+					partial_node = partial_node_parent;
+					target_nodes.push_back(partial_node);
 				}
 			}
+
 			node_current = node_parent;
 			target_nodes.push_back(node_current);
 		}
@@ -427,7 +413,7 @@ class PathPlanning
 			trajectory_point_msg.point_coord.x = node->x;
 			trajectory_point_msg.point_coord.y = node->y;
 			trajectory_point_msg.point_coord.z = 0;
-			trajectory_point_msg.speed = .15 - .05 * partitions; 
+			trajectory_point_msg.speed = .15 - .05 * partitions;
 			trajectory_point_msg.distance = node->path_length / (partitions + 1);
 			trajectory_msg.trajectory_points.push_back(trajectory_point_msg);
 		}
@@ -441,7 +427,7 @@ class PathPlanning
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "pathplanning");
+	ros::init(argc, argv, "path_planning");
 
 	ros::NodeHandle nh;
 	nh = ros::NodeHandle("~");

@@ -29,9 +29,9 @@ public:
 
   Paths(ros::NodeHandle nh, ros::Publisher marker_array_pub, ros::Publisher marker_pub)
   {
-    this->paths_sub = nh.subscribe("/pathplanning/paths_vector", 1000, &Paths::pathsCallback, this);
-    this->start_goal_sub = nh.subscribe("/pathplanning/start_goal", 1000, &Paths::startGoalCallback, this);
-    this->target_paths_sub = nh.subscribe("/pathplanning/target_path", 1000, &Paths::trajectoryCallback, this);
+    this->paths_sub = nh.subscribe("/path_planning/paths_vector", 1000, &Paths::pathsCallback, this);
+    this->start_goal_sub = nh.subscribe("/path_planning/start_goal", 1000, &Paths::startGoalCallback, this);
+    this->target_paths_sub = nh.subscribe("/path_planning/target_path", 1000, &Paths::trajectoryCallback, this);
 
     this->marker_array_pub = marker_array_pub;
     this->marker_pub = marker_pub;
