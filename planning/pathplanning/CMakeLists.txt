@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   robo7_msgs
+  robo7_srvs
   geometry_msgs
   visualization_msgs
   phidgets
@@ -14,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 
 catkin_package(
- CATKIN_DEPENDS roscpp std_msgs geometry_msgs visualization_msgs phidgets
+ CATKIN_DEPENDS roscpp std_msgs robo7_msgs robo7_srvs geometry_msgs visualization_msgs phidgets
 )
 
 include_directories(

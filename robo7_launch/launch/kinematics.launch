@@ -18,8 +18,6 @@
 
    <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" output="screen"/>
 
-   <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>
-
    <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning" output="screen">
      <param name="initial_x_pos" type="double" value="0.215"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
