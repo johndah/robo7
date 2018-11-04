@@ -18,13 +18,13 @@
 
    <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" output="screen"/>
 
-   <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning" output="screen">
+   <!-- <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning" output="screen">
      <param name="initial_x_pos" type="double" value="0.215"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
      <param name="linear_adjustment" type="double" value="0.0481"/>
      <param name="angular_adjustment" type="double" value="0.0235"/>
-   </node>
+   </node> -->
 
    <node pkg="ransac" type="lidar_map_coordinates" name="lidar_map_coordinates" output="screen">
      <param name="lidar_angle" type="double" value="3.14"/>
@@ -44,7 +44,7 @@
    </node>
 
    <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
-     <param name="initial_x_pos" type="double" value="0.215"/>
+     <param name="initial_x_pos" type="double" value="1"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
      <param name="linear_adjustment" type="double" value="0.0481"/>
@@ -82,7 +82,7 @@
    </node>
 
    <node pkg="path_follower" type="destination_point" name="destination_point" output="screen">
-     <param name="x_destination" type="double" value="0.215"/>
+     <param name="x_destination" type="double" value="1"/>
      <param name="y_destination" type="double" value="0.2"/>
    </node>
 

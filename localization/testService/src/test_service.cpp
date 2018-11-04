@@ -38,6 +38,7 @@ public:
     //The different possible service to test and their corresponding subscribings
     scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
     laser_scan = n.subscribe("/scan", 1, &test_server::laser_scan_callBack, this);
+    laser_scan = n.subscribe("/localization/kalman_filter/position", 1, &test_server::robot_position_callBack, this);
 
     path_follower_srv = n.serviceClient<robo7_srvs::PathFollowerSrv>("/kinematics/path_follower/path_follower");
 
@@ -59,17 +60,15 @@ public:
       the_lidar_scan.intensities = msg->intensities;
   }
 
+  void robot_position_callBack(const geometry_msgs::Twist::ConstPtr &msg)
+  {
+    robot_position = *msg;
+  }
+
 
   bool test_Sequence(robo7_srvs::callServiceTest::Request &req,
          robo7_srvs::callServiceTest::Response &res)
   {
-    robot_position.linear.x = 0.215;
-    robot_position.linear.y = 0.2;
-    robot_position.linear.z = 0;
-    robot_position.angular.x = 0;
-    robot_position.angular.y = 0;
-    robot_position.angular.z = 1.57;
-
     done = false;
 
     if(req.which_service == 0)
