@@ -1,17 +1,17 @@
 <launch>
 
+  <!--
   <include file="$(find motors)/launch/motors.launch"/>
 
   <include file="$(find gate_controller)/launch/gate.launch"/>
+   -->
 
   <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" output="screen"/>
 
-  <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>
-
-  <!--
+    <!--
    <node pkg="localization" type="ICP" name="ICP"/>
    -->
-   <node pkg="dead_reckogning" type="dead_reckogning" name="dead_reckogning">
+   <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning">
      <param name="initial_x_pos" type="double" value="0.215"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
@@ -19,6 +19,20 @@
      <param name="angular_adjustment" type="double" value="0.0235"/>
    </node>
 
+  <!--
+   -->
+  
+  <node pkg="occupancy_grid" type="occupancy_grid_server" name="occupancy_grid_server"
+    output="screen">
+    <param name="grid_square_size" type="double" value="0.02"/>
+    <param name="min_distance" type="double" value="0.13"/>
+    <param name="smoothing_kernel_size" type="int" value="15"/>
+    <param name="smoothing_kernel_sd" type="int" value="3"/>
+  </node>
+
+  <node pkg="pathplanning" type="pathplanning" name="pathplanning" output="screen"/>
+
+  <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>
 
    <node pkg="path_follower" type="path_follower" name="path_follower">
      <param name="angle_P" type="double" value="1"/>

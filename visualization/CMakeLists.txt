@@ -26,6 +26,10 @@ add_executable(visualization src/visualization.cpp)
 target_link_libraries(visualization ${catkin_LIBRARIES})
 add_dependencies(visualization ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_executable(paths src/paths.cpp)
+target_link_libraries(paths ${catkin_LIBRARIES})
+add_dependencies(paths ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 add_executable(laserXY src/laserXY.cpp)
 target_link_libraries(laserXY ${catkin_LIBRARIES})
 add_dependencies(laserXY ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

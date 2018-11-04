@@ -17,6 +17,8 @@ add_message_files(
   XY_coordinates.msg
   path.msg
   paths.msg
+  trajectory_point.msg
+  trajectory.msg
 )
 
 generate_messages(
