@@ -66,7 +66,7 @@ public:
       ROS_INFO("New_path");
       ROS_INFO("distance_to_dest : %lf, distance_next_point : %lf", distance_to_destination,trajectory_array.trajectory_points[current_point_to_follow].distance);
       ROS_INFO("Robot x,y : %lf, %lf", robot_x, robot_y);
-      if((distance_to_destination < trajectory_array.trajectory_points[current_point_to_follow].distance)&&(current_point_to_follow < static_cast<int>(trajectory_array.trajectory_points.size())))
+      if(((distance_to_destination < trajectory_array.trajectory_points[current_point_to_follow].distance)||(distance_to_destination < dest_threshold))&&(current_point_to_follow < static_cast<int>(trajectory_array.trajectory_points.size())))
       {
         ROS_INFO("Next_point");
         current_point_to_follow += 1;
