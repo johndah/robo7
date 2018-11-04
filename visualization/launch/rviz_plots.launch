@@ -1,8 +1,8 @@
 <launch>
 
   <node pkg="ras_maze_map" type="ras_maze_map_node" name="maze_map"
-        args="_map_file:=$(find dead_reckoning)/maps/lab_maze_2018.txt"/> 
-  <!-- 
+        args="_map_file:=$(find dead_reckoning)/maps/lab_maze_2018.txt"/>
+  <!--
   -->
 
   <node pkg="own_map" type="own_map" name="own_map"
@@ -16,14 +16,24 @@
 
   <node pkg="tf" name="object_plot" type="static_transform_publisher" args="0.1 0 0.15 0 1.57 0 /robot /cam 100" />
 
+  <node pkg="visualization" type="laserXY" name="laserXY"/>
+
+  <node pkg="visualization" type="plot_map" name="plot_map"/>
+
   <node pkg="ransac" type="scan_to_coordinates" name="scan_to_coordinates">
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
 
   <node pkg="visualization" type="paths" name="paths" output = "screen"/>
 
-  <node pkg="visualization" type="laserXY" name="laserXY"/>
+  <node pkg="visualization" type="plot_map_corners" name="plot_map_corners"/>
+
+  <node pkg="visualization" type="plot_lidar_corners" name="plot_lidar_corners"/>
 
   <node pkg="visualization" type="dest_point_plot" name="dest_point_plot"/>
+
+  <node pkg="visualization" type="wall_lidar_plot" name="wall_lidar_plot" output="screen"/>
+
+  <node pkg="visualization" type="plot_path_discretized" name="plot_path_discretized" output="screen"/>
 
 </launch>

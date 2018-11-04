@@ -19,15 +19,13 @@ public:
   ros::NodeHandle n;
   ros::NodeHandle nh;
   ros::Subscriber robot_position1;
-  ros::Subscriber robot_position3;
+  ros::Subscriber robot_position2;
   ros::Publisher marker_parameters1;
   ros::Publisher marker_parameters2;
   tf::TransformBroadcaster br;
   tf::Transform transform;
   tf::TransformBroadcaster br2;
   tf::Transform transform2;
-  tf::TransformBroadcaster br3;
-  tf::Transform transform3;
 
   markerRviz()
   {
@@ -36,10 +34,13 @@ public:
     x_angle = 0;
     y_angle = 0;
     z_pos = 0;
+    x2_angle = 0;
+    y2_angle = 0;
+    z2_pos = 0;
     nh.param<float>("/visualization/lidar_angle", lidar_angle, 0);
 
-    robot_position1 = n.subscribe("/deadreckoning/Pos", 1, &markerRviz::deadReckoning_callBack, this);
-    robot_position3 = n.subscribe("/deadreckoning/Pos2", 1, &markerRviz::deadReckoning3_callBack, this);
+    robot_position1 = n.subscribe("/localization/kalman_filter/position", 1, &markerRviz::deadReckoning_callBack, this);
+    robot_position2 = n.subscribe("/localization/icp/position", 1, &markerRviz::deadReckoning2_callBack, this);
 
     marker_parameters1 = n.advertise<visualization_msgs::Marker>("robotMarker", 1);
     marker_parameters2 = n.advertise<visualization_msgs::Marker>("robotMarker2", 1);
@@ -52,14 +53,15 @@ public:
       z_angle = msg->angular.z;
   }
 
-  void deadReckoning3_callBack(const geometry_msgs::Twist::ConstPtr &msg)
+  void deadReckoning2_callBack(const geometry_msgs::Twist::ConstPtr &msg)
   {
-      x3_pos = msg->linear.x;
-      y3_pos = msg->linear.y;
-      z3_angle = msg->angular.z;
+      x2_pos = msg->linear.x;
+      y2_pos = msg->linear.y;
+      z2_angle = msg->angular.z;
   }
 
-  void updatePosition(){
+  void updatePosition()
+  {
     //Generate the future published twist msg
     visualization_msgs::Marker marker;
 
@@ -93,25 +95,18 @@ public:
     transform.setRotation(q);
     br.sendTransform(tf::StampedTransform(transform, t, "map", "robot"));
 
-    // transform2.setOrigin( tf::Vector3(0, 0, 0) );
-    // tf::Quaternion q2;
-    // q2.setRPY(0, 0, lidar_angle);
-    // transform2.setRotation(q2);
-    // br2.sendTransform(tf::StampedTransform(transform2, ros::Time::now(), "robot", "laser"));
-
-    transform3.setOrigin( tf::Vector3(x3_pos, y3_pos, z_pos) );
-    tf::Quaternion q3;
-    q3.setRPY(x_angle, y_angle, z3_angle);
-    transform3.setRotation(q3);
-    br3.sendTransform(tf::StampedTransform(transform3, t, "map", "robot2"));
+    //Set the frame centered on the robot
+    transform2.setOrigin( tf::Vector3(x2_pos, y2_pos, z2_pos) );
+    tf2::Quaternion q2;
+    q2.setRPY(x2_angle, y2_angle, z2_angle);
+    transform2.setRotation(q);
+    br2.sendTransform(tf::StampedTransform(transform2, t, "map", "robot_corrected"));
 
     marker_parameters1.publish( marker );
 
-    //Non-linear model robot marker
-    marker.header.frame_id = "robot2";
-    marker.color.g = 0;
+    marker.header.frame_id = "robot_corrected";
+    marker.color.g = 0.0;
     marker_parameters2.publish( marker );
-
   }
 
 
@@ -124,9 +119,12 @@ private:
   float y_angle;
   float z_angle;
   float lidar_angle;
-  float x3_pos;
-  float y3_pos;
-  float z3_angle;
+  float x2_pos;
+  float y2_pos;
+  float z2_pos;
+  float x2_angle;
+  float y2_angle;
+  float z2_angle;
 
   //Time constant
   ros::Time t;

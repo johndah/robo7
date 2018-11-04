@@ -36,7 +36,7 @@ public:
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
 
     laser_scan = n.subscribe("/scan", 1, &scan_to_coordinates::laser_scan_callBack, this);
-    robot_position = n.subscribe("/dead_reckoning/Pos", 1, &scan_to_coordinates::position_callBack, this);
+    robot_position = n.subscribe("/localization/kalman_filter/position", 1, &scan_to_coordinates::position_callBack, this);
     point_coordinates = n.advertise<robo7_msgs::XY_coordinates>("point_cloud_coordinates", 1);
   }
 

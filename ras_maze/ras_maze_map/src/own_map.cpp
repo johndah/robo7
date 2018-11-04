@@ -44,6 +44,8 @@
 #include <geometry_msgs/Point32.h>
 #include <sensor_msgs/PointCloud.h>
 #include <robo7_msgs/XY_coordinates.h>
+#include <robo7_msgs/cornerList.h>
+#include <geometry_msgs/Vector3.h>
 
 // Boost includes
 #include <stdio.h>
@@ -84,11 +86,15 @@ int main(int argc, char **argv)
     }
 
     ros::Publisher wall_coordinates = n.advertise<robo7_msgs::XY_coordinates>("wall_coordinates", 1);
+    ros::Publisher corners_coordinates_pub = n.advertise<robo7_msgs::cornerList>("map_corners", 1);
 
     vector<float> X_wall_coordinates = vector<float>(1, 0);
     vector<float> Y_wall_coordinates = vector<float>(1, 0);
     float discretisation_step = 0.05;
     int length = 0;
+
+    std::vector<geometry_msgs::Vector3> the_corners_list;
+    geometry_msgs::Vector3 corner;
 
     string line;
     int wall_id = 0;
@@ -113,6 +119,16 @@ int main(int argc, char **argv)
             ROS_WARN("Segment error. Skipping line: %s",line.c_str());
         }
 
+        corner.x = x1;
+        corner.y = y1;
+        corner.z = 0;
+        the_corners_list.push_back(corner);
+
+        corner.x = x2;
+        corner.y = y2;
+        corner.z = 0;
+        the_corners_list.push_back(corner);
+
         //Discretized map
         int N_step = floor( sqrt(pow(x1-x2,2) + pow(y1-y2,2))/discretisation_step ) + 1;
         float x_step = (x2-x1)/N_step;
@@ -132,10 +148,15 @@ int main(int argc, char **argv)
     point_XY.X_coordinates = X_wall_coordinates;
     point_XY.Y_coordinates = Y_wall_coordinates;
 
+    robo7_msgs::cornerList all_corners;
+    all_corners.number = the_corners_list.size();
+    all_corners.corners = the_corners_list;
+
     // Main loop.
     while (n.ok())
     {
         wall_coordinates.publish( point_XY );
+        corners_coordinates_pub.publish( all_corners );
         ros::spinOnce();
         r.sleep();
     }

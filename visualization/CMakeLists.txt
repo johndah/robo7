@@ -42,4 +42,22 @@ add_executable(dest_point_plot src/dest_point_plot.cpp)
 target_link_libraries(dest_point_plot ${catkin_LIBRARIES})
 add_dependencies(dest_point_plot ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_executable(wall_lidar_plot src/wall_lidar_plot.cpp)
+target_link_libraries(wall_lidar_plot ${catkin_LIBRARIES})
+add_dependencies(wall_lidar_plot ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_executable(plot_map src/plot_map.cpp)
+target_link_libraries(plot_map ${catkin_LIBRARIES})
+add_dependencies(plot_map ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(plot_map_corners src/plot_map_corners.cpp)
+target_link_libraries(plot_map_corners ${catkin_LIBRARIES})
+add_dependencies(plot_map_corners ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(plot_lidar_corners src/plot_lidar_corners.cpp)
+target_link_libraries(plot_lidar_corners ${catkin_LIBRARIES})
+add_dependencies(plot_lidar_corners ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(plot_path_discretized src/plot_path_discretized.cpp)
+target_link_libraries(plot_path_discretized ${catkin_LIBRARIES})
+add_dependencies(plot_path_discretized ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

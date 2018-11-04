@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(robo7_msgs)
 
-find_package(catkin REQUIRED COMPONENTS std_msgs message_generation geometry_msgs
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs message_generation sensor_msgs
 )
 
 add_message_files(
@@ -17,19 +17,28 @@ add_message_files(
   XY_coordinates.msg
   path.msg
   paths.msg
+  aWall.msg
+  wallList.msg
+  cornerList.msg
+  Matrix4.msg
+  Matrix3.msg
+  MeasureFeedback.msg
+  MeasureRequest.msg
   trajectory_point.msg
   trajectory.msg
+  destination_point.msg
 )
 
 generate_messages(
   DEPENDENCIES
   std_msgs
   geometry_msgs
+  sensor_msgs
 )
 
 catkin_package(
   INCLUDE_DIRS
   LIBRARIES
-  CATKIN_DEPENDS geometry_msgs message_runtime std_msgs
+  CATKIN_DEPENDS geometry_msgs message_runtime std_msgs sensor_msgs
   DEPENDS
 )

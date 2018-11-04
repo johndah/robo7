@@ -20,6 +20,7 @@ public:
   ros::Subscriber estimated_R_speed;
   ros::Publisher robot_position1;
   ros::Publisher robot_position2;
+  ros::Publisher robot_angle_pub;
 
   deadReckoning()
   {
@@ -63,6 +64,7 @@ public:
     encoder_Right = n.subscribe("/r_motor/encoder", 10, &deadReckoning::encoder_R_callBack, this);
     robot_position1 = n.advertise<geometry_msgs::Twist>("Pos", 10);
     robot_position2 = n.advertise<geometry_msgs::Twist>("Pos2", 10);
+    robot_angle_pub = n.advertise<std_msgs::Float32>("angle", 10);
 
   }
 
@@ -80,6 +82,7 @@ public:
     //Generate the future published twist msg
     geometry_msgs::Twist twist_msg;
     geometry_msgs::Twist twist_msg2;
+    std_msgs::Float32 angle_;
 
     //Update the differents count changes
     encoder_L = count_L - prev_count_L;
@@ -132,6 +135,8 @@ public:
     z_angle += ang_dis * (1 + angular_adjustment);
     z_angle = wrapAngle(z_angle);
 
+    angle_.data = z_angle;
+
     //Adjustment
     // x_pos = linear_adjustment + x_pos;
     // y_pos = linear_adjustment + y_pos;
@@ -145,11 +150,12 @@ public:
     twist_msg.angular.y = 0;
     twist_msg.angular.z = z_angle;
 
-    ROS_INFO("Publishing in dead_reckoning with x: %f", x_pos);
+    // ROS_INFO("Publishing in dead_reckoning with x: %f", x_pos);
 
     //Send the datas
     robot_position1.publish(twist_msg);
     robot_position2.publish(twist_msg2);
+    robot_angle_pub.publish( angle_ );
   }
 
 
@@ -235,6 +241,8 @@ int main(int argc, char **argv)
     deadReckoning _dead_reckoning;
 
     ros::Rate loop_rate(control_frequency);
+
+    ROS_INFO("Dead_reckoning is turning");
 
     while(_dead_reckoning.n.ok())
     {
