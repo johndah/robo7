@@ -70,7 +70,7 @@
 
    <node pkg="pathplanning" type="pathplanning" name="pathplanning" output="screen"/>
 
-   <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>
+   <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
 
    <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
      <param name="angle_P" type="double" value="3"/>
