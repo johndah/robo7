@@ -27,7 +27,7 @@ public:
     //Dealing with the shifted angle of the lidar in the robot frame
     n.param<float>("/lidar_map_coordinates/lidar_angle", shifted_angle, 0);
 
-    ROS_INFO("Angle : %lf", shifted_angle);
+    // ROS_INFO("Angle : %lf", shifted_angle);
 
     pi = 3.14159265358979323846;
 
@@ -43,7 +43,7 @@ public:
 	{
     ROS_INFO("start");
     //CallBack all the datas out of the request message
-    ROS_INFO("%lf", req.lidar_scan.angle_min);
+    // ROS_INFO("%lf", req.lidar_scan.angle_min);
     angle_min = req.lidar_scan.angle_min;
     angle_max = req.lidar_scan.angle_max;
     angle_increment = req.lidar_scan.angle_increment;
