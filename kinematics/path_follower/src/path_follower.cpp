@@ -87,7 +87,7 @@ public:
     {
       ROS_INFO("Not arrived");
       update_Destination_Point();
-      if((current_point_to_follow == 0)||((distance_to_destination < dest_threshold)&&(current_point_to_follow == static_cast<int>(trajectory_array.trajectory_points.size()) - 1)))
+      if(((distance_to_destination < dest_threshold)&&(current_point_to_follow == static_cast<int>(trajectory_array.trajectory_points.size()) - 1)))
       {
         ROS_INFO("Arrived");
         arrived = true;
