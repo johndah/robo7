@@ -10,8 +10,8 @@
 #include <geometry_msgs/Twist.h>
 
 typedef std::vector<float> float_vector;
-std::vector<float_vector> paths_x, paths_y, goal_paths_x, goal_paths_y, trajectory_x, trajectory_y; //, goal_paths_theta;
-float_vector start_goal_x(2), start_goal_y(2);                                                      //, start_goal_theta(2);
+std::vector<float_vector> paths_x, paths_y, goal_paths_x, goal_paths_y, trajectory_x, trajectory_y;
+float_vector start_goal_x(2), start_goal_y(2);                                                     
 double control_frequency = 10.0;
 int number_paths = 0;
 float path_height = 0.1;
@@ -31,7 +31,6 @@ public:
   {
     this->paths_sub = nh.subscribe("/pathplanning/paths_vector", 1000, &Paths::pathsCallback, this);
     this->start_goal_sub = nh.subscribe("/pathplanning/start_goal", 1000, &Paths::startGoalCallback, this);
-    //this->goal_path_sub = nh.subscribe("/pathplanning/goal_path", 1000, &Paths::goalPathCallback, this);
     this->target_paths_sub = nh.subscribe("/pathplanning/target_path", 1000, &Paths::trajectoryCallback, this);
 
     this->marker_array_pub = marker_array_pub;
@@ -39,7 +38,6 @@ public:
 
     this->paths_received = false;
     this->start_goal_received = false;
-    //this->goal_path_received = false;
     this->trajectory_received = false;
   }
 
@@ -62,26 +60,9 @@ public:
     start_goal_x[1] = start_goal_msg->path_x[1];
     start_goal_y[0] = start_goal_msg->path_y[0];
     start_goal_y[1] = start_goal_msg->path_y[1];
-    //start_goal_theta[0] = start_goal_msg->path_theta[0];
-    //start_goal_theta[1] = start_goal_msg->path_theta[1];
 
     start_goal_received = true;
   }
-  /*
-  void goalPathCallback(const robo7_msgs::paths::ConstPtr &goal_path_msg)
-  {
-    goal_paths_x.clear();
-    goal_paths_y.clear();
-
-    for (int i = 0; i < goal_path_msg->paths.size(); i++)
-    {
-      goal_paths_x.push_back(goal_path_msg->paths[i].path_x);
-      goal_paths_y.push_back(goal_path_msg->paths[i].path_y);
-    }
-
-    goal_path_received = true;
-  }
-*/
 
   void trajectoryCallback(const robo7_msgs::paths::ConstPtr &target_paths_msg)
   {
@@ -136,42 +117,6 @@ public:
       }
     }
 
-    /*
-    if (this->goal_path_received)
-    {
-      geometry_msgs::Point p;
-
-      goal_paths_msg.markers.resize(goal_paths_x.size());
-
-      for (int i = 0; i < goal_paths_x.size(); i++)
-      {
-
-        goal_paths_msg.markers[i].header.frame_id = "/map";
-        goal_paths_msg.markers[i].header.stamp = ros::Time::now();
-        goal_paths_msg.markers[i].action = visualization_msgs::Marker::ADD;
-        goal_paths_msg.markers[i].pose.orientation.w = 1.0;
-        goal_paths_msg.markers[i].ns = "Goal Path";
-        goal_paths_msg.markers[i].id = i;
-        goal_paths_msg.markers[i].type = visualization_msgs::Marker::LINE_STRIP;
-
-        goal_paths_msg.markers[i].scale.x = 0.02;
-        goal_paths_msg.markers[i].scale.y = 0.02;
-        goal_paths_msg.markers[i].scale.z = 0.02;
-
-        goal_paths_msg.markers[i].color.g = 1.0;
-        goal_paths_msg.markers[i].color.a = 1.0;
-
-        for (int j = 0; j < goal_paths_x[i].size(); j++)
-        {
-          p.x = goal_paths_x[i][j];
-          p.y = goal_paths_y[i][j];
-          p.z = 0.0;
-          goal_paths_msg.markers[i].points.push_back(p);
-        }
-      }
-    }
-
-  */
     if (this->trajectory_received)
     {
       geometry_msgs::Point p;
@@ -181,8 +126,6 @@ public:
 
       for (int i = 0; i < trajectory_x.size(); i++)
       {
-        /*
-        */
         target_paths_msg.markers[i].header.frame_id = "/map";
         target_paths_msg.markers[i].header.stamp = ros::Time::now();
         target_paths_msg.markers[i].action = visualization_msgs::Marker::ADD;
@@ -195,13 +138,8 @@ public:
         target_paths_msg.markers[i].scale.y = 0.02;
         target_paths_msg.markers[i].scale.z = 0.02;
 
-        //target_paths_msg.markers[i].color.r = 1.0;
         target_paths_msg.markers[i].color.g = 1.0;
         target_paths_msg.markers[i].color.a = 1.0;
-
-        //target_points_msg.pose.position.x = trajectory_x[i][0];
-        //target_points_msg.pose.position.y = trajectory_x[i][0];
-        //target_points_msg.pose.position.z = trajectory_x[i][0];
 
         target_points_msg.markers[i].header.frame_id = "/map";
         target_points_msg.markers[i].header.stamp = ros::Time::now();
@@ -269,13 +207,11 @@ public:
         start_goal_msg.markers[i].pose.position.x = start_goal_x[i];
         start_goal_msg.markers[i].pose.position.y = start_goal_y[i];
         start_goal_msg.markers[i].pose.position.z = marker_height;
-        //ROS_INFO("i: %d x: %f  y: %f", i, start_goal_msg.markers[i].pose.position.x, start_goal_msg.markers[i].pose.position.y);
       }
     }
 
     marker_array_pub.publish(curve_array_msg);
     marker_array_pub.publish(start_goal_msg);
-    //marker_array_pub.publish(goal_paths_msg);
     marker_array_pub.publish(target_paths_msg);
     marker_array_pub.publish(target_points_msg);
   }

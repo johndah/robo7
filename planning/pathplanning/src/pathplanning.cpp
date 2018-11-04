@@ -17,7 +17,14 @@ class PathPlanning;
 
 typedef std::shared_ptr<Node> node_ptr;
 float pi = 3.14159265358979323846;
-float x_target = 1.6, y_target = .8, theta_target = pi / 2;
+
+int target_index = 3;
+std::vector<float> x_targets = {.2, 1.6, 2.2, 2.2, .8};
+std::vector<float> y_targets = {2.2, .8, 2.2, .2, .2};
+float theta_target = pi / 2;
+
+float x_target = x_targets[target_index];
+float y_target = y_targets[target_index];
 
 class Node
 {
@@ -46,7 +53,6 @@ class Node
 		this->cost_to_come = cost_to_come;
 
 		this->path_length = 0.4;
-		this->angular_velocity_resolution = pi / 2;
 		this->dt = 0.05;
 
 		this->tolerance_radius = 5e-2;
@@ -79,7 +85,6 @@ class Node
 		this->occupancy_srv.request.y = this->y;
 		if (this->occupancy_client.call(this->occupancy_srv))
 		{
-			//ROS_INFO("x: %f   y: %f   occ: %f   coll: %d", this->occupancy_srv.request.x, this->occupancy_srv.request.y, this->occupancy_srv.response.occupancy, this->occupancy_srv.response.occupancy>0.9);
 			return this->occupancy_srv.response.occupancy > 0.99;
 		}
 		else
@@ -102,13 +107,7 @@ class Node
 	}
 };
 
-/*
-bool is(node_ptr node, node_ptr other_node)
-{
-	return node->is(other_node);
-}
 
-*/
 class PathPlanning
 {
   public:
@@ -150,12 +149,14 @@ class PathPlanning
 
 	std::vector<node_ptr> getSuccessorNodes(node_ptr node)
 	{
-		float steering_angle_max, angle_diff_tol, cost_to_come;
+		float steering_angle_max, angle_diff_tol, cost_to_come, cost;
 		std::vector<node_ptr> successors;
 		std::vector<float> path_x, path_y;
 		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, 0.0f, path_x, path_y, 0.0f, 0.0f, occupancy_client, this->node_id++);
 
-		steering_angle_max = 3 / 2 * pi;
+		steering_angle_max = pi;
+		node->angular_velocity_resolution = pi/2;
+
 
 		angle_diff_tol = 1e-1;
 
@@ -169,11 +170,10 @@ class PathPlanning
 
 			if (angular_velocity == 0)
 			{
-				penalty_factor = 0.7;
+				penalty_factor = 0.5;
 			}
 			else
 				penalty_factor = 1.0;
-			//angular_velocity = -pi / 4.0 * (float)((theta - delta > 0) - (theta - delta < -1.0e-3));
 
 			t = 0.0;
 			dt = node->dt;
@@ -184,8 +184,6 @@ class PathPlanning
 
 			add_node = true;
 
-			//while (std::abs(delta - theta) > angle_diff_tol)
-			//for (int i = 0; i < 50; i++)
 			while (t < node->path_length)
 			{
 				// ROS_INFO("x: %f    y %f   th %f    angular_velocity %f    path_cost: %f   t: %f", x, y, theta, angular_velocity, path_cost, t);
@@ -198,8 +196,6 @@ class PathPlanning
 				path_y.push_back(y);
 
 				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, t, path_x, path_y, path_cost, cost_to_come, occupancy_client, this->node_id++);
-
-				//ROS_INFO("x: %f    y %f   th %f    angular_velocity %f    path_cost: %f   getCost: %f   inColl: %d ", x, y, theta, angular_velocity, path_cost, successor_node->getCost(), (int)successor_node->inCollision());
 
 				if (successor_node->inCollision())
 				{
@@ -215,7 +211,15 @@ class PathPlanning
 
 				if (this->occupancy_client.call(this->occupancy_srv))
 				{
-					path_cost += this->occupancy_srv.response.occupancy * penalty_factor;
+					cost = this->occupancy_srv.response.occupancy * penalty_factor;
+					path_cost += cost;
+					/*ROS_INFO("%f", cost);
+
+					if (cost <= 0.4)
+						node->path_length = 0.4;
+					else
+						node->path_length = 0.3;
+					*/
 				}
 				else
 				{
@@ -263,23 +267,6 @@ class PathPlanning
 			{
 				start_goal_pub.publish(start_goal_msg);
 
-				/*
-				node_ptr node_current = alive_nodes[0];
-				node_current->alive_node_index = 0;
-				float cost = node_current->getCost();
-
-				for (int i = 0; i < alive_nodes.size(); i++)
-				{
-					node_ptr node = alive_nodes[i];
-
-					if (node->getCost() < cost)
-					{
-						node_current = node;
-						node_current->alive_node_index = i;
-						cost = node->getCost();
-					}
-				}
-				*/
 				auto min_cost_iterator = std::min_element(alive_nodes.begin(), alive_nodes.end(), [](const node_ptr a, const node_ptr b) {
 					return a->getCost() < b->getCost();
 				});
@@ -313,7 +300,6 @@ class PathPlanning
 						if (node_successor->is(dead_node))
 						{
 							in_dead_nodes = true;
-							//ROS_INFO("1 id : %d", node_successor->node_id);
 							break;
 						}
 					}
@@ -350,7 +336,6 @@ class PathPlanning
 			ROS_INFO("Path not found");
 		}
 
-		// Empty init
 	}
 
 	bool get_found_path(node_ptr node_current)
@@ -366,15 +351,11 @@ class PathPlanning
 		search_done = true;
 
 		target_nodes.push_back(node_current);
-		//goal_path_nodes.push_back(node_current);
 
 		while (node_current->parent->parent != NULL)
 		{
 
 			int partitions = (int)std::abs(node_current->angular_velocity / node_current->angular_velocity_resolution);
-
-			//ROS_INFO("ang vel: %f", node_current->angular_velocity);
-			//ROS_INFO("part: %d", partitions);
 
 			node_ptr node_parent = node_current->parent;
 			node_ptr partial_node = node_current;
@@ -398,24 +379,17 @@ class PathPlanning
 					float cost_to_come = partial_node->cost_to_come;
 					bool add_partial_node = true;
 					std::vector<float> path_x, path_y;
-					//ROS_INFO("\nPartitions: %d", partitions);
 
 					while (t <= partial_node->path_length / (partitions + 1))
 					{
-
-						//ROS_INFO("t %f <  %f", t, partial_node->path_length / partitions);
 
 						x += cos(theta) * dt;
 						y += sin(theta) * dt;
 						theta += angular_velocity * dt;
 
-						//ROS_INFO("x: %f  y: %f  theta: %f", x, y, theta);
-
-						//ROS_INFO("Parent: x: %f  y: %f  theta: %f", node_current->x, node_current->y, node_current->theta);
 						if (x == node_current->x && y == node_current->y)
 						{
 							add_partial_node = false;
-							//ROS_INFO("Reached");
 							break;
 						}
 
@@ -428,10 +402,8 @@ class PathPlanning
 					if (add_partial_node)
 					{
 
-						//ROS_INFO("Adding node");
 						cost_to_come += path_cost;
 						partial_node_parent = std::make_shared<Node>(x, y, theta, angular_velocity, t, path_x, path_y, path_cost, cost_to_come, occupancy_client, this->node_id++);
-						//partial_node_parent->partitions = partitions;
 
 						partial_node->parent = partial_node_parent;
 						partial_node = partial_node_parent;
@@ -441,21 +413,9 @@ class PathPlanning
 			}
 			node_current = node_parent;
 			target_nodes.push_back(node_current);
-			//goal_path_nodes.push_back(node_current);
 		}
 
-		//std::reverse(goal_path_nodes.begin(), goal_path_nodes.end());
 		std::reverse(target_nodes.begin(), target_nodes.end());
-		/*
-		for (int i = 0; i < goal_path_nodes.size(); i++)
-		{
-			node_ptr node = goal_path_nodes[i];
-
-			goal_path_msg.path_x = node->path_x;
-			goal_path_msg.path_y = node->path_y;
-			goal_paths_msg.paths.push_back(goal_path_msg);
-		}
-		*/
 
 		for (int i = 0; i < target_nodes.size(); i++)
 		{
@@ -471,12 +431,11 @@ class PathPlanning
 			trajectory_point_msg.point_coord.x = node->x;
 			trajectory_point_msg.point_coord.y = node->y;
 			trajectory_point_msg.point_coord.z = 0;
-			trajectory_point_msg.speed = .15 - .05 * partitions; //.15 - .05*node->partitions;
+			trajectory_point_msg.speed = .15 - .05 * partitions; 
 			trajectory_point_msg.distance = node->path_length / (partitions + 1);
 			trajectory_msg.trajectory_points.push_back(trajectory_point_msg);
 		}
 
-		//this->goal_paths_msg = goal_paths_msg;
 		this->target_paths_msg = target_paths_msg;
 		this->trajectory_msg = trajectory_msg;
 
@@ -495,15 +454,12 @@ int main(int argc, char **argv)
 	double control_frequency = 10.0;
 	ros::Publisher paths_pub = nh.advertise<robo7_msgs::paths>("paths_vector", 1000);
 	ros::Publisher start_goal_pub = nh.advertise<robo7_msgs::path>("start_goal", 1000);
-	//ros::Publisher goal_path_pub = nh.advertise<robo7_msgs::paths>("goal_path", 1000);
 	ros::Publisher target_path_pub = nh.advertise<robo7_msgs::paths>("target_path", 1000);
 	ros::Publisher trajectory_pub = nh.advertise<robo7_msgs::trajectory>("trajectory", 1000);
 
 	robo7_msgs::paths target_paths_msg;
 	robo7_msgs::trajectory_point trajectory_point_msg;
 	robo7_msgs::trajectory trajectory_msg;
-
-	// std::vector<node_ptr> target_nodes, goal_path_nodes;
 
 	PathPlanning path_planning = PathPlanning(nh, paths_pub, start_goal_pub);
 
@@ -517,7 +473,6 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			//goal_path_pub.publish(path_planning.goal_paths_msg);
 			target_path_pub.publish(path_planning.target_paths_msg);
 			trajectory_pub.publish(path_planning.trajectory_msg);
 		}
