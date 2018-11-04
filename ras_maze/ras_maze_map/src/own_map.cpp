@@ -167,7 +167,7 @@ int main(int argc, char **argv)
     {
         wall_coordinates.publish( point_XY );
         corners_coordinates_pub.publish( all_corners );
-        walls_coordinates_pub.publish( wall_points );
+        walls_coordinates_pub.publish( map_points );
         ros::spinOnce();
         r.sleep();
     }
