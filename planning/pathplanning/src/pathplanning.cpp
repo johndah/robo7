@@ -18,7 +18,7 @@ class PathPlanning;
 typedef std::shared_ptr<Node> node_ptr;
 float pi = 3.14159265358979323846;
 
-int target_index = 3;
+int target_index = 2;
 std::vector<float> x_targets = {.2, 1.6, 2.2, 2.2, .8};
 std::vector<float> y_targets = {2.2, .8, 2.2, .2, .2};
 float theta_target = pi / 2;
@@ -36,8 +36,7 @@ class Node
 	float angular_velocity, time, dt;
 	float path_cost, cost_to_come, path_length, angular_velocity_resolution;
 	float tolerance_radius, tolerance_angle;
-	//int alive_node_index;
-	unsigned int node_id, partitions = 0;
+	unsigned int node_id;
 	std::vector<float> path_x, path_y;
 
 	Node(float x, float y, float theta, float angular_velocity, float time, std::vector<float> path_x, std::vector<float> path_y, float path_cost, float cost_to_come, ros::ServiceClient occupancy_client, unsigned int node_id)
@@ -85,7 +84,7 @@ class Node
 		this->occupancy_srv.request.y = this->y;
 		if (this->occupancy_client.call(this->occupancy_srv))
 		{
-			return this->occupancy_srv.response.occupancy > 0.99;
+			return this->occupancy_srv.response.occupancy > 0.9;
 		}
 		else
 		{
@@ -360,9 +359,6 @@ class PathPlanning
 			node_ptr node_parent = node_current->parent;
 			node_ptr partial_node = node_current;
 			node_ptr partial_node_parent = node_parent;
-
-			/*
-			*/
 
 			if (partitions > 0)
 			{
