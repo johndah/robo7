@@ -1,5 +1,6 @@
 # request
 robo7_msgs/cornerList the_lidar_corners
+robo7_msgs/cornerList the_wall_corners
 geometry_msgs/Twist current_position
 ---
 robo7_msgs/Matrix4 transformation
