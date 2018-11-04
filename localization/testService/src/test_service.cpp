@@ -121,7 +121,7 @@ public:
 
       robo7_srvs::ICPAlgorithm::Request req3;
       robo7_srvs::ICPAlgorithm::Response res3;
-      re3.current_position = robot_position;
+      req3.current_position = robot_position;
       req3.the_lidar_corners = res2.all_corners;
       icp_srv.call(req3, res3);
 
