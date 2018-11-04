@@ -70,8 +70,8 @@ public:
       {
         ROS_INFO("Next_point");
         current_point_to_follow += 1;
-        update_the_destination();
       }
+      update_the_destination();
     }
 
     destination_pub.publish( the_destination );
