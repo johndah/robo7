@@ -20,10 +20,6 @@
 
   <node pkg="visualization" type="plot_map" name="plot_map"/>
 
-  <node pkg="ransac" type="scan_to_coordinates" name="scan_to_coordinates">
-    <param name="lidar_angle" type="double" value="3.14"/>
-  </node>
-
   <node pkg="visualization" type="paths" name="paths" output = "screen"/>
 
   <node pkg="visualization" type="plot_map_corners" name="plot_map_corners"/>
