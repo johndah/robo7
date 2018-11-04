@@ -10,10 +10,10 @@ add_service_files(
   PickupAt.srv
   RansacWall.srv
   ICPAlgorithm.srv
-  scanCoord.srv
   callServiceTest.srv
   IsGridOccupied.srv
   PathFollowerSrv.srv
+  scanCoord.srv
 )
 
 

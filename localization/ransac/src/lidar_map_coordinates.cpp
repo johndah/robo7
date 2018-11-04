@@ -27,7 +27,7 @@ public:
     //Dealing with the shifted angle of the lidar in the robot frame
     n.param<float>("/lidar_map_coordinates/lidar_angle", shifted_angle, 0);
 
-    ROS_INFO("Angle : %lf", shifted_angle);
+    // ROS_INFO("Angle : %lf", shifted_angle);
 
     pi = 3.14159265358979323846;
 
@@ -43,7 +43,7 @@ public:
 	{
     ROS_INFO("start");
     //CallBack all the datas out of the request message
-    ROS_INFO("%lf", req.lidar_scan.angle_min);
+    // ROS_INFO("%lf", req.lidar_scan.angle_min);
     angle_min = req.lidar_scan.angle_min;
     angle_max = req.lidar_scan.angle_max;
     angle_increment = req.lidar_scan.angle_increment;
@@ -58,6 +58,8 @@ public:
 
     //Generate the future published twist msg
     robo7_msgs::XY_coordinates point_XY;
+    robo7_msgs::cornerList lidar_points_corner;
+    the_corners_list.clear();
 
 
     //Initialize the first angle true value
@@ -100,6 +102,10 @@ public:
         {
           converted_X_coordinates[length] = points_distances[i] * (cos(angle)*cos(robot_theta) - sin(angle)*sin(robot_theta)) + robot_x;
           converted_Y_coordinates[length] = points_distances[i] * (cos(angle)*sin(robot_theta) + sin(angle)*cos(robot_theta)) + robot_y;
+          corner.x = converted_X_coordinates[length];
+          corner.y = converted_Y_coordinates[length];
+          corner.z = 0;
+          the_corners_list.push_back(corner);
           length++;
         }
         angles_[i] = angle;
@@ -115,7 +121,11 @@ public:
     point_XY.Y_coordinates = converted_Y_coordinates;
     point_XY.angles = angles_;
 
+    lidar_points_corner.number = the_corners_list.size();
+    lidar_points_corner.corners = the_corners_list;
+
     res.point_cloud_coordinates = point_XY;
+    res.the_lidar_point_cloud = lidar_points_corner;
     res.success = true;
     point_coordinates.publish( point_XY );
 
@@ -152,6 +162,9 @@ private:
   //Other useful variables
   float pi;
   float Dt;
+
+  std::vector<geometry_msgs::Vector3> the_corners_list;
+  geometry_msgs::Vector3 corner;
 
 };
 

@@ -87,9 +87,11 @@ int main(int argc, char **argv)
 
     ros::Publisher wall_coordinates = n.advertise<robo7_msgs::XY_coordinates>("wall_coordinates", 1);
     ros::Publisher corners_coordinates_pub = n.advertise<robo7_msgs::cornerList>("map_corners", 1);
+    ros::Publisher walls_coordinates_pub = n.advertise<robo7_msgs::cornerList>("/ras_maze/maze_map/walls_coord_for_icp", 1);
 
     vector<float> X_wall_coordinates = vector<float>(1, 0);
     vector<float> Y_wall_coordinates = vector<float>(1, 0);
+    std::vector<geometry_msgs::Vector3> wall_points;
     float discretisation_step = 0.05;
     int length = 0;
 
@@ -133,10 +135,14 @@ int main(int argc, char **argv)
         int N_step = floor( sqrt(pow(x1-x2,2) + pow(y1-y2,2))/discretisation_step ) + 1;
         float x_step = (x2-x1)/N_step;
         float y_step = (y2-y1)/N_step;
-        for(int i=0; i<N_step; i++)
+        for(int i=0; i<N_step + 1; i++)
         {
           X_wall_coordinates.push_back(x1 + i*x_step);
           Y_wall_coordinates.push_back(y1 + i*y_step);
+          corner.x = x1 + i*x_step;
+          corner.y = y1 + i*y_step;
+          corner.z = 0;
+          wall_points.push_back(corner);
           length ++;
         }
     }
@@ -152,11 +158,16 @@ int main(int argc, char **argv)
     all_corners.number = the_corners_list.size();
     all_corners.corners = the_corners_list;
 
+    robo7_msgs::cornerList map_points;
+    map_points.number = wall_points.size();
+    map_points.corners = wall_points;
+
     // Main loop.
     while (n.ok())
     {
         wall_coordinates.publish( point_XY );
         corners_coordinates_pub.publish( all_corners );
+        walls_coordinates_pub.publish( map_points );
         ros::spinOnce();
         r.sleep();
     }

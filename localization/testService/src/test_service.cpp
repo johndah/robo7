@@ -8,6 +8,7 @@
 #include <robo7_msgs/Matrix3.h>
 #include <robo7_msgs/MeasureRequest.h>
 #include <robo7_msgs/MeasureFeedback.h>
+#include <robo7_msgs/cornerList.h>
 #include <robo7_srvs/scanCoord.h>
 #include <robo7_srvs/RansacWall.h>
 #include <robo7_srvs/ICPAlgorithm.h>
@@ -24,6 +25,8 @@ class test_server
 public:
   ros::NodeHandle n;
   ros::Subscriber laser_scan;
+  ros::Subscriber map_point_sub;
+  ros::Subscriber position_sub;
   ros::ServiceClient scan_to_coord_srv;
   ros::ServiceClient ransac_srv;
   ros::ServiceClient icp_srv;
@@ -38,11 +41,13 @@ public:
     //The different possible service to test and their corresponding subscribings
     scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
     laser_scan = n.subscribe("/scan", 1, &test_server::laser_scan_callBack, this);
+    position_sub = n.subscribe("/localization/kalman_filter/position", 1, &test_server::robot_position_callBack, this);
 
     path_follower_srv = n.serviceClient<robo7_srvs::PathFollowerSrv>("/kinematics/path_follower/path_follower");
 
     ransac_srv = n.serviceClient<robo7_srvs::RansacWall>("/localization/ransac");
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
+    map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &test_server::maze_map_callBack, this);
   }
 
   void laser_scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
@@ -59,17 +64,20 @@ public:
       the_lidar_scan.intensities = msg->intensities;
   }
 
+  void robot_position_callBack(const geometry_msgs::Twist::ConstPtr &msg)
+  {
+    robot_position = *msg;
+  }
+
+  void maze_map_callBack(const robo7_msgs::cornerList::ConstPtr &msg)
+  {
+    all_wall_points = *msg;
+  }
+
 
   bool test_Sequence(robo7_srvs::callServiceTest::Request &req,
          robo7_srvs::callServiceTest::Response &res)
   {
-    robot_position.linear.x = 0.215;
-    robot_position.linear.y = 0.2;
-    robot_position.linear.z = 0;
-    robot_position.angular.x = 0;
-    robot_position.angular.y = 0;
-    robot_position.angular.z = 1.57;
-
     done = false;
 
     if(req.which_service == 0)
@@ -122,7 +130,27 @@ public:
 
       robo7_srvs::ICPAlgorithm::Request req3;
       robo7_srvs::ICPAlgorithm::Response res3;
+      req3.current_position = robot_position;
       req3.the_lidar_corners = res2.all_corners;
+      req3.the_wall_corners = all_wall_points;
+      icp_srv.call(req3, res3);
+
+    }
+
+    else if(req.which_service == 3)
+    {
+      robo7_srvs::scanCoord::Request req1;
+      robo7_srvs::scanCoord::Response res1;
+      req1.robot_position = robot_position;
+      req1.lidar_scan = the_lidar_scan;
+      scan_to_coord_srv.call(req1, res1);
+      done = res1.success;
+
+      robo7_srvs::ICPAlgorithm::Request req3;
+      robo7_srvs::ICPAlgorithm::Response res3;
+      req3.current_position = robot_position;
+      req3.the_lidar_corners = res1.the_lidar_point_cloud;
+      req3.the_wall_corners = all_wall_points;
       icp_srv.call(req3, res3);
 
     }
@@ -136,6 +164,8 @@ public:
 private:
   sensor_msgs::LaserScan the_lidar_scan;
   geometry_msgs::Twist robot_position;
+
+  robo7_msgs::cornerList all_wall_points;
 
   bool done;
 
