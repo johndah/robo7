@@ -48,13 +48,10 @@ int main(int argc, char **argv)
 
   destination_point_.destination = twist_point;
 
-  for(int i=0; i<2; i++)
-  {
-    // ROS_INFO("%d",i);
-    ros::spinOnce();
-    dest_point.publish( destination_point_ );
-    loop_rate.sleep();
-  }
+  // ROS_INFO("%d",i);
+  ros::spinOnce();
+  dest_point.publish( destination_point_ );
+  loop_rate.sleep();
 
   return 0;
 }
