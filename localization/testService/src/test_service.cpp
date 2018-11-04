@@ -102,7 +102,7 @@ public:
 
       robo7_srvs::RansacWall::Request req2;
       robo7_srvs::RansacWall::Response res2;
-      req2.point_cloud = res.point_cloud_coordinates;
+      req2.point_cloud = res1.point_cloud_coordinates;
       ransac_srv.call(req2, res2);
     }
 
@@ -117,7 +117,7 @@ public:
 
       robo7_srvs::RansacWall::Request req2;
       robo7_srvs::RansacWall::Response res2;
-      req2.point_cloud = res.point_cloud_coordinates;
+      req2.point_cloud = res1.point_cloud_coordinates;
       ransac_srv.call(req2, res2);
 
       robo7_srvs::ICPAlgorithm::Request req3;
