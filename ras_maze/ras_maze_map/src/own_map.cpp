@@ -159,8 +159,8 @@ int main(int argc, char **argv)
     all_corners.corners = the_corners_list;
 
     robo7_msgs::cornerList map_points;
-    all_corners.number = wall_points.size();
-    all_corners.corners = wall_points;
+    map_points.number = wall_points.size();
+    map_points.corners = wall_points;
 
     // Main loop.
     while (n.ok())
