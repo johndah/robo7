@@ -59,6 +59,7 @@ public:
     compute_distance_to_current_destination();
 
     ROS_INFO("Distance to current point : %lf", distance_to_destination);
+    ROS_INFO("Point to follow : %lf, %lf", trajectory_array.trajectory_points[current_point_to_follow].point_coord.x,  trajectory_array.trajectory_points[current_point_to_follow].point_coord.y);
 
     if(static_cast<int>(trajectory_array.trajectory_points.size()) > 0)
     {
