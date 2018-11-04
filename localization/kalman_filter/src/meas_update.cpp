@@ -35,7 +35,7 @@ public:
     n.param<float>("/meas_update/sigma_angle", sigma_theta, 0.05);
 
     //Creation of the matrices
-    identity = Eigen::MatrixXf::Identity(3,3);
+    identity = Eigen::Matrix3f::Identity(3,3);
     the_H_matrix = identity;
     the_R_matrix(0,0) = sigma_xy;
     the_R_matrix(1,1) = sigma_theta;
@@ -44,13 +44,15 @@ public:
     the_V_matrix(1,0) = 1;
     the_V_matrix(2,1) = 1;
 
+    new_request = false;
+
     meas_request_sub = n.subscribe("/localization/kalman_filter/measure_request", 10, &meas_update::measure_request_callBack, this);
     meas_result_pub = n.advertise<robo7_msgs::MeasureFeedback>("/localization/meas_update/measure_response", 10);
 
     scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
     ransac_srv = n.serviceClient<robo7_srvs::RansacWall>("/localization/ransac");
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
-    ROS_INFO("Initialisation done");
+    ROS_INFO("Measure update initialisation done");
   }
 
   void measure_request_callBack(const robo7_msgs::MeasureRequest::ConstPtr &msg)
@@ -58,6 +60,7 @@ public:
     //We check if the current request is not the same as before
     if((new_measure_request.id_number != msg->id_number)&&(msg->id_number >= 1))
     {
+      ROS_INFO("New Measure");
       new_measure_request.time = msg->time;;
       new_measure_request.id_number = msg->id_number;
       new_measure_request.current_position = msg->current_position;
@@ -73,6 +76,7 @@ public:
     //If a new request arrived, then we start computing otherwise we do nothing
     if(new_request)
     {
+      ROS_INFO("Treating New Measure");
       //Call for the scan_to_coordinate node : it will transform the coordinates of the laser scan
       //into the map frame
       robo7_srvs::scanCoord::Request req;

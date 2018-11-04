@@ -45,7 +45,7 @@
      <param name="minimum_point_for_a_gap" type="int" value="3"/>
    </node>
 
-   <!-- <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
+   <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
      <param name="initial_x_pos" type="double" value="0.215"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
@@ -53,12 +53,12 @@
      <param name="angular_adjustment" type="double" value="0.0235"/>
      <param name="use_measure" type="bool" value="false"/>
      <param name="time_between_two_measure" type="double" value="1.0"/>
-   </node> -->
+   </node>
 
-   <!-- <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
+   <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
      <param name="sigma_distance" type="double" value="0.1"/>
      <param name="sigma_angle" type="double" value="0.05"/>
-   </node> -->
+   </node>
 
    <node pkg="test_service" type="test_service" name="test_service" output="screen"/>
 

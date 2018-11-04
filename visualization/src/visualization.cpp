@@ -39,7 +39,7 @@ public:
     z2_pos = 0;
     nh.param<float>("/visualization/lidar_angle", lidar_angle, 0);
 
-    robot_position1 = n.subscribe("/dead_reckoning/Pos", 1, &markerRviz::deadReckoning_callBack, this);
+    robot_position1 = n.subscribe("/localization/kalman_filter/position", 1, &markerRviz::deadReckoning_callBack, this);
     robot_position2 = n.subscribe("/localization/icp/position", 1, &markerRviz::deadReckoning2_callBack, this);
 
     marker_parameters1 = n.advertise<visualization_msgs::Marker>("robotMarker", 1);

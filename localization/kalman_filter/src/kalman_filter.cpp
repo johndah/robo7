@@ -73,10 +73,10 @@ public:
     measure_sub = n.subscribe("/localization/meas_update/measure_response", 1, &kalmanFilter::measureFeedback_callBack, this);
     scan_sub = n.subscribe("/scan", 1, &kalmanFilter::scan_callBack, this);
     // robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/pos", 10);
-    robot_position = n.advertise<geometry_msgs::Twist>("/dead_reckoning/Pos", 10);
+    robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/position", 10);
     new_measure_req_pub = n.advertise<robo7_msgs::MeasureRequest>("/localization/kalman_filter/measure_request", 10);
 
-    ROS_INFO("Initialisation done");
+    ROS_INFO("EKF initialisation done");
   }
 
   void encoder_L_callBack(const phidgets::motor_encoder::ConstPtr &msg)

@@ -180,7 +180,7 @@ int main(int argc, char **argv)
   n.param<float>("/point_follower/linear_speed", aver_lin_vel, 0);
 
   ros::Subscriber twist_sub = n.subscribe("/kinematics/path_follower/dest_point", 1, destination_callback);
-  ros::Subscriber robot_position = n.subscribe("/dead_reckoning/Pos", 1, position_callBack);
+  ros::Subscriber robot_position = n.subscribe("/localization/kalman_filter/position", 1, position_callBack);
   ros::Subscriber breaker = n.subscribe("/break_info", 1, break_callBack);
   ros::Publisher desired_velocity = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
   ros::Publisher dest_point = n.advertise<geometry_msgs::Twist>("/point_destination_robot", 1);

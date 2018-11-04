@@ -25,7 +25,6 @@ public:
   {
     n = ros::NodeHandle("~");
 
-    //XY_coordinates = n.subscribe("/scan_to_coordinates/point_cloud_coordinates", 1000, &laserXY::coordinates_callBack, this);
     point_dest = n.subscribe("/point_destination_robot", 1, &dest_point_plot::point_callBack, this);
     point_dest_map = n.subscribe("/kinematics/path_follower/dest_point", 10, &dest_point_plot::point2_callBack, this);
     point_rviz = n.advertise<geometry_msgs::PointStamped>("/visualization/point_ploted", 1);
