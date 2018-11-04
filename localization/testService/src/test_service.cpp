@@ -91,6 +91,42 @@ public:
       done = res1.success;
     }
 
+    else if(req.which_service == 2)
+    {
+      robo7_srvs::scanCoord::Request req1;
+      robo7_srvs::scanCoord::Response res1;
+      req1.robot_position = robot_position;
+      req1.lidar_scan = the_lidar_scan;
+      scan_to_coord_srv.call(req1, res1);
+      done = res1.success;
+
+      robo7_srvs::RansacWall::Request req2;
+      robo7_srvs::RansacWall::Response res2;
+      req2.point_cloud = res.point_cloud_coordinates;
+      ransac_srv.call(req2, res2);
+    }
+
+    else if(req.which_service == 3)
+    {
+      robo7_srvs::scanCoord::Request req1;
+      robo7_srvs::scanCoord::Response res1;
+      req1.robot_position = robot_position;
+      req1.lidar_scan = the_lidar_scan;
+      scan_to_coord_srv.call(req1, res1);
+      done = res1.success;
+
+      robo7_srvs::RansacWall::Request req2;
+      robo7_srvs::RansacWall::Response res2;
+      req2.point_cloud = res.point_cloud_coordinates;
+      ransac_srv.call(req2, res2);
+
+      robo7_srvs::ICPAlgorithm::Request req3;
+      robo7_srvs::ICPAlgorithm::Response res3;
+      req3.the_lidar_corners = res2.all_corners;
+      icp_srv.call(req3, res3);
+
+    }
+
     res.success = done;
 
     return true;
