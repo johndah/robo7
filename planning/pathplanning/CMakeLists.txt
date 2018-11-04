@@ -22,6 +22,13 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+include(CheckCXXCompilerFlag)
+
+check_cxx_compiler_flag(-std=c++11 HAS_STD_CPP11_FLAG)
+if(HAS_STD_CPP11_FLAG)
+  add_compile_options(-std=c++11)
+endif()
+
 add_executable(pathplanning src/pathplanning.cpp)
 target_link_libraries(pathplanning ${catkin_LIBRARIES})
 add_dependencies(pathplanning ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
