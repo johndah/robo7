@@ -80,16 +80,16 @@ public:
   bool path_follower_Sequence(robo7_srvs::PathFollowerSrv::Request &req,
          robo7_srvs::PathFollowerSrv::Response &res)
   {
-    // ROS_INFO("Start to follow the path");
+    ROS_INFO("Start to follow the path");
     arrived = false;
     current_point_to_follow = 0;
     while(!arrived)
     {
-      // ROS_INFO("Not arrived");
+      ROS_INFO("Not arrived");
       update_Destination_Point();
       if((current_point_to_follow == 0)||((distance_to_destination < dest_threshold)&&(current_point_to_follow == static_cast<int>(trajectory_array.trajectory_points.size()) - 1)))
       {
-        // ROS_INFO("Arrived");
+        ROS_INFO("Arrived");
         arrived = true;
       }
     }
