@@ -224,7 +224,7 @@ private:
 	void inverseTransform()
 	{
 		ROS_INFO("%lf", wrapAngle( robot_angle_ ));
-		robot_angle_ = findangle(other_point_(0) - the_point_(0), other_point_(1) - the_point_(1));
+		// robot_angle_ = findangle(other_point_(0) - the_point_(0), other_point_(1) - the_point_(1));
 
 		new_point.linear.x = the_point_(0);
 		new_point.linear.y = the_point_(1);
@@ -233,7 +233,8 @@ private:
 		new_point.angular.y = 0;
 		new_point.angular.z = wrapAngle( robot_angle_ );
 
-		ROS_INFO("%lf, %lf, %lf, %lf", the_point_(0), the_point_(1), the_point_(2), wrapAngle( robot_angle_ ));
+		// ROS_INFO("%lf, %lf, %lf, %lf", the_point_(0), the_point_(1), the_point_(2), wrapAngle( robot_angle_ ));
+		ROS_INFO("Time is : %lf s & %lf ns", ros::Time::now().sec, ros::Time::now().nsec);
 	}
 
 	int sgn(float v)

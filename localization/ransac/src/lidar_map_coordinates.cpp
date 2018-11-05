@@ -44,7 +44,8 @@ public:
   bool scan_Sequence(robo7_srvs::scanCoord::Request &req,
          robo7_srvs::scanCoord::Response &res)
 	{
-    ROS_INFO("start");
+    // ROS_INFO("start");
+    ROS_INFO("Time is : %lf s & %lf ns", ros::Time::now().sec, ros::Time::now().nsec);
     //CallBack all the datas out of the request message
     // ROS_INFO("%lf", req.lidar_scan.angle_min);
     angle_min = req.lidar_scan.angle_min;
