@@ -232,6 +232,7 @@ private:
 		new_point.angular.z = robot_angle_;
 
 		ROS_INFO("%lf", robot_angle_);
+		ROS_INFO("%lf, %lf, %lf, %lf", the_point_(0), the_point_(1), the_point_(2), robot_angle_);
 	}
 
 	int sgn(float v)
