@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>test_service</name>
+  <name>object_visualization</name>
   <version>0.0.0</version>
-  <description>The test_service package</description>
+  <description>The object_visualization package</description>
 
   <maintainer email="matgau@kth.se">ras</maintainer>
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(test_service)
+project(object_visualization)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
