@@ -108,9 +108,7 @@ public:
   {
     if(measure_feedback.id_number != msg->id_number)
     {
-      measure_feedback.id_number = msg->id_number;
-      measure_feedback.error = msg->error;
-      measure_feedback.P_matrix = msg->P_matrix;
+      measure_feedback = *msg;
       new_measure_received = true;
     }
   }
