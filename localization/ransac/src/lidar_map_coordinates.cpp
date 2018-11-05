@@ -20,6 +20,7 @@ class lidar_map_coordinates
 public:
   ros::NodeHandle n;
   ros::Publisher point_coordinates;
+  ros::Publisher point_cloud_input;
   ros::ServiceServer scan_service;
 
   lidar_map_coordinates()
@@ -35,6 +36,7 @@ public:
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
 
     point_coordinates = n.advertise<robo7_msgs::XY_coordinates>("/scan/point_cloud_coordinates", 1);
+    point_cloud_input = n.advertise<robo7_msgs::XY_coordinates>("/lidar_map/point_cloud", 1);
     scan_service = n.advertiseService("/localization/scan_service", &lidar_map_coordinates::scan_Sequence, this);
   }
 
@@ -128,6 +130,7 @@ public:
     res.the_lidar_point_cloud = lidar_points_corner;
     res.success = true;
     point_coordinates.publish( point_XY );
+    point_cloud_input.publish( res.the_lidar_point_cloud );
 
     return true;
   }
