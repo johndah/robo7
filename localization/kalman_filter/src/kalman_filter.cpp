@@ -158,7 +158,7 @@ public:
       //Prepare the measure request message
       new_measure_request.time = ros::Time::now();
       new_measure_request.id_number = request_id;
-      new_measure_request.current_position = current_position;
+      new_measure_request.current_position = the_robot_position;
       new_measure_request.lidar_scan = the_lidar_scan;
       for(int i=0; i<3; i++)
       {

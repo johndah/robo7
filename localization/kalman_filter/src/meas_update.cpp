@@ -124,6 +124,7 @@ public:
       //Once the request is treated, we wait for another one
       new_request = false;
 
+      measure_feedback.id_number++;
       //Publish the message back to the kalman_filter
       meas_result_pub.publish( measure_feedback );
     }
