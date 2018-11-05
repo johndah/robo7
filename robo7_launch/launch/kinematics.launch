@@ -55,7 +55,7 @@
      <param name="linear_adjustment" type="double" value="0.0481"/>
      <param name="angular_adjustment" type="double" value="0.0235"/>
      <param name="use_measure" type="bool" value="true"/>
-     <param name="time_between_two_measure" type="double" value="1.0"/>
+     <param name="time_between_two_measure" type="double" value="5.0"/>
    </node>
 
    <node pkg="path_follower" type="destination_point" name="destination_point" output="screen">
