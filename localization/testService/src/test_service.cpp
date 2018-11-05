@@ -137,7 +137,7 @@ public:
 
     }
 
-    else if(req.which_service == 3)
+    else if(req.which_service == 4)
     {
       robo7_srvs::scanCoord::Request req1;
       robo7_srvs::scanCoord::Response res1;
