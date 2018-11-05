@@ -230,6 +230,8 @@ private:
 		new_point.angular.x = 0;
 		new_point.angular.y = 0;
 		new_point.angular.z = robot_angle_;
+
+		ROS_INFO("%lf", robot_angle_);
 	}
 
 	int sgn(float v)
