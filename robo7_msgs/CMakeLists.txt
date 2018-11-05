@@ -27,6 +27,8 @@ add_message_files(
   trajectory_point.msg
   trajectory.msg
   destination_point.msg
+  aObject.msg
+  allObjects.msg
 )
 
 generate_messages(
