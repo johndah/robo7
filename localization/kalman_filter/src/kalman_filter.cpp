@@ -145,7 +145,7 @@ public:
     timeUpdate();
 
     //If we didn't get any measures for a while (and the previous one has already been received)
-    if((ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - init_time > 10))
+    if((ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - init_time > 5))
     {
       // ROS_INFO("Asking for measure");
 
