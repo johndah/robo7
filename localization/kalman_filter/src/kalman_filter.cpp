@@ -139,7 +139,7 @@ public:
       y_pos = the_robot_position.linear.y;
       z_angle = the_robot_position.angular.z;
 
-      ROS_INFO("Correctec position (x,y,thet) : %f, %f, %f", x_pos, y_pos, z_angle);
+      ROS_INFO("Corrected position (x,y,thet) : %f, %f, %f, %f", x_pos, y_pos, z_angle, measure_feedback.position_corrected.x);
 
       //Set the new_measure_value back to zero
       reinitialize_A_W_matrices();
