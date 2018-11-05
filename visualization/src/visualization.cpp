@@ -103,8 +103,8 @@ public:
     marker.pose.position.z = 0;
     marker.pose.orientation.x = 0;
     marker.pose.orientation.y = 0;
-    marker.pose.orientation.z = 1.57;
-    marker.pose.orientation.w = 1.57;
+    marker.pose.orientation.z = 0;
+    marker.pose.orientation.w = 0;
     marker.scale.x = 0.1;
     marker.scale.y = 0.1;
     marker.scale.z = 0.1;
