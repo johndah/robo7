@@ -8,18 +8,19 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui_c.h>
+#include "robo7_msgs/occupancy_matrix.h"
+#include "robo7_msgs/occupancy_row.h"
 
 typedef std::vector<double> Array;
 typedef std::vector<Array> Matrix;
 
 class OccupancyGridServer
 {
-public:
+  public:
 	ros::NodeHandle n;
 	ros::Subscriber map_sub;
 	ros::ServiceServer is_occupied_service;
 	Matrix grid;
-
 
 	OccupancyGridServer()
 	{
@@ -32,13 +33,13 @@ public:
 		map_sub = n.subscribe("/own_map/wall_coordinates", 1, &OccupancyGridServer::mapCallback, this);
 		is_occupied_service = n.advertiseService("/occupancy_grid/is_occupied", &OccupancyGridServer::gridRequest, this);
 
-		num_min_distance_squares = ceil(min_distance/grid_square_size);
+		num_min_distance_squares = ceil(min_distance / grid_square_size);
 
-		if ( smoothing_kernel_size % 2 == 0){
+		if (smoothing_kernel_size % 2 == 0)
+		{
 			smoothing_kernel_size += 1;
 			ROS_WARN("Entered kernel size is even number, changing to: %d", smoothing_kernel_size);
-	  }
-
+		}
 	}
 
 	void mapCallback(const robo7_msgs::XY_coordinates::ConstPtr &msg)
@@ -48,19 +49,21 @@ public:
 	}
 
 	bool gridRequest(robo7_srvs::IsGridOccupied::Request &req,
-				 robo7_srvs::IsGridOccupied::Response &res)
+					 robo7_srvs::IsGridOccupied::Response &res)
 	{
 		ROS_DEBUG("New grid occupancy request recieved");
 
 		//updateGrid();
 
-		int req_x_grid = floor(req.x/grid_square_size);
-		int req_y_grid = floor(req.y/grid_square_size);
+		int req_x_grid = floor(req.x / grid_square_size);
+		int req_y_grid = floor(req.y / grid_square_size);
 
-		if (req_x_grid >= num_grid_squares_x || req_y_grid >= num_grid_squares_y){
+		if (req_x_grid >= num_grid_squares_x || req_y_grid >= num_grid_squares_y)
+		{
 			res.occupancy = 1.0;
 		}
-		else{
+		else
+		{
 			//res.occupancy = gauss_grid.at<float>(req_y_grid, req_x_grid);
 			//res.occupancy = grid[req_x_grid][req_y_grid];
 			float value = gauss_grid.at<float>(req_x_grid, req_y_grid);
@@ -69,7 +72,8 @@ public:
 			{
 				res.occupancy = 0.0;
 			}
-			else{
+			else
+			{
 				res.occupancy = value;
 			}
 		}
@@ -81,7 +85,8 @@ public:
 		ROS_DEBUG("Setting grid size");
 
 		// Wait untill we get our first coordinates
-		while (X_wall_coordinates.size() <= 0){
+		while (X_wall_coordinates.size() <= 0)
+		{
 			ros::spinOnce();
 		}
 
@@ -91,15 +96,15 @@ public:
 		ROS_DEBUG("x_max: %f", x_max);
 		ROS_DEBUG("y_max: %f", y_max);
 
-		num_grid_squares_x = ceil(x_max/grid_square_size);
-		num_grid_squares_y = ceil(y_max/grid_square_size);
+		num_grid_squares_x = ceil(x_max / grid_square_size);
+		num_grid_squares_y = ceil(y_max / grid_square_size);
 		ROS_DEBUG("x squares: %d", num_grid_squares_x);
 		ROS_DEBUG("y squares: %d", num_grid_squares_y);
 
 		// Set up sizes
 		grid.resize(num_grid_squares_x);
-	  for (int i = 0; i < num_grid_squares_x; ++i)
-		    grid[i].resize(num_grid_squares_y);
+		for (int i = 0; i < num_grid_squares_x; ++i)
+			grid[i].resize(num_grid_squares_y);
 
 		updateGrid();
 	}
@@ -109,10 +114,11 @@ public:
 		ROS_DEBUG("Updating grid");
 
 		// Put every point in the grid
-		for (int i = 0; i< X_wall_coordinates.size(); ++i){
+		for (int i = 0; i < X_wall_coordinates.size(); ++i)
+		{
 			// Get the square that the point is located in
-			int square_x = floor(X_wall_coordinates[i]/grid_square_size);
-			int square_y = floor(Y_wall_coordinates[i]/grid_square_size);
+			int square_x = floor(X_wall_coordinates[i] / grid_square_size);
+			int square_y = floor(Y_wall_coordinates[i] / grid_square_size);
 
 			int x_low = square_x - num_min_distance_squares;
 			int y_low = square_y - num_min_distance_squares;
@@ -121,8 +127,10 @@ public:
 			int y_high = square_y + num_min_distance_squares;
 
 			// Setting 1.0 for all the walls (enlarged by the min distance)
-			for (int i = x_low; i <= x_high ; ++i){
-	 		  for (int j = y_low; j <= y_high; ++j) {
+			for (int i = x_low; i <= x_high; ++i)
+			{
+				for (int j = y_low; j <= y_high; ++j)
+				{
 					if (!(i < 0) && !(i >= num_grid_squares_x) && !(j < 0) && !(j >= num_grid_squares_y))
 					{
 						grid[i][j] = 1.0;
@@ -133,7 +141,6 @@ public:
 
 		// Setting the filtered grid
 		gauss_grid = gauss_filter(grid, smoothing_kernel_size, smoothing_kernel_sd);
-
 	}
 
 	cv::Mat gauss_filter(Matrix unfiltered_grid, int kernel_size, int sigma)
@@ -141,8 +148,10 @@ public:
 		cv::Mat grid_in(unfiltered_grid.size(), unfiltered_grid.at(0).size(), CV_64FC1);
 		cv::Mat grid_filtered;
 
-		for(int i=0; i<grid_in.rows; ++i){
-			for(int j=0; j<grid_in.cols; ++j){
+		for (int i = 0; i < grid_in.rows; ++i)
+		{
+			for (int j = 0; j < grid_in.cols; ++j)
+			{
 				grid_in.at<double>(i, j) = unfiltered_grid[i][j];
 			}
 		}
@@ -155,7 +164,7 @@ public:
 		cv::waitKey(0);
 		*/
 
-		GaussianBlur(grid_in, grid_filtered, cv::Size(kernel_size, kernel_size), sigma, 0 );
+		GaussianBlur(grid_in, grid_filtered, cv::Size(kernel_size, kernel_size), sigma, 0);
 
 		// To display uncomment here as well
 		/*
@@ -171,8 +180,32 @@ public:
 		return normalized_grid;
 	}
 
+	void publishGrid(ros::NodeHandle nh)
+	{
+		/*
+		*/
+		ros::Publisher occupancy_pub = nh.advertise<robo7_msgs::occupancy_matrix>("occupancy_matrix", 1000);
+		robo7_msgs::occupancy_row occupancy_row_msg;
+		robo7_msgs::occupancy_matrix occupancy_matrix_msg;
 
-private:
+		for (int i = 0; i < gauss_grid.rows; ++i)
+		{
+			std::vector<float> occupancy_row(gauss_grid.cols);
+			for (int j = 0; j < gauss_grid.cols; ++j)
+			{
+				occupancy_row.push_back(gauss_grid.at<float>(i, j));
+			}
+			occupancy_row_msg.occupancy_row = occupancy_row;
+			occupancy_matrix_msg.occupancy_rows.push_back(occupancy_row_msg);
+		}
+
+		for (int i = 0; i < 100; i++)
+		{
+			occupancy_pub.publish(occupancy_matrix_msg);
+		}
+	}
+
+  private:
 	double min_distance;
 	int num_min_distance_squares;
 	double grid_square_size;
@@ -183,13 +216,13 @@ private:
 	std::vector<float> X_wall_coordinates;
 	std::vector<float> Y_wall_coordinates;
 	cv::Mat gauss_grid;
-
-
 };
 
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "occupancy_grid_server");
+	ros::NodeHandle nh;
+	nh = ros::NodeHandle("~");
 
 	OccupancyGridServer occupancy_grid_server;
 
@@ -198,6 +231,8 @@ int main(int argc, char **argv)
 	ROS_INFO("Occupancy grid server running");
 
 	occupancy_grid_server.updateGridSize();
+
+	occupancy_grid_server.publishGrid(nh);
 
 	ros::spin();
 
