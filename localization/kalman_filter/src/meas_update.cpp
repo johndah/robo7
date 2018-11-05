@@ -22,6 +22,7 @@ class meas_update
 public:
   ros::NodeHandle n;
   ros::Subscriber meas_request_sub;
+  ros::Subscirber map_point_sub;
   ros::Publisher meas_result_pub;
   ros::ServiceClient scan_to_coord_srv;
   ros::ServiceClient ransac_srv;
@@ -49,6 +50,7 @@ public:
     meas_request_sub = n.subscribe("/localization/kalman_filter/measure_request", 10, &meas_update::measure_request_callBack, this);
     meas_result_pub = n.advertise<robo7_msgs::MeasureFeedback>("/localization/meas_update/measure_response", 10);
 
+    map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &test_server::maze_map_callBack, this);
     scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
     ransac_srv = n.serviceClient<robo7_srvs::RansacWall>("/localization/ransac");
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
@@ -70,6 +72,10 @@ public:
     }
   }
 
+  void maze_map_callBack(const robo7_msgs::cornerList::ConstPtr &msg)
+  {
+    all_wall_points = *msg;
+  }
 
   void measurement_update()
   {
@@ -79,23 +85,18 @@ public:
       ROS_INFO("Treating New Measure");
       //Call for the scan_to_coordinate node : it will transform the coordinates of the laser scan
       //into the map frame
-      robo7_srvs::scanCoord::Request req;
-      robo7_srvs::scanCoord::Response res;
-      req.robot_position = new_measure_request.current_position;
-      req.lidar_scan = new_measure_request.lidar_scan;
-      scan_to_coord_srv.call(req, res);
+      robo7_srvs::scanCoord::Request req1;
+      robo7_srvs::scanCoord::Response res1;
+      req1.robot_position = robot_position;
+      req1.lidar_scan = the_lidar_scan;
+      scan_to_coord_srv.call(req1, res1);
+      done = res1.success;
 
-      //Call for the RANSAC algorithm in order to extract the walls and the corners from
-      //the previously ajusted laser scan datas
-      robo7_srvs::RansacWall::Request req2;
-      robo7_srvs::RansacWall::Response res2;
-      req2.point_cloud = res.point_cloud_coordinates;
-      ransac_srv.call(req2, res2);
-
-      //Call for the ICP algorithm in order to find the corrected position of the robot
       robo7_srvs::ICPAlgorithm::Request req3;
       robo7_srvs::ICPAlgorithm::Response res3;
-      req3.the_lidar_corners = res2.all_corners;
+      req3.current_position = robot_position;
+      req3.the_lidar_corners = res1.the_lidar_point_cloud;
+      req3.the_wall_corners = all_wall_points;
       icp_srv.call(req3, res3);
 
       //Extract the corrected position end change it into a usable vector for EKF
@@ -158,6 +159,8 @@ private:
 
   //New request received
   bool new_request;
+
+  robo7_msgs::cornerList all_wall_points;
 
 
   void extract_P_minus_matrix()
