@@ -234,7 +234,7 @@ private:
 		new_point.angular.z = wrapAngle( robot_angle_ );
 
 		// ROS_INFO("%lf, %lf, %lf, %lf", the_point_(0), the_point_(1), the_point_(2), wrapAngle( robot_angle_ ));
-		ROS_INFO("Time is : %lf s & %lf ns", ros::Time::now().sec, ros::Time::now().nsec);
+		ROS_INFO("Time is : %ld s & %ld ns", ros::Time::now().sec, ros::Time::now().nsec);
 	}
 
 	int sgn(float v)
