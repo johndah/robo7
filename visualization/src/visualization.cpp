@@ -122,8 +122,7 @@ public:
 
     //Set the frame centered on the robot
     transform2.setOrigin( tf::Vector3(x2_pos, y2_pos, z2_pos) );
-    tf2::Quaternion q2;
-    q2.setRPY(x2_angle, y2_angle, z2_angle);
+    q.setRPY(x2_angle, y2_angle, z2_angle);
     transform2.setRotation(q);
     br2.sendTransform(tf::StampedTransform(transform2, t, "map", "robot_corrected"));
 
