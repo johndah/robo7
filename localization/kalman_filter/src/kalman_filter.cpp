@@ -160,6 +160,9 @@ public:
       new_measure_request.id_number = request_id;
       new_measure_request.current_position = the_robot_position;
       new_measure_request.lidar_scan = the_lidar_scan;
+      new_measure_request.P_minus_matrix.line0.clear();
+      new_measure_request.P_minus_matrix.line1.clear();
+      new_measure_request.P_minus_matrix.line2.clear();
       for(int i=0; i<3; i++)
       {
         new_measure_request.P_minus_matrix.line0.push_back(the_P_minus_matrix(0,i));
@@ -337,6 +340,7 @@ private:
     ROS_INFO("matrx W : %f, %f, %f, %f, %f, %f", the_W_matrix(0,0), the_W_matrix(0,1), the_W_matrix(1,0), the_W_matrix(1,1), the_W_matrix(2,0), the_W_matrix(2,1));
     ROS_INFO("matrx Q : %f, %f, %f, %f", the_Q_matrix(0,0), the_Q_matrix(0,1), the_Q_matrix(1,0), the_Q_matrix(1,1));
     the_P_minus_matrix = the_A_matrix * the_P_matrix * the_A_matrix.transpose() + the_W_matrix * the_Q_matrix * the_W_matrix.transpose();
+    ROS_INFO("matrx P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
   }
 
   //Other useful function

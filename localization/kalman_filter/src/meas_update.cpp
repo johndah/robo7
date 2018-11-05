@@ -113,6 +113,9 @@ public:
       measure_feedback.error.x = position_error_vect(0);
       measure_feedback.error.y = position_error_vect(1);
       measure_feedback.error.z = position_error_vect(2);
+      measure_feedback.P_matrix.line0.clear();
+      measure_feedback.P_matrix.line1.clear();
+      measure_feedback.P_matrix.line2.clear();
       for(int i=0; i<3; i++)
       {
         measure_feedback.P_matrix.line0.push_back(the_P_matrix(0,i));
