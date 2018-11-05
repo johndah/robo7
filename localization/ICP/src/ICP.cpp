@@ -110,7 +110,7 @@ public:
 		pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
 
 		//icp.setRANSACOutlierRejectionThreshold(5);
-		icp.setRANSACOutlierRejectionThreshold(0.1);
+		icp.setRANSACOutlierRejectionThreshold(0.2);
     //icp.setRANSACIterations(100);
     // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
     icp.setMaxCorrespondenceDistance (10);
@@ -118,12 +118,12 @@ public:
     icp.setMaximumIterations (500);
 
     // Set the transformation epsilon (criterion 2)
-    icp.setTransformationEpsilon (0.1);
+    icp.setTransformationEpsilon (0.01);
 		// icp.setTransformationRotationEpsilon(0.05);
     //std::cout << " getTransformationEpsilon epsilon: "<<icp.getTransformationEpsilon() << std::endl;
     //std::cout << " getEuclideanFitnessEpsilon epsilon: "<<icp.getEuclideanFitnessEpsilon() << std::endl;
     // Set the euclidean distance difference epsilon (criterion 3)
-    icp.setEuclideanFitnessEpsilon (0.1);
+    icp.setEuclideanFitnessEpsilon (0.01);
 
 	  icp.setInputSource(cloud_lidar);
 	  icp.setInputTarget(cloud_map);
