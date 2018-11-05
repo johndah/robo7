@@ -29,6 +29,8 @@ add_message_files(
   destination_point.msg
   occupancy_matrix.msg
   occupancy_row.msg
+  aObject.msg
+  allObjects.msg
 )
 
 generate_messages(
