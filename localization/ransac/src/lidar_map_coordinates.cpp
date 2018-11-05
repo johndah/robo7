@@ -7,6 +7,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Float32.h>
 #include <robo7_msgs/XY_coordinates.h>
+#include <robo7_msgs/cornerList.h>
 #include </usr/include/eigen3/Eigen/Dense>
 using Eigen::MatrixXd;
 
@@ -36,7 +37,7 @@ public:
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
 
     point_coordinates = n.advertise<robo7_msgs::XY_coordinates>("/scan/point_cloud_coordinates", 1);
-    point_cloud_input = n.advertise<robo7_msgs::XY_coordinates>("/lidar_map/point_cloud", 1);
+    point_cloud_input = n.advertise<robo7_msgs::cornerList>("/lidar_map/point_cloud", 1);
     scan_service = n.advertiseService("/localization/scan_service", &lidar_map_coordinates::scan_Sequence, this);
   }
 
