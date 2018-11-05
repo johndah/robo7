@@ -58,7 +58,8 @@ public:
 
     //Other parameters
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
-    prev_mes_time = ros::Time::now().toSec();
+    prev_mes_time = ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9);
+    init_time = prev_mes_time;
 
     //Measure Request/Response initialisations
     request_id = 0;
@@ -144,7 +145,7 @@ public:
     timeUpdate();
 
     //If we didn't get any measures for a while (and the previous one has already been received)
-    if((ros::Time::now().toSec() - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure)
+    if((ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - init_time > 10))
     {
       // ROS_INFO("Asking for measure");
 
@@ -171,7 +172,7 @@ public:
 
       //Update the variables
       previous_measure_received = false; //We have to wait for the answer
-      prev_mes_time = ros::Time::now().toSec(); //We update the last measure request
+      prev_mes_time = ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9); //We update the last measure request
     }
 
     the_robot_position.linear.x = x_pos;
@@ -255,6 +256,7 @@ private:
 
   //Time feedback for measurement asking
   int prev_mes_time;
+  int init_time;
   int time_threshold;
 
   //the scan sensor_msgs
