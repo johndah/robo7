@@ -5,9 +5,6 @@
   <!--
   -->
 
-  <node pkg="own_map" type="own_map" name="own_map"
-        args="_map_file:=$(find own_map)/maps/lab_maze_2018.txt"/>
-
   <node pkg="visualization" type="visualization" name="visualization">
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
