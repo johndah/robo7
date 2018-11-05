@@ -24,7 +24,7 @@ public:
 
   lidar_plot()
   {
-    lidar_scan_sub = n.subscribe("/scan", 1, &markerRviz::lidar_callBack, this);
+    lidar_scan_sub = n.subscribe("/scan", 1, &lidar_plot::lidar_callBack, this);
 
     lidar_scan_pub = n.advertise<sensor_msgs::LaserScan>("/scan2", 1);
   }
