@@ -133,7 +133,8 @@ public:
       }
 
       //Update the position based on the error received
-      update_position_error();
+      // update_position_error();
+      the_robot_position = measure_feedback.position_corrected;
 
       //Set the new_measure_value back to zero
       reinitialize_A_W_matrices();

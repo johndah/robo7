@@ -116,6 +116,7 @@ public:
       measure_feedback.P_matrix.line0.clear();
       measure_feedback.P_matrix.line1.clear();
       measure_feedback.P_matrix.line2.clear();
+      measure_feedback.position_corrected = corrected_position;
       for(int i=0; i<3; i++)
       {
         measure_feedback.P_matrix.line0.push_back(the_P_matrix(0,i));
