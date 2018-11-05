@@ -22,7 +22,6 @@ add_message_files(
   cornerList.msg
   Matrix4.msg
   Matrix3.msg
-  MeasureFeedback.msg
   MeasureRequest.msg
   trajectory_point.msg
   trajectory.msg
