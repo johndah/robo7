@@ -67,7 +67,7 @@ public:
     new_measure_received = false;
 
     //Initialize the different matrices
-    reinitialize_A_W_matrices();
+    initialize_matrices();
 
     encoder_Left = n.subscribe("/l_motor/encoder", 1, &kalmanFilter::encoder_L_callBack, this);
     encoder_Right = n.subscribe("/r_motor/encoder", 1, &kalmanFilter::encoder_R_callBack, this);
@@ -306,6 +306,18 @@ private:
     the_W_matrix = the_W_matrix + matrix_W_it;
   }
 
+  void initialize_matrices()
+  {
+    reinitialize_A_W_matrices();
+
+    the_P_matrix = Eigen::Matrix3f::Zero(3,3);
+
+    the_Q_matrix = Eigen::Matrix2f::Zero(2,2);
+
+    the_Q_matrix(0,0) = sigma_d;
+    the_Q_matrix(1,1) = sigma_a;
+  }
+
   void reinitialize_A_W_matrices()
   {
     //Reinitialize the A&W matrices
@@ -320,6 +332,10 @@ private:
 
   void compute_P_minus()
   {
+    ROS_INFO("matrx A : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_A_matrix(0,0), the_A_matrix(0,1), the_A_matrix(0,2), the_A_matrix(1,0), the_A_matrix(1,1), the_A_matrix(1,2), the_A_matrix(2,0), the_A_matrix(2,1), the_A_matrix(2,2));
+    ROS_INFO("matrx P : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
+    ROS_INFO("matrx W : %f, %f, %f, %f, %f, %f", the_W_matrix(0,0), the_W_matrix(0,1), the_W_matrix(1,0), the_W_matrix(1,1), the_W_matrix(2,0), the_W_matrix(2,1));
+    ROS_INFO("matrx Q : %f, %f, %f, %f", the_Q_matrix(0,0), the_Q_matrix(0,1), the_Q_matrix(1,0), the_Q_matrix(1,1));
     the_P_minus_matrix = the_A_matrix * the_P_matrix * the_A_matrix.transpose() + the_W_matrix * the_Q_matrix * the_W_matrix.transpose();
   }
 
