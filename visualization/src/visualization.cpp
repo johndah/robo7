@@ -105,9 +105,9 @@ public:
     marker.pose.orientation.y = 0;
     marker.pose.orientation.z = 1.57;
     marker.pose.orientation.w = 1.57;
-    marker.scale.x = 0.01;
-    marker.scale.y = 0.01;
-    marker.scale.z = 0.01;
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.scale.z = 0.1;
     marker.color.a = 1.0;
     marker.color.r = 1.0;
     marker.color.g = 0.0;
