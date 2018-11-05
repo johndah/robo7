@@ -224,7 +224,7 @@ private:
 	void inverseTransform()
 	{
 		ROS_INFO("%lf", wrapAngle( robot_angle_ ));
-		robot_angle_ = findangle(other_point_(0)-the_point_(0), other_point_(1)-the_point_(1));
+		robot_angle_ = findangle(other_point_(0) - the_point_(0), other_point_(1) - the_point_(1));
 
 		new_point.linear.x = the_point_(0);
 		new_point.linear.y = the_point_(1);
