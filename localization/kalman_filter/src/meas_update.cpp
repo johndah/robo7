@@ -22,7 +22,7 @@ class meas_update
 public:
   ros::NodeHandle n;
   ros::Subscriber meas_request_sub;
-  ros::Subscirber map_point_sub;
+  ros::Subscriber map_point_sub;
   ros::Publisher meas_result_pub;
   ros::ServiceClient scan_to_coord_srv;
   ros::ServiceClient ransac_srv;
@@ -50,7 +50,7 @@ public:
     meas_request_sub = n.subscribe("/localization/kalman_filter/measure_request", 10, &meas_update::measure_request_callBack, this);
     meas_result_pub = n.advertise<robo7_msgs::MeasureFeedback>("/localization/meas_update/measure_response", 10);
 
-    map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &test_server::maze_map_callBack, this);
+    map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &meas_update::maze_map_callBack, this);
     scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
     ransac_srv = n.serviceClient<robo7_srvs::RansacWall>("/localization/ransac");
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
@@ -87,10 +87,9 @@ public:
       //into the map frame
       robo7_srvs::scanCoord::Request req1;
       robo7_srvs::scanCoord::Response res1;
-      req1.robot_position = robot_position;
-      req1.lidar_scan = the_lidar_scan;
+      req1.robot_position = new_measure_request.current_position;
+      req1.lidar_scan = new_measure_request.lidar_scan;
       scan_to_coord_srv.call(req1, res1);
-      done = res1.success;
 
       robo7_srvs::ICPAlgorithm::Request req3;
       robo7_srvs::ICPAlgorithm::Response res3;
