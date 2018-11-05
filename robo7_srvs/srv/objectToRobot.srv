@@ -1,0 +1,7 @@
+# request
+geometry_msgs/Point camera_position
+geometry_msgs/Twist robot_position
+---
+geometry_msgs/Point object_in_robot_frame
+geometry_msgs/Point object_in_map_frame
+bool success  # True if the sequence was successful
