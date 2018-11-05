@@ -135,6 +135,9 @@ public:
       //Update the position based on the error received
       // update_position_error();
       the_robot_position = measure_feedback.position_corrected;
+      x_pos = the_robot_position.linear.x;
+      y_pos = the_robot_position.linear.y;
+      z_angle = the_robot_position.angular.z;
 
       //Set the new_measure_value back to zero
       reinitialize_A_W_matrices();
