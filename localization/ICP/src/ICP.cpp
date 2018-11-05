@@ -117,8 +117,8 @@ public:
     icp.setMaximumIterations (500);
 
     // Set the transformation epsilon (criterion 2)
-    icp.setTransformationEpsilon (0.01);
-		icp.setTransformationRotationEpsilon(0.05);
+    icp.setTransformationEpsilon (0.1);
+		// icp.setTransformationRotationEpsilon(0.05);
     //std::cout << " getTransformationEpsilon epsilon: "<<icp.getTransformationEpsilon() << std::endl;
     //std::cout << " getEuclideanFitnessEpsilon epsilon: "<<icp.getEuclideanFitnessEpsilon() << std::endl;
     // Set the euclidean distance difference epsilon (criterion 3)
