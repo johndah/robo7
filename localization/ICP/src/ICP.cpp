@@ -74,6 +74,7 @@ public:
 	{
 		former_point = req.current_position;
 		map_corner_list = req.the_wall_corners;
+		lidar_corner_list = req.the_lidar_corners;
 
 		cloud_lidar = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
     cloud_map = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
