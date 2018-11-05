@@ -62,7 +62,7 @@ public:
     //We check if the current request is not the same as before
     if((new_measure_request.id_number != msg->id_number)&&(msg->id_number >= 1))
     {
-      ROS_INFO("New Measure");
+      // ROS_INFO("New Measure");
       new_measure_request.time = msg->time;;
       new_measure_request.id_number = msg->id_number;
       new_measure_request.current_position = msg->current_position;
@@ -82,7 +82,7 @@ public:
     //If a new request arrived, then we start computing otherwise we do nothing
     if(new_request)
     {
-      ROS_INFO("Treating New Measure");
+      // ROS_INFO("Treating New Measure");
       //Call for the scan_to_coordinate node : it will transform the coordinates of the laser scan
       //into the map frame
       robo7_srvs::scanCoord::Request req1;
