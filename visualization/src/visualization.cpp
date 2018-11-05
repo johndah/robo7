@@ -67,13 +67,36 @@ public:
 
     t = ros::Time::now();
 
+    // marker.header.frame_id = "robot";
+    // marker.header.stamp = t;
+    // marker.ns = "map";
+    // marker.id = 0;
+    // marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+    // marker.mesh_resource = "package://visualization/model/robo7.dae";
+    // marker.mesh_use_embedded_materials = true;
+    // marker.action = visualization_msgs::Marker::ADD;
+    // marker.pose.position.x = 0;
+    // marker.pose.position.y = 0;
+    // marker.pose.position.z = 0;
+    // marker.pose.orientation.x = 0;
+    // marker.pose.orientation.y = 0;
+    // marker.pose.orientation.z = 1.57;
+    // marker.pose.orientation.w = 1.57;
+    // marker.scale.x = 0.01;
+    // marker.scale.y = 0.01;
+    // marker.scale.z = 0.01;
+    // marker.color.a = 0.0;
+    // marker.color.r = 0.0;
+    // marker.color.g = 0.0;
+    // marker.color.b = 0.0;
+
     marker.header.frame_id = "robot";
     marker.header.stamp = t;
     marker.ns = "map";
     marker.id = 0;
-    marker.type = visualization_msgs::Marker::MESH_RESOURCE;
-    marker.mesh_resource = "package://visualization/model/robo7.dae";
-    marker.mesh_use_embedded_materials = true;
+    marker.type = visualization_msgs::Marker::ARROW;
+    // marker.mesh_resource = "package://visualization/model/robo7.dae";
+    // marker.mesh_use_embedded_materials = true;
     marker.action = visualization_msgs::Marker::ADD;
     marker.pose.position.x = 0;
     marker.pose.position.y = 0;
@@ -85,8 +108,8 @@ public:
     marker.scale.x = 0.01;
     marker.scale.y = 0.01;
     marker.scale.z = 0.01;
-    marker.color.a = 0.0;
-    marker.color.r = 0.0;
+    marker.color.a = 1.0;
+    marker.color.r = 1.0;
     marker.color.g = 0.0;
     marker.color.b = 0.0;
 
@@ -107,7 +130,7 @@ public:
     marker_parameters1.publish( marker );
 
     marker.header.frame_id = "robot_corrected";
-    marker.color.g = 0.0;
+    marker.color.g = 1.0;
     marker_parameters2.publish( marker );
   }
 
