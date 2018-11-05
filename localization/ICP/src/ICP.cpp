@@ -115,10 +115,10 @@ public:
     // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
     icp.setMaxCorrespondenceDistance (1);
     // Set the maximum number of iterations (criterion 1)
-    icp.setMaximumIterations (1000);
+    icp.setMaximumIterations (10000);
 
     // Set the transformation epsilon (criterion 2)
-    icp.setTransformationEpsilon (0.001);
+    icp.setTransformationEpsilon (0.0001);
 		// icp.setTransformationRotationEpsilon(0.05);
     //std::cout << " getTransformationEpsilon epsilon: "<<icp.getTransformationEpsilon() << std::endl;
     //std::cout << " getEuclideanFitnessEpsilon epsilon: "<<icp.getEuclideanFitnessEpsilon() << std::endl;
