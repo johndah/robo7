@@ -26,6 +26,7 @@ add_message_files(
   trajectory_point.msg
   trajectory.msg
   destination_point.msg
+  MeasureFeedback.msg
 )
 
 generate_messages(
