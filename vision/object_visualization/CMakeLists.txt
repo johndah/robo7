@@ -20,3 +20,7 @@ catkin_package(
 include_directories(
  ${catkin_INCLUDE_DIRS}
 )
+
+add_executable(object_to_robot src/object_to_robot.cpp)
+target_link_libraries(object_to_robot ${catkin_LIBRARIES})
+add_dependencies(object_to_robot ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
