@@ -18,7 +18,7 @@ class PathPlanning;
 typedef std::shared_ptr<Node> node_ptr;
 float pi = 3.14159265358979323846;
 
-int target_index = 2; // 0-5
+int target_index = 5; // 0-5
 std::vector<float> x_targets = {.2, .55, 1.6, 1, 2.2, 2.2, .8};
 std::vector<float> y_targets = {2.2, .55, .8, 1.55, 2.2, .2, .2};
 float theta_target = pi / 2;
