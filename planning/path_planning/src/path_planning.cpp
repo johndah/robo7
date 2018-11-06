@@ -399,20 +399,20 @@ class PathPlanning
 		while (node_current->parent != NULL)
 		{
 
-			int partitions = (int)std::abs(node_current->angular_velocity / node_current->angular_velocity_resolution);
+			int partitions = 2 + (int) 0.5*std::abs(node_current->angular_velocity / node_current->angular_velocity_resolution);
 
 			node_ptr node_parent = node_current->parent;
 			node_ptr partial_node = node_current;
 			node_ptr partial_node_parent = node_parent;
 
 
-			if (partitions > 0)
+			if (partitions >= 0)
 			{
 
 				for (int i = partitions; i >= 0; i--)
 				{
 
-					float parts = partitions + 2;
+					float parts = partitions + 1;
 					std::vector<float>::const_iterator i_x_0 = node_current->path_x.begin() + i * (int)(node_current->path_x.size() / parts);
 					std::vector<float>::const_iterator i_x_end = i_x_0 + (int)(node_current->path_x.size() / parts);
 
