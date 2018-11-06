@@ -223,6 +223,8 @@ public:
             // get the pos of the object
             geometry_msgs::Point pos;
 
+            
+            
             if (pCloud_cam.width != 0)
             {
               pos = pixelTo3DPoint(pCloud_cam, center.x, center.y);
