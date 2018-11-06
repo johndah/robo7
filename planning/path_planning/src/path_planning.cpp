@@ -51,7 +51,7 @@ class Node
 		this->path_cost = path_cost;
 		this->cost_to_come = cost_to_come;
 
-		this->path_length = 0.4;
+		this->path_length = 0.4s;
 		this->dt = 0.05;
 
 		this->tolerance_radius = 5e-2;
