@@ -49,7 +49,7 @@
    </node>
 
    <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
-     <param name="initial_x_pos" type="double" value="1.8"/>
+     <param name="initial_x_pos" type="double" value="2.0"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
      <param name="initial_z_angle" type="double" value="0"/>
      <param name="linear_adjustment" type="double" value="0.0481"/>

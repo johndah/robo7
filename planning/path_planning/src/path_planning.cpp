@@ -18,7 +18,7 @@ class PathPlanning;
 typedef std::shared_ptr<Node> node_ptr;
 float pi = 3.14159265358979323846;
 
-int target_index = 2;
+int target_index = 2; // 0-5
 std::vector<float> x_targets = {.2, .55, 1.6, 2.2, 2.2, .8};
 std::vector<float> y_targets = {2.2, .55, .8, 2.2, .2, .2};
 float theta_target = pi / 2;
@@ -52,9 +52,9 @@ class Node
 		this->path_cost = path_cost;
 		this->cost_to_come = cost_to_come;
 
-		this->path_length = 0.4;
-		this->steering_angle_max = pi;
-		this->angular_velocity_resolution = pi / 2;
+		this->path_length = 0.3;
+		this->steering_angle_max = 2 * pi;
+		this->angular_velocity_resolution = pi/2;
 
 		this->dt = 0.05;
 
@@ -69,7 +69,7 @@ class Node
 	float getCost()
 	{
 		//ROS_INFO("crC: %f, ctG: %f", cost_to_come, 20*getHeuristicCost());
-		return cost_to_come + 5 * getHeuristicCost();
+		return cost_to_come + 7 * getHeuristicCost();
 	}
 
 	float getHeuristicCost()
@@ -170,12 +170,27 @@ class PathPlanning
 			y = node->y;
 			theta = node->theta;
 
-			if (angular_velocity == 0)
+			if (std::abs(angular_velocity) < 1e-1)
 			{
-				penalty_factor = 0.5;
+				penalty_factor = 0.4;
+				node->path_length = 0.4;
+				node->steering_angle_max = pi;
+				//node->angular_velocity_resolution = pi / 2;
+			}
+			else if (angular_velocity - node->angular_velocity_resolution < 1e-1)
+			{
+				penalty_factor = .9;
+				node->path_length = 0.32;
+				node->steering_angle_max = pi;
+				//node->angular_velocity_resolution = pi;
 			}
 			else
+			{
 				penalty_factor = 1.0;
+				node->path_length = 0.3;
+				node->steering_angle_max = 2*pi;
+				//node->angular_velocity_resolution = pi/2;
+			}
 
 			t = 0.0;
 			dt = node->dt;
@@ -277,9 +292,11 @@ class PathPlanning
 
 			float theta0_resolution = pi / 2;
 
-			for (float theta0 = -pi; theta0 < pi / 2; theta0 += theta0_resolution)
+			for (float t0 = theta0 - pi; t0 < theta0 + pi; t0 += theta0_resolution)
+			//for (float theta0 = -pi; theta0 < pi; theta0 += theta0_resolution)
 			{
-				node_ptr node_start = std::make_shared<Node>(x0, y0, theta0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
+				//ROS_INFO("Theta0 %f", theta0);
+				node_ptr node_start = std::make_shared<Node>(x0, y0, t0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
 				alive_nodes.push_back(node_start);
 			}
 
@@ -387,20 +404,22 @@ class PathPlanning
 			node_ptr partial_node = node_current;
 			node_ptr partial_node_parent = node_parent;
 
+
 			if (partitions > 0)
 			{
 
 				for (int i = partitions; i >= 0; i--)
 				{
 
-					std::vector<float>::const_iterator i_x_0 = node_current->path_x.begin() + i * (int)(node_current->path_x.size() / (partitions + 1));
-					std::vector<float>::const_iterator i_x_end = i_x_0 + (int)(node_current->path_x.size() / (partitions + 1));
+					float parts = partitions + 2;
+					std::vector<float>::const_iterator i_x_0 = node_current->path_x.begin() + i * (int)(node_current->path_x.size() / parts);
+					std::vector<float>::const_iterator i_x_end = i_x_0 + (int)(node_current->path_x.size() / parts);
 
-					std::vector<float>::const_iterator i_y_0 = node_current->path_y.begin() + i * (int)(node_current->path_y.size() / (partitions + 1));
-					std::vector<float>::const_iterator i_y_end = i_y_0 + (int)(node_current->path_y.size() / (partitions + 1));
+					std::vector<float>::const_iterator i_y_0 = node_current->path_y.begin() + i * (int)(node_current->path_y.size() / parts);
+					std::vector<float>::const_iterator i_y_end = i_y_0 + (int)(node_current->path_y.size() / parts);
 
-					std::vector<float>::const_iterator i_theta_0 = node_current->path_theta.begin() + i * (int)(node_current->path_theta.size() / (partitions + 1));
-					std::vector<float>::const_iterator i_theta_end = i_theta_0 + (int)(node_current->path_theta.size() / (partitions + 1));
+					std::vector<float>::const_iterator i_theta_0 = node_current->path_theta.begin() + i * (int)(node_current->path_theta.size() / parts);
+					std::vector<float>::const_iterator i_theta_end = i_theta_0 + (int)(node_current->path_theta.size() / parts);
 
 					std::vector<float> path_x(i_x_0, i_x_end);
 					std::vector<float> path_y(i_y_0, i_y_end);
@@ -410,7 +429,7 @@ class PathPlanning
 					float y = path_y[0];
 					float theta = path_theta[0];
 					float angular_velocity = partial_node->angular_velocity;
-					float path_cost = partial_node->path_cost / (partitions + 1);
+					float path_cost = partial_node->path_cost / parts;
 					float cost_to_come = partial_node->cost_to_come;
 
 					cost_to_come += path_cost;

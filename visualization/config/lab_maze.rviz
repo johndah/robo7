@@ -8,7 +8,7 @@ Panels:
         - /Status1
         - /PointFollowing1
       Splitter Ratio: 0.5
-    Tree Height: 706
+    Tree Height: 250
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties

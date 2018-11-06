@@ -56,9 +56,9 @@ public:
 
   void startGoalCallback(const robo7_msgs::path::ConstPtr &start_goal_msg)
   {
-    start_goal_x[0] = start_goal_msg->path_x[0];
+    //start_goal_x[0] = start_goal_msg->path_x[0];
     start_goal_x[1] = start_goal_msg->path_x[1];
-    start_goal_y[0] = start_goal_msg->path_y[0];
+    //start_goal_y[0] = start_goal_msg->path_y[0];
     start_goal_y[1] = start_goal_msg->path_y[1];
 
     start_goal_received = true;
@@ -177,7 +177,7 @@ public:
     {
       start_goal_msg.markers.resize(2);
 
-      for (int i = 0; i < 2; i++)
+      for (int i = 1; i < 2; i++)
       {
         start_goal_msg.markers[i].header.frame_id = "/map";
         start_goal_msg.markers[i].header.stamp = ros::Time::now();
