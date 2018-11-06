@@ -14,6 +14,7 @@
   <!-- Phidget -->
 
   <!-- Speaker -->
+  <node pkg="ras_espeak" type="espeak_node" name="espeak_node"  output="screen"/>
   <node pkg="speaker" type="speaker" name="speaker"  output="screen"/>
 
   <!-- Camera -->
