@@ -18,7 +18,7 @@ $ git clone https://github.com/pdollar/toolbox.git
 2. Download the C++ implementation which can apply the trained model in ros, but need to build it on your PC
 
 ```c++
-// download the c++ implementation 
+// download the c++ implementation
 $ git clone https://github.com/elucideye/acf.git
 
 // require gcc complier, CMake, Python, Polly
@@ -41,6 +41,7 @@ $ source bin/hunter_env.sh
 $ bin/travis_build.sh "${TOOLCHAIN}" "${CONFIG}" "${INSTALL}"
 ```
 
+apt-get install libspdlog-dev
 
 
 3. After building the C++ implementation, you can directly link the shared library in CMakeLists.txt
@@ -69,4 +70,3 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 ```
-
