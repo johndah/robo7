@@ -1,0 +1,8 @@
+<launch>
+
+  <node pkg="acfDetector" type="acf_detector" name="acf_detector">
+    <param name="sModel" type="string" value="/home/jtao/CLionProjects/lab1/model_color_mag.cpb"/>
+
+  </node>
+
+</launch>
