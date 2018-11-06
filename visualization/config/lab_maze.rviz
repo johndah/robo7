@@ -60,7 +60,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: AxisColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -77,7 +77,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -142,6 +142,14 @@ Visualization Manager:
       Enabled: true
       Marker Topic: /visualization/robotMarker
       Name: RobotPosition
+      Namespaces:
+        map: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /visualization/robotMarker2
+      Name: RobotPositionCorrected
       Namespaces:
         map: true
       Queue Size: 100
@@ -312,25 +320,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.76655293
+      Distance: 3.62524223
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.21745944
-        Y: 0.972335696
-        Z: 0.65837425
+        X: 1.23444068
+        Y: 0.894257843
+        Z: 1.71951067
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.13979673
+      Pitch: 0.934796333
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.25225973
+      Yaw: 0.584058642
     Saved: ~
 Window Geometry:
   Displays:

@@ -67,11 +67,13 @@ int main(int argc, char **argv)
     ros::NodeHandle n("~");
     ros::Rate r(10);
 
+    float discretisation_step;
 
     string _map_file;
     string _map_frame = "/map";
     string _map_topic = "/maze_map";
     n.param<string>("map_file", _map_file, "maze_map.txt");
+    n.param<float>("/own_map/discretization_step", discretisation_step, 0.05);
 //    n.param<string>("map_frame", _map_frame, "/map");
 //    n.param<string>("map_topic", _map_topic, "/maze_map");
 
@@ -92,7 +94,7 @@ int main(int argc, char **argv)
     vector<float> X_wall_coordinates = vector<float>(1, 0);
     vector<float> Y_wall_coordinates = vector<float>(1, 0);
     std::vector<geometry_msgs::Vector3> wall_points;
-    float discretisation_step = 0.05;
+
     int length = 0;
 
     std::vector<geometry_msgs::Vector3> the_corners_list;

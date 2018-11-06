@@ -74,6 +74,7 @@ public:
 	{
 		former_point = req.current_position;
 		map_corner_list = req.the_wall_corners;
+		lidar_corner_list = req.the_lidar_corners;
 
 		cloud_lidar = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
     cloud_map = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -107,6 +108,23 @@ public:
 
 		//Solve ICP
 		pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+
+		//icp.setRANSACOutlierRejectionThreshold(5);
+		icp.setRANSACOutlierRejectionThreshold(0.5);
+    //icp.setRANSACIterations(100);
+    // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
+    icp.setMaxCorrespondenceDistance (1);
+    // Set the maximum number of iterations (criterion 1)
+    icp.setMaximumIterations (10000);
+
+    // Set the transformation epsilon (criterion 2)
+    icp.setTransformationEpsilon (0.0001);
+		// icp.setTransformationRotationEpsilon(0.05);
+    //std::cout << " getTransformationEpsilon epsilon: "<<icp.getTransformationEpsilon() << std::endl;
+    //std::cout << " getEuclideanFitnessEpsilon epsilon: "<<icp.getEuclideanFitnessEpsilon() << std::endl;
+    // Set the euclidean distance difference epsilon (criterion 3)
+    icp.setEuclideanFitnessEpsilon (0.001);
+
 	  icp.setInputSource(cloud_lidar);
 	  icp.setInputTarget(cloud_map);
 	  icp.align(Final);
@@ -205,14 +223,18 @@ private:
 
 	void inverseTransform()
 	{
-		robot_angle_ = findangle(other_point_(0)-the_point_(0), other_point_(1)-the_point_(1));
+		// ROS_INFO("%lf", wrapAngle( robot_angle_ ));
+		robot_angle_ = findangle(other_point_(0) - the_point_(0), other_point_(1) - the_point_(1));
 
 		new_point.linear.x = the_point_(0);
 		new_point.linear.y = the_point_(1);
 		new_point.linear.z = the_point_(2);
 		new_point.angular.x = 0;
 		new_point.angular.y = 0;
-		new_point.angular.z = robot_angle_;
+		new_point.angular.z = wrapAngle( robot_angle_ );
+
+		// ROS_INFO("%lf, %lf, %lf, %lf", the_point_(0), the_point_(1), the_point_(2), wrapAngle( robot_angle_ ));
+		// ROS_INFO("Time is : %u s & %u ns", ros::Time::now().sec, ros::Time::now().nsec);
 	}
 
 	int sgn(float v)
@@ -220,6 +242,12 @@ private:
 		if (v < 0) return -1;
 		else if (v > 0) return 1;
 		else return 0;
+	}
+
+	float wrapAngle( double angle )
+	{
+		float twoPi = 2.0 * pi;
+		return angle - twoPi * floor( angle / twoPi );
 	}
 };
 
