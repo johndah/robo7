@@ -18,7 +18,7 @@ class PathPlanning;
 typedef std::shared_ptr<Node> node_ptr;
 float pi = 3.14159265358979323846;
 
-int target_index = 3; // 0-5
+int target_index = 2; // 0-5
 std::vector<float> x_targets = {.2, .55, 1.6, 1, 2.2, 2.2, .8};
 std::vector<float> y_targets = {2.2, .55, .8, 1.55, 2.2, .2, .2};
 float theta_target = pi / 2;
@@ -172,7 +172,7 @@ class PathPlanning
 				y = node->y;
 				theta = node->theta;
 
-				
+
 				if (std::abs(angular_velocity) < 1e-1)
 				{
 					penalty_factor = 0.5;
@@ -194,7 +194,7 @@ class PathPlanning
 					node->steering_angle_max = 2 * pi;
 					//node->angular_velocity_resolution = pi/2;
 				}
-				
+
 
 				t = 0.0;
 				dt = node->dt;
