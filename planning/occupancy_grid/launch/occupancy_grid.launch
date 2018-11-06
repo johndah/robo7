@@ -11,10 +11,10 @@
 
     <!--  Size of Gaussian smoothing kernel, should be odd number and about
     3 times the size of the standard deviation-->
-    <param name="smoothing_kernel_size" type="int" value="15"/>
+    <param name="smoothing_kernel_size" type="int" value="45"/>
 
     <!--  Standard devoiation of the Gaussian smoothing kernel -->
-    <param name="smoothing_kernel_sd" type="int" value="3"/>
+    <param name="smoothing_kernel_sd" type="int" value="5"/>
 
   </node>
 

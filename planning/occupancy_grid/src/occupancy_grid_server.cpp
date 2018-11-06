@@ -19,6 +19,7 @@ class OccupancyGridServer
   public:
 	ros::NodeHandle n;
 	ros::Subscriber map_sub;
+  ros::Publisher occupancy_pub;
 	ros::ServiceServer is_occupied_service;
 	Matrix grid;
 
@@ -32,6 +33,8 @@ class OccupancyGridServer
 
 		map_sub = n.subscribe("/own_map/wall_coordinates", 1, &OccupancyGridServer::mapCallback, this);
 		is_occupied_service = n.advertiseService("/occupancy_grid/is_occupied", &OccupancyGridServer::gridRequest, this);
+
+    occupancy_pub = n.advertise<robo7_msgs::occupancy_matrix>("occupancy_matrix", 1);
 
 		num_min_distance_squares = ceil(min_distance / grid_square_size);
 
@@ -157,34 +160,67 @@ class OccupancyGridServer
 		}
 
 		// To display uncomment here and bellow
-		/*
+
 		namedWindow("Display window", cv::WINDOW_NORMAL );
 		cv::resizeWindow("Display window", 600,600);
 		imshow( "Display window", grid_in );
 		cv::waitKey(0);
-		*/
+
 
 		GaussianBlur(grid_in, grid_filtered, cv::Size(kernel_size, kernel_size), sigma, 0);
 
+
+
 		// To display uncomment here as well
-		/*
-		imshow( "Display window", grid_filtered );
-		cv::waitKey(0);
-		cvDestroyWindow("Display window");
-		*/
+
+		// imshow( "Display window", grid_filtered );
+		// cv::waitKey(0);
+		// cvDestroyWindow("Display window");
+
 
 		cv::Mat normalized_grid;
 		cv::normalize(grid_filtered, normalized_grid, 0, 1, cv::NORM_MINMAX, CV_32F);
+
+    // imshow( "Display window", grid_filtered );
+    cv::waitKey(0);
+
+    cv::Mat normalized_grid_ones = grid_filtered.clone();
+
+    // imshow( "Display window", normalized_grid_ones );
+    // cv::waitKey(0);
+
+    ROS_INFO("channels %d", normalized_grid_ones.channels());
+
+    for (int i = 0; i < grid_in.rows; ++i)
+    {
+      for (int j = 0; j < grid_in.cols*2; ++j)
+      {
+          //ROS_INFO("FOUND: %f", normalized_grid_ones.at<float>(i, j));
+          //ROS_INFO("now: %f", normalized_grid_ones.at<float>(i, j));
+
+        if(grid_in.at<float>(i, j) >= 1.0){
+          ROS_INFO("FOUND ONE!");
+          normalized_grid_ones.at<float>(i,j) = 1.0;
+        }
+        ROS_INFO("now: %f", normalized_grid_ones.at<float>(i, j));
+
+
+      }
+    }
+
+    imshow( "Display window", normalized_grid_ones );
+    cv::waitKey(0);
+    cvDestroyWindow("Display window");
+
 
 		ROS_INFO("Gaussed grid ready");
 		return normalized_grid;
 	}
 
-	void publishGrid(ros::NodeHandle nh)
+	void publishGrid()
 	{
 		/*
 		*/
-		ros::Publisher occupancy_pub = nh.advertise<robo7_msgs::occupancy_matrix>("occupancy_matrix", 1000);
 		robo7_msgs::occupancy_row occupancy_row_msg;
 		robo7_msgs::occupancy_matrix occupancy_matrix_msg;
 
@@ -221,8 +257,7 @@ class OccupancyGridServer
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "occupancy_grid_server");
-	ros::NodeHandle nh;
-	nh = ros::NodeHandle("~");
+
 
 	OccupancyGridServer occupancy_grid_server;
 
@@ -232,7 +267,7 @@ int main(int argc, char **argv)
 
 	occupancy_grid_server.updateGridSize();
 
-	occupancy_grid_server.publishGrid(nh);
+	occupancy_grid_server.publishGrid();
 
 	ros::spin();
 
