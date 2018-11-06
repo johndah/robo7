@@ -14,7 +14,8 @@
 #include <robo7_srvs/ICPAlgorithm.h>
 #include <robo7_srvs/callServiceTest.h>
 #include <robo7_srvs/PathFollowerSrv.h>
-
+#include <Eigen/Geometry>
+using Eigen::MatrixXd;
 
 
 // Control @ 10 Hz
@@ -32,6 +33,7 @@ public:
   objectToRobot()
   {
     //The camera angle
+    n.param<float>("/object_to_robot/camera_angle", camera_angle, 0);
 
     //The service definition
     object_to_robot_frame_srv = n.advertiseService("/localization/object_to_robot", &objectToRobot::transform_Sequence, this);
@@ -43,7 +45,9 @@ public:
     robot_position = req.robot_position;
     camera_object_position = req.camera_position;
 
+    object_robot_position_vector = rotation_matrix * object_camera_position_vector + translation_vector;
 
+    object_map_frame = rotation_matrix_2 * object_robot_position_vector + translation_vector_2;
 
     res.object_in_robot_frame = object_robot_frame;
     res.object_in_map_frame = object_map_frame;
@@ -62,6 +66,23 @@ private:
   geometry_msgs::Point object_robot_frame;
   geometry_msgs::Point object_map_frame;
 
+  //The angle of the camera
+  float camera_angle;
+
+  Eigen::Vector3f object_camera_position_vector;
+  Eigen::Vector3f object_robot_position_vector;
+  Eigen::Vector3f object_map_position_vector;
+
+  Eigen::Matrix3f rotation_matrix;
+  Eigen::Vector3f translation_vector;
+
+
+  void forward_transform()
+  {
+    object_camera_position_vector(0) = camera_object_position.x;
+    object_camera_position_vector(1) = camera_object_position.y;
+    object_camera_position_vector(2) = camera_object_position.z;
+  }
 
 };
 
