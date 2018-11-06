@@ -54,7 +54,7 @@
      <param name="initial_z_angle" type="double" value="1.8"/>
      <param name="linear_adjustment" type="double" value="0.0481"/>
      <param name="angular_adjustment" type="double" value="0.0235"/>
-     <param name="use_measure" type="bool" value="false"/>
+     <param name="use_measure" type="bool" value="true"/>
      <param name="time_between_two_measure" type="double" value="0.6"/>
    </node>
 
@@ -68,7 +68,7 @@
      <param name="angle_I" type="double" value="2"/>
      <param name="angle_D" type="double" value="0"/>
      <param name="error_sat" type="double" value="0.3"/>
-     <param name="angular_velocity_saturation_threshold" type="double" value="4"/>
+     <param name="angular_velocity_saturation_threshold" type="double" value="3"/>
      <param name="linear_speed" type="double" value="0.15"/>
    </node> -->
 
