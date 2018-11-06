@@ -318,7 +318,8 @@ class PathPlanning
 
 				node_ptr node_current = alive_nodes[std::distance(alive_nodes.begin(), min_cost_iterator)];
 
-				if (node_current->distanceSquared(node_target) < this->goal_radius_tolerance && std::abs(node_current->theta - theta_target) < this->angle_tolerance)
+				//ROS_INFO("Distance %f  Required distance: %f", node_current->distanceSquared(node_target),  this->goal_radius_tolerance);
+				if (node_current->distanceSquared(node_target) < this->goal_radius_tolerance) // && std::abs(node_current->theta - theta_target) < this->angle_tolerance)
 					return get_found_path(node_current);
 
 				alive_nodes.erase(min_cost_iterator);
