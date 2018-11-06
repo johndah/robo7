@@ -27,6 +27,10 @@ add_message_files(
   trajectory.msg
   destination_point.msg
   MeasureFeedback.msg
+  occupancy_matrix.msg
+  occupancy_row.msg
+  aObject.msg
+  allObjects.msg
 )
 
 generate_messages(

@@ -19,8 +19,8 @@ typedef std::shared_ptr<Node> node_ptr;
 float pi = 3.14159265358979323846;
 
 int target_index = 2;
-std::vector<float> x_targets = {.2, 1.6, 2.2, 2.2, .8};
-std::vector<float> y_targets = {2.2, .8, 2.2, .2, .2};
+std::vector<float> x_targets = {.2, .55, 1.6, 2.2, 2.2, .8};
+std::vector<float> y_targets = {2.2, .55, .8, 2.2, .2, .2};
 float theta_target = pi / 2;
 
 float x_target = x_targets[target_index];
@@ -34,7 +34,8 @@ class Node
 	robo7_srvs::IsGridOccupied occupancy_srv;
 	float x, y, theta;
 	float angular_velocity, time, dt;
-	float path_cost, cost_to_come, path_length, angular_velocity_resolution;
+	float path_cost, cost_to_come, path_length;
+	float steering_angle_max, angular_velocity_resolution;
 	float tolerance_radius, tolerance_angle;
 	unsigned int node_id;
 	std::vector<float> path_x, path_y, path_theta;
@@ -51,7 +52,10 @@ class Node
 		this->path_cost = path_cost;
 		this->cost_to_come = cost_to_come;
 
-		this->path_length = 0.4s;
+		this->path_length = 0.4;
+		this->steering_angle_max = pi;
+		this->angular_velocity_resolution = pi / 2;
+
 		this->dt = 0.05;
 
 		this->tolerance_radius = 5e-2;
@@ -117,7 +121,7 @@ class PathPlanning
 	robo7_msgs::paths target_paths_msg;
 	robo7_msgs::trajectory trajectory_msg;
 
-	//Initialisation
+	// Initialisation
 	float goal_radius_tolerance, angle_tolerance;
 	float x0, y0, theta0, position_updated;
 	unsigned int node_id;
@@ -147,17 +151,18 @@ class PathPlanning
 
 	std::vector<node_ptr> getSuccessorNodes(node_ptr node)
 	{
-		float steering_angle_max, angle_diff_tol, cost_to_come, cost;
+		// float steering_angle_max,
+		float angle_diff_tol, cost_to_come, cost;
 		std::vector<node_ptr> successors;
 		std::vector<float> path_x, path_y, path_theta;
 		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
 
-		steering_angle_max = pi;
-		node->angular_velocity_resolution = pi / 2;
+		//node->steering_angle_max = pi;
+		//node->angular_velocity_resolution = pi /2;
 
 		angle_diff_tol = 1e-1;
 
-		for (float angular_velocity = -steering_angle_max; angular_velocity <= steering_angle_max; angular_velocity += node->angular_velocity_resolution)
+		for (float angular_velocity = -node->steering_angle_max; angular_velocity <= node->steering_angle_max; angular_velocity += node->angular_velocity_resolution)
 		{
 			float x, y, theta, path_cost, t, dt, penalty_factor;
 			bool add_node;
@@ -210,10 +215,10 @@ class PathPlanning
 				if (this->occupancy_client.call(this->occupancy_srv))
 				{
 					cost = this->occupancy_srv.response.occupancy * penalty_factor;
-					path_cost += cost;
-					/*ROS_INFO("%f", cost);
 
-					if (cost <= 0.4)
+					path_cost += cost;
+					/*
+					if (cost <= .6)
 						node->path_length = 0.4;
 					else
 						node->path_length = 0.3;
@@ -228,6 +233,26 @@ class PathPlanning
 
 			if (add_node)
 			{
+
+				if (this->occupancy_client.call(this->occupancy_srv))
+				{
+					cost = this->occupancy_srv.response.occupancy * penalty_factor;
+					path_cost += cost;
+					/*
+					if (cost <= 0.6)
+					{
+
+						node->path_length = 0.4;
+						node->steering_angle_max = pi;
+						node->angular_velocity_resolution = pi/2;
+					}
+					else
+					{	node->path_length = 0.3;
+						node->steering_angle_max = 2*pi;
+						node->angular_velocity_resolution = pi;
+					}
+					*/
+				}
 				cost_to_come += path_cost;
 				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, this->node_id++);
 				successors.push_back(successor_node);
@@ -248,10 +273,15 @@ class PathPlanning
 		if (position_updated)
 		{
 
-			node_ptr node_start = std::make_shared<Node>(x0, y0, pi / 2, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
 			node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
 
-			alive_nodes.push_back(node_start);
+			float theta0_resolution = pi / 2;
+
+			for (float theta0 = -pi; theta0 < pi / 2; theta0 += theta0_resolution)
+			{
+				node_ptr node_start = std::make_shared<Node>(x0, y0, theta0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
+				alive_nodes.push_back(node_start);
+			}
 
 			start_goal_x[0] = x0;
 			start_goal_x[1] = x_target;
@@ -330,7 +360,6 @@ class PathPlanning
 					}
 				}
 			}
-
 			ROS_INFO("Path not found");
 		}
 	}
@@ -349,7 +378,7 @@ class PathPlanning
 
 		target_nodes.push_back(node_current);
 
-		while (node_current->parent->parent != NULL)
+		while (node_current->parent != NULL)
 		{
 
 			int partitions = (int)std::abs(node_current->angular_velocity / node_current->angular_velocity_resolution);
@@ -393,13 +422,29 @@ class PathPlanning
 				}
 			}
 
+			this->occupancy_srv.request.x = node_current->x;
+			this->occupancy_srv.request.y = node_current->y;
+
+			if (this->occupancy_client.call(this->occupancy_srv))
+			{
+				float cost = this->occupancy_srv.response.occupancy;
+
+				ROS_INFO("%f", cost);
+				/*
+					if (cost/node->path_length <= 1)
+						node->path_length = 0.4;
+					else
+						node->path_length = 0.3;
+					*/
+			}
+
 			node_current = node_parent;
 			target_nodes.push_back(node_current);
 		}
 
 		std::reverse(target_nodes.begin(), target_nodes.end());
 
-		for (int i = 0; i < target_nodes.size(); i++)
+		for (int i = 1; i < target_nodes.size(); i++)
 		{
 			node_ptr node = target_nodes[i];
 
