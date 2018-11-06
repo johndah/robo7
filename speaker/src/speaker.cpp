@@ -49,8 +49,8 @@ class Speaker
     espeak_pub.publish(msg_out);
     // ROS_INFO("%s", msg_out.data.c_str());
 	}
-
 };
+
 
 int main(int argc, char **argv)
 {

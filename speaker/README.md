@@ -16,3 +16,11 @@ Blue Cube
 Blue Triangle
 Purple Cross
 Purple Star
+
+# E speak
+make sure espeak is installed by typing int the terminal:
+```
+$ espeak --version
+eSpeak text-to-speech: 1.48.03  04.Mar.14  Data at: /usr/lib/x86_64-linux-gnu/espeak-data
+```
+and make sure the ras_espeak/espeak_node node is running!

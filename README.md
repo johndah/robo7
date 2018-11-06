@@ -2,6 +2,14 @@
 
 This project will include all software for the autonomous robot.
 
+## Clone base-project files from git
+```
+cd
+git clone https://github.com/KTH-RAS/ras_install.git
+cd ras_install/scripts
+./install.sh
+```
+
 ## Motor
 $$
 angular Velocity = encoderCount \div CPR  \times 2\pi \times freqency
@@ -46,4 +54,3 @@ therefore, estimated angular velocity -25.387 ~ 25.387
 // install opencv
 sudo apt-get install ros-kinetic-vision-opencv
 ```
-
