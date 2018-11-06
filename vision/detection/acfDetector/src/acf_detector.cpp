@@ -155,19 +155,19 @@ public:
         large_bbx.height = 2 * o.height;
       }
 
-      ROS_INFO("x: %d", o.x);
-      ROS_INFO("y: %d", o.y);
-      ROS_INFO("width: %d", o.width);
-      ROS_INFO("height: %d", o.height);
+      // ROS_INFO("x: %d", o.x);
+      // ROS_INFO("y: %d", o.y);
+      // ROS_INFO("width: %d", o.width);
+      // ROS_INFO("height: %d", o.height);
 
-      ROS_INFO("-------------------------------");
+      // ROS_INFO("-------------------------------");
       
-      ROS_INFO("x: %d", large_bbx.x);
-      ROS_INFO("y: %d", large_bbx.y);
-      ROS_INFO("width: %d", large_bbx.width);
-      ROS_INFO("height: %d", large_bbx.height);
+      // ROS_INFO("x: %d", large_bbx.x);
+      // ROS_INFO("y: %d", large_bbx.y);
+      // ROS_INFO("width: %d", large_bbx.width);
+      // ROS_INFO("height: %d", large_bbx.height);
 
-      ROS_INFO("-------------------------------");
+      // ROS_INFO("-------------------------------");
 
       return large_bbx;
     }
@@ -219,6 +219,42 @@ public:
             sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", obj_img).toImageMsg();
 
             obj_img_pub.publish(img_msg);
+
+            // get the pos of the object
+            geometry_msgs::Point pos;
+
+            if (pCloud_cam.width != 0)
+            {
+              pos = pixelTo3DPoint(pCloud_cam, center.x, center.y);
+              if (isnan(pos.x))
+              {
+                // get other 4 pixels around center
+                for (int j=-6; j<7; j=j+4)
+                {
+                  pos = pixelTo3DPoint(pCloud_cam, center.x + j, center.y);
+                  if (!isnan(pos.x))
+                    break;
+
+                for (int k=-6; j<7; k=k+4)
+                {
+                  pos = pixelTo3DPoint(pCloud_cam, center.x, center.y + k);
+
+                  if (!isnan(pos.x))
+                    break;
+                }
+                if (!isnan(pos.x))
+                  break;
+                }
+              }
+
+              ROS_INFO("center x: %d", center.x);
+              ROS_INFO("center y: %d", center.y);
+              ROS_INFO("final_x: %f", pos.x);
+              ROS_INFO("final_y: %f", pos.y);
+              ROS_INFO("final_z: %f", pos.z);
+            }
+
+            obj_pos_pub.publish(pos);
           }
 
         }
@@ -229,7 +265,7 @@ public:
         // imshow("Original image", origImg);
 
         imshow("Detected image", result);
-        cv::waitKey(3);
+        cv::waitKey(10);
       }
 
   	}
