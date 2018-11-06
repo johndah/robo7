@@ -58,7 +58,8 @@ public:
 
     //Other parameters
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
-    prev_mes_time = ros::Time::now().toSec();
+    prev_mes_time = ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9);
+    init_time = prev_mes_time;
 
     //Measure Request/Response initialisations
     request_id = 0;
@@ -66,7 +67,7 @@ public:
     new_measure_received = false;
 
     //Initialize the different matrices
-    reinitialize_A_W_matrices();
+    initialize_matrices();
 
     encoder_Left = n.subscribe("/l_motor/encoder", 1, &kalmanFilter::encoder_L_callBack, this);
     encoder_Right = n.subscribe("/r_motor/encoder", 1, &kalmanFilter::encoder_R_callBack, this);
@@ -107,9 +108,7 @@ public:
   {
     if(measure_feedback.id_number != msg->id_number)
     {
-      measure_feedback.id_number = msg->id_number;
-      measure_feedback.error = msg->error;
-      measure_feedback.P_matrix = msg->P_matrix;
+      measure_feedback = *msg;
       new_measure_received = true;
     }
   }
@@ -132,7 +131,13 @@ public:
       }
 
       //Update the position based on the error received
-      update_position_error();
+      // update_position_error();
+      the_robot_position = measure_feedback.position_corrected;
+      x_pos = the_robot_position.linear.x;
+      y_pos = the_robot_position.linear.y;
+      z_angle = the_robot_position.angular.z;
+
+      // ROS_INFO("Corrected position (x,y,thet) : %f, %f, %f, %f", x_pos, y_pos, z_angle, measure_feedback.position_corrected.linear.x);
 
       //Set the new_measure_value back to zero
       reinitialize_A_W_matrices();
@@ -144,7 +149,7 @@ public:
     timeUpdate();
 
     //If we didn't get any measures for a while (and the previous one has already been received)
-    if((ros::Time::now().toSec() - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure)
+    if((ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - init_time > 5))
     {
       // ROS_INFO("Asking for measure");
 
@@ -157,8 +162,11 @@ public:
       //Prepare the measure request message
       new_measure_request.time = ros::Time::now();
       new_measure_request.id_number = request_id;
-      new_measure_request.current_position = current_position;
+      new_measure_request.current_position = the_robot_position;
       new_measure_request.lidar_scan = the_lidar_scan;
+      new_measure_request.P_minus_matrix.line0.clear();
+      new_measure_request.P_minus_matrix.line1.clear();
+      new_measure_request.P_minus_matrix.line2.clear();
       for(int i=0; i<3; i++)
       {
         new_measure_request.P_minus_matrix.line0.push_back(the_P_minus_matrix(0,i));
@@ -171,7 +179,7 @@ public:
 
       //Update the variables
       previous_measure_received = false; //We have to wait for the answer
-      prev_mes_time = ros::Time::now().toSec(); //We update the last measure request
+      prev_mes_time = ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9); //We update the last measure request
     }
 
     the_robot_position.linear.x = x_pos;
@@ -255,6 +263,7 @@ private:
 
   //Time feedback for measurement asking
   int prev_mes_time;
+  int init_time;
   int time_threshold;
 
   //the scan sensor_msgs
@@ -304,6 +313,18 @@ private:
     the_W_matrix = the_W_matrix + matrix_W_it;
   }
 
+  void initialize_matrices()
+  {
+    reinitialize_A_W_matrices();
+
+    the_P_matrix = Eigen::Matrix3f::Zero(3,3);
+
+    the_Q_matrix = Eigen::Matrix2f::Zero(2,2);
+
+    the_Q_matrix(0,0) = sigma_d;
+    the_Q_matrix(1,1) = sigma_a;
+  }
+
   void reinitialize_A_W_matrices()
   {
     //Reinitialize the A&W matrices
@@ -318,7 +339,12 @@ private:
 
   void compute_P_minus()
   {
+    // ROS_INFO("matrx A : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_A_matrix(0,0), the_A_matrix(0,1), the_A_matrix(0,2), the_A_matrix(1,0), the_A_matrix(1,1), the_A_matrix(1,2), the_A_matrix(2,0), the_A_matrix(2,1), the_A_matrix(2,2));
+    // ROS_INFO("matrx P : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
+    // ROS_INFO("matrx W : %f, %f, %f, %f, %f, %f", the_W_matrix(0,0), the_W_matrix(0,1), the_W_matrix(1,0), the_W_matrix(1,1), the_W_matrix(2,0), the_W_matrix(2,1));
+    // ROS_INFO("matrx Q : %f, %f, %f, %f", the_Q_matrix(0,0), the_Q_matrix(0,1), the_Q_matrix(1,0), the_Q_matrix(1,1));
     the_P_minus_matrix = the_A_matrix * the_P_matrix * the_A_matrix.transpose() + the_W_matrix * the_Q_matrix * the_W_matrix.transpose();
+    // ROS_INFO("matrx P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
   }
 
   //Other useful function

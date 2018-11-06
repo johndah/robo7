@@ -4,6 +4,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Point.h>
+#include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Quaternion.h>
 #include <visualization_msgs/Marker.h>
 #include <nav_msgs/Odometry.h>
@@ -17,31 +18,27 @@ class lidar_plot
 {
 public:
   ros::NodeHandle n;
-  ros::NodeHandle nh;
-  tf::TransformBroadcaster br2;
-  tf::Transform transform2;
+  ros::Subscriber lidar_scan_sub;
+  ros::Publisher lidar_scan_pub;
+
 
   lidar_plot()
   {
-    n = ros::NodeHandle("~");
-    nh.param<float>("/lidar_plot/lidar_angle", lidar_angle, 0);
+    lidar_scan_sub = n.subscribe("/scan", 1, &lidar_plot::lidar_callBack, this);
+
+    lidar_scan_pub = n.advertise<sensor_msgs::LaserScan>("/scan2", 1);
   }
 
-  void updatePosition(){
-    //Generate the future published twist msg
-
-    transform2.setOrigin( tf::Vector3(0, 0, 0) );
-    tf::Quaternion q2;
-    q2.setRPY(0, 0, lidar_angle);
-    transform2.setRotation(q2);
-    br2.sendTransform(tf::StampedTransform(transform2, ros::Time::now(), "robot", "laser"));
+  void lidar_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
+  {
+    scan = *msg;
+    scan.header.frame_id = "laser2";
+    lidar_scan_pub.publish( scan );
   }
 
 
 private:
-  //Time constant
-  ros::Time t;
-  float lidar_angle;
+  sensor_msgs::LaserScan scan;
 };
 
 
@@ -55,7 +52,6 @@ int main(int argc, char **argv)
 
     while(lidar_frame_.n.ok())
     {
-        lidar_frame_.updatePosition();
         ros::spinOnce();
         loop_rate.sleep();
     }

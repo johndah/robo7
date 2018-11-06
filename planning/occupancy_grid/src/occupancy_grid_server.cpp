@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 
 	occupancy_grid_server.updateGridSize();
 
-	occupancy_grid_server.publishGrid(nh);
+	// occupancy_grid_server.publishGrid(nh);
 
 	ros::spin();
 

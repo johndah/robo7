@@ -26,7 +26,8 @@ public:
   {
     n = ros::NodeHandle("~");
 
-    XY_coordinates = n.subscribe("/localization/ransac/corners", 1000, &plot_lidar_corners::lidar_corners_Callback, this);
+    // XY_coordinates = n.subscribe("/localization/ransac/corners", 1000, &plot_lidar_corners::lidar_corners_Callback, this);
+    XY_coordinates = n.subscribe("/lidar_map/point_cloud", 1000, &plot_lidar_corners::lidar_corners_Callback, this);
 
     point_cloud = n.advertise<sensor_msgs::PointCloud>("/visualization/plot_lidar_corners", 1000);
   }

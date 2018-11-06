@@ -26,7 +26,8 @@ public:
   {
     n = ros::NodeHandle("~");
 
-    XY_coordinates = n.subscribe("/own_map/map_corners", 1000, &plot_map_corners::lidar_corners_Callback, this);
+    // XY_coordinates = n.subscribe("/own_map/map_corners", 1000, &plot_map_corners::lidar_corners_Callback, this);
+    XY_coordinates = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1000, &plot_map_corners::lidar_corners_Callback, this);
 
     point_cloud = n.advertise<sensor_msgs::PointCloud>("/visualization/plot_map_corners", 1000);
   }
