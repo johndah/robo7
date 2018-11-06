@@ -34,6 +34,7 @@ public:
   {
     namedWindow("Original image");
     namedWindow("Filtered image");
+    frame_acc = 0;
 
     depth_image_sub = it_.subscribe("/camera/depth/image_raw", 1, &ObjectDetection::depthImageCallBack, this);
     
@@ -52,9 +53,14 @@ public:
     cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
     Mat depthImage = cv_ptr->image;
 
+
+
     depthImage.setTo(2000, depthImage < 10);
     double min;
     double max;
+
+    medianBlur ( depthImage, depthImage, 5);
+
     cv::minMaxIdx(depthImage, &min, &max);
 
     // depthImage = threshold(depthImage, depthImage, 10, max, THRESH_BINARY);
@@ -62,14 +68,31 @@ public:
     ROS_INFO("min: %f", min);
     ROS_INFO("max: %f", max);
 
-    std_msgs::Bool flag;
+
     flag.data = false;
 
     if (min < 150)
     {
       flag.data = true;
-
+      frame_acc++;
+      ROS_INFO("frame_acc: %d", frame_acc);
     }
+
+    if (flag.data == false)
+    {
+      frame_acc = 1;
+    }
+
+    if (frame_acc >= 8)
+    {
+      flag.data = true;
+    }
+    else
+    {
+      flag.data = false;
+    }
+
+
     obstale_detect_pub.publish(flag);
     cv::Mat adjMap;
     // expand your range to 0..255. Similar to histEq();
@@ -155,6 +178,8 @@ public:
 
 private:
   cv_bridge::CvImagePtr cv_ptr;
+  int frame_acc;
+  std_msgs::Bool flag;
   // sensor_msgs::PointCloud2 pCloud_cam;
 };
 
