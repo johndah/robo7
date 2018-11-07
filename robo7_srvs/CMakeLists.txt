@@ -14,6 +14,7 @@ add_service_files(
   IsGridOccupied.srv
   PathFollowerSrv.srv
   scanCoord.srv
+  objectToRobot.srv
 )
 
 

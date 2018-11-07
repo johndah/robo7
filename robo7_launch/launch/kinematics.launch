@@ -88,8 +88,8 @@
      output="screen">
      <param name="grid_square_size" type="double" value="0.02"/>
      <param name="min_distance" type="double" value="0.13"/>
-     <param name="smoothing_kernel_size" type="int" value="15"/>
-     <param name="smoothing_kernel_sd" type="int" value="3"/>
+     <param name="smoothing_kernel_size" type="int" value="21"/>
+     <param name="smoothing_kernel_sd" type="int" value="7"/>
    </node>
 
    <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>

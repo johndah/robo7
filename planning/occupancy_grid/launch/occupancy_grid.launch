@@ -14,7 +14,7 @@
     <param name="smoothing_kernel_size" type="int" value="9"/>
 
     <!--  Standard devoiation of the Gaussian smoothing kernel -->
-    <param name="smoothing_kernel_sd" type="int" value="3"/>
+    <param name="smoothing_kernel_sd" type="int" value="5"/>
 
   </node>
 
