@@ -287,7 +287,6 @@ Visualization Manager:
       Namespaces:
         Curves: true
         Goal: true
-        Start: true
         Trajectory: true
         Trajectory nodes: true
       Queue Size: 100
@@ -335,10 +334,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.934796333
+      Pitch: 1.42979646
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.584058642
+      Yaw: 4.72723913
     Saved: ~
 Window Geometry:
   Displays:

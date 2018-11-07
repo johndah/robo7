@@ -18,7 +18,7 @@ class PathPlanning;
 typedef std::shared_ptr<Node> node_ptr;
 float pi = 3.14159265358979323846;
 
-int target_index = 0; // 0-5
+int target_index = 2; // 0-5
 std::vector<float> x_targets = {.2, .55, 1.6, 1, 2.2, 2.2, .8};
 std::vector<float> y_targets = {2.2, .55, .8, 1.55, 2.2, .2, .2};
 float theta_target = pi / 2;
@@ -176,14 +176,14 @@ class PathPlanning
 				if (std::abs(angular_velocity) < 1e-1)
 				{
 					penalty_factor = 0.5;
-					node->path_length = 0.5;
+					node->path_length = 0.4;
 					node->steering_angle_max = pi;
 					//node->angular_velocity_resolution = pi / 2;
 				}
 				else if (angular_velocity - node->angular_velocity_resolution < 1e-1)
 				{
 					penalty_factor = .75;
-					node->path_length = 0.32;
+					node->path_length = 0.3;
 					node->steering_angle_max = pi;
 					//node->angular_velocity_resolution = pi;
 				}
@@ -404,19 +404,25 @@ class PathPlanning
 		while (node_current->parent != NULL)
 		{
 
-			int partitions = 2 + (int)0.5 * std::abs(node_current->angular_velocity / node_current->angular_velocity_resolution);
+			int partitions = 2;
+
+			// int partitions = (int) std::abs(node_current->angular_velocity / node_current->angular_velocity_resolution);
+			//node_current->path_length / 0.1 +  (int)std::abs(node_current->angular_velocity / node_current->angular_velocity_resolution);
+			//if (partitions == 0)
+			//	partitions += 2;
+
 
 			node_ptr node_parent = node_current->parent;
 			node_ptr partial_node = node_current;
 			node_ptr partial_node_parent = node_parent;
 
-			if (partitions >= 0)
+
+			if (partitions >= 0 && node_current->path_x.size() >= 3)
 			{
 
 				for (int i = partitions; i >= 0; i--)
 				{
-
-					float parts = partitions + 1;
+					int parts = partitions + 1;
 					std::vector<float>::const_iterator i_x_0 = node_current->path_x.begin() + i * (int)(node_current->path_x.size() / parts);
 					std::vector<float>::const_iterator i_x_end = i_x_0 + (int)(node_current->path_x.size() / parts);
 
