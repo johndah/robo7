@@ -42,7 +42,7 @@ public:
   {
     // if(trajectory.number != 0)&&(trajectory.id_number != trajectory_array.id_number)
     // {
-      trajectory_array = *msg;
+      // trajectory_array = *msg;
       // current_point_to_follow = 0;
     // }
     // ROS_INFO("%ld", static_cast<int>(trajectory_array.trajectory_points.size()));
@@ -82,6 +82,8 @@ public:
   bool path_follower_Sequence(robo7_srvs::PathFollowerSrv::Request &req,
          robo7_srvs::PathFollowerSrv::Response &res)
   {
+    trajectory_array = req.trajectory;
+
     ROS_INFO("Start to follow the path");
     arrived = false;
     current_point_to_follow = 0;

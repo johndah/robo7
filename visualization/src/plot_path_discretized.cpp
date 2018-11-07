@@ -23,7 +23,8 @@ public:
 
   plot_trajectory()
   {
-    trajectory_cloud = n.subscribe("/path_planning/trajectory", 1, &plot_trajectory::trajectory_Callback, this);
+    // trajectory_cloud = n.subscribe("/path_planning/trajectory", 1, &plot_trajectory::trajectory_Callback, this);
+    trajectory_cloud = n.subscribe("/path_planning/path_testing/trajectory", 1, &plot_trajectory::trajectory_Callback, this);
 
     point_cloud = n.advertise<sensor_msgs::PointCloud>("/visualization/plot_trajectory_cloud", 1);
   }

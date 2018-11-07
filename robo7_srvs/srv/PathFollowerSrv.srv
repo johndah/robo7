@@ -1,4 +1,5 @@
 # request
 bool req
+robo7_msgs/trajectory trajectory
 ---
 bool success  # True if the sequence was successful
