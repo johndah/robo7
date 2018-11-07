@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <math.h>
 #include <vector>
 #include "ros/ros.h"
 #include "std_msgs/Bool.h"
@@ -56,8 +57,6 @@ class OccupancyGridServer
 	{
 		ROS_DEBUG("New grid occupancy request recieved");
 
-		//updateGrid();
-
 		int req_x_grid = floor(req.x / grid_square_size);
 		int req_y_grid = floor(req.y / grid_square_size);
 
@@ -67,8 +66,6 @@ class OccupancyGridServer
 		}
 		else
 		{
-			//res.occupancy = gauss_grid.at<float>(req_y_grid, req_x_grid);
-			//res.occupancy = grid[req_x_grid][req_y_grid];
 			float value = gauss_grid.at<float>(req_x_grid, req_y_grid);
 
 			if (value < 0.0001)
@@ -112,9 +109,17 @@ class OccupancyGridServer
 		updateGrid();
 	}
 
+  double distance_points(int x, int y, int a, int b)
+  {
+    double x_diff = x - a;
+    double y_diff = y - b;
+    //ROS_INFO("x: %d, y: %d, a: %d, b: %d", x, y, a, b);
+    return std::sqrt(x_diff * x_diff + y_diff * y_diff);
+  }
+
 	void updateGrid()
 	{
-		ROS_DEBUG("Updating grid");
+		ROS_DEBUG("Updating occupancy grid");
 
 		// Put every point in the grid
 		for (int i = 0; i < X_wall_coordinates.size(); ++i)
@@ -136,7 +141,11 @@ class OccupancyGridServer
 				{
 					if (!(i < 0) && !(i >= num_grid_squares_x) && !(j < 0) && !(j >= num_grid_squares_y))
 					{
-						grid[i][j] = 1.0;
+            // This if keeps the points wall expansion radial
+            if(distance_points(square_x, square_y, i, j) <= (num_min_distance_squares))
+            {
+              grid[i][j] = 1.0;
+            }
 					}
 				}
 			}
@@ -159,59 +168,33 @@ class OccupancyGridServer
 			}
 		}
 
-		// To display uncomment here and bellow
-
-		namedWindow("Display window", cv::WINDOW_NORMAL );
-		cv::resizeWindow("Display window", 600,600);
-		imshow( "Display window", grid_in );
-		cv::waitKey(0);
-
-
 		GaussianBlur(grid_in, grid_filtered, cv::Size(kernel_size, kernel_size), sigma, 0);
 
-
-
-		// To display uncomment here as well
-
-		// imshow( "Display window", grid_filtered );
-		// cv::waitKey(0);
-		// cvDestroyWindow("Display window");
-
-
-		cv::Mat normalized_grid;
+    cv::Mat normalized_grid;
 		cv::normalize(grid_filtered, normalized_grid, 0, 1, cv::NORM_MINMAX, CV_32F);
 
-    // imshow( "Display window", grid_filtered );
-    cv::waitKey(0);
+    cv::Mat normalized_grid_ones = normalized_grid.clone();
 
-    cv::Mat normalized_grid_ones = grid_filtered.clone();
-
-    // imshow( "Display window", normalized_grid_ones );
-    // cv::waitKey(0);
-
-    ROS_INFO("channels %d", normalized_grid_ones.channels());
-
-    for (int i = 0; i < grid_in.rows; ++i)
-    {
-      for (int j = 0; j < grid_in.cols*2; ++j)
-      {
-          //ROS_INFO("FOUND: %f", normalized_grid_ones.at<float>(i, j));
-          //ROS_INFO("now: %f", normalized_grid_ones.at<float>(i, j));
-
-        if(grid_in.at<float>(i, j) >= 1.0){
-          ROS_INFO("FOUND ONE!");
-          normalized_grid_ones.at<float>(i,j) = 1.0;
+    for (int i = 0; i < normalized_grid.rows; ++i){
+      for (int j = 0; j < normalized_grid.cols; ++j){
+        if(unfiltered_grid[i][j] >= 1){
+          normalized_grid_ones.at<float>(i, j) = 1 ;
         }
-        ROS_INFO("now: %f", normalized_grid_ones.at<float>(i, j));
-
-
       }
     }
 
-    imshow( "Display window", normalized_grid_ones );
-    cv::waitKey(0);
-    cvDestroyWindow("Display window");
-
+  	//DISPLAY: Uncomment here and
+  	// namedWindow("Display window", cv::WINDOW_NORMAL );
+  	// cv::resizeWindow("Display window", 600,600);
+  	// imshow( "Display window", grid_in );
+  	// cv::waitKey(0);
+    // imshow( "Display window", grid_filtered );
+    // cv::waitKey(0);
+    // imshow( "Display window", normalized_grid );
+    // cv::waitKey(0);
+    // imshow( "Display window", normalized_grid_ones );
+    // cv::waitKey(0);
+    // cvDestroyWindow("Display window");
 
 		ROS_INFO("Gaussed grid ready");
 		return normalized_grid;
@@ -219,8 +202,6 @@ class OccupancyGridServer
 
 	void publishGrid()
 	{
-		/*
-		*/
 		robo7_msgs::occupancy_row occupancy_row_msg;
 		robo7_msgs::occupancy_matrix occupancy_matrix_msg;
 
@@ -267,7 +248,7 @@ int main(int argc, char **argv)
 
 	occupancy_grid_server.updateGridSize();
 
-	// occupancy_grid_server.publishGrid(nh);
+	occupancy_grid_server.publishGrid();
 
 	ros::spin();
 
