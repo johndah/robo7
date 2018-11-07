@@ -3,3 +3,4 @@
 int64 id_number
 geometry_msgs/Vector3 error
 robo7_msgs/Matrix3 P_matrix
+geometry_msgs/Twist position_corrected

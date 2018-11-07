@@ -7,6 +7,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Float32.h>
 #include <robo7_msgs/XY_coordinates.h>
+#include <robo7_msgs/cornerList.h>
 #include </usr/include/eigen3/Eigen/Dense>
 using Eigen::MatrixXd;
 
@@ -20,6 +21,7 @@ class lidar_map_coordinates
 public:
   ros::NodeHandle n;
   ros::Publisher point_coordinates;
+  ros::Publisher point_cloud_input;
   ros::ServiceServer scan_service;
 
   lidar_map_coordinates()
@@ -35,13 +37,15 @@ public:
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
 
     point_coordinates = n.advertise<robo7_msgs::XY_coordinates>("/scan/point_cloud_coordinates", 1);
+    point_cloud_input = n.advertise<robo7_msgs::cornerList>("/lidar_map/point_cloud", 1);
     scan_service = n.advertiseService("/localization/scan_service", &lidar_map_coordinates::scan_Sequence, this);
   }
 
   bool scan_Sequence(robo7_srvs::scanCoord::Request &req,
          robo7_srvs::scanCoord::Response &res)
 	{
-    ROS_INFO("start");
+    // ROS_INFO("start");
+    // ROS_INFO("Time is : %ld s & %ld ns", ros::Time::now().sec, ros::Time::now().nsec);
     //CallBack all the datas out of the request message
     // ROS_INFO("%lf", req.lidar_scan.angle_min);
     angle_min = req.lidar_scan.angle_min;
@@ -128,6 +132,7 @@ public:
     res.the_lidar_point_cloud = lidar_points_corner;
     res.success = true;
     point_coordinates.publish( point_XY );
+    point_cloud_input.publish( res.the_lidar_point_cloud );
 
     return true;
   }

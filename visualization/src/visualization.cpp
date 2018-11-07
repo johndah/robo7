@@ -90,6 +90,27 @@ public:
     marker.color.g = 0.0;
     marker.color.b = 0.0;
 
+    // marker.header.frame_id = "robot";
+    // marker.header.stamp = t;
+    // marker.ns = "map";
+    // marker.id = 0;
+    // marker.type = visualization_msgs::Marker::ARROW;
+    // marker.action = visualization_msgs::Marker::ADD;
+    // marker.pose.position.x = 0;
+    // marker.pose.position.y = 0;
+    // marker.pose.position.z = 0;
+    // marker.pose.orientation.x = 0;
+    // marker.pose.orientation.y = 0;
+    // marker.pose.orientation.z = 0;
+    // marker.pose.orientation.w = 0;
+    // marker.scale.x = 0.1;
+    // marker.scale.y = 0.1;
+    // marker.scale.z = 0.1;
+    // marker.color.a = 1.0;
+    // marker.color.r = 1.0;
+    // marker.color.g = 0.0;
+    // marker.color.b = 0.0;
+
     //Set the frame centered on the robot
     transform.setOrigin( tf::Vector3(x_pos, y_pos, z_pos) );
     tf::Quaternion q;
@@ -99,15 +120,15 @@ public:
 
     //Set the frame centered on the robot
     transform2.setOrigin( tf::Vector3(x2_pos, y2_pos, z2_pos) );
-    tf2::Quaternion q2;
+    tf::Quaternion q2;
     q2.setRPY(x2_angle, y2_angle, z2_angle);
-    transform2.setRotation(q);
+    transform2.setRotation(q2);
     br2.sendTransform(tf::StampedTransform(transform2, t, "map", "robot_corrected"));
 
     marker_parameters1.publish( marker );
 
     marker.header.frame_id = "robot_corrected";
-    marker.color.g = 0.0;
+    marker.color.g = 1.0;
     marker_parameters2.publish( marker );
   }
 
