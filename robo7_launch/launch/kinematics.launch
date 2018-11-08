@@ -34,7 +34,7 @@
      <!-- Initial position of the robot  -->
      <param name="initial_x_pos" type="double" value="2.00"/>
      <param name="initial_y_pos" type="double" value="0.2"/>
-     <param name="initial_z_angle" type="double" value="0"/>
+     <param name="initial_z_angle" type="double" value="0.5"/>
      <!-- Linear adjustement of the dead_reckoning : increase it accuracy -->
      <param name="linear_adjustment" type="double" value="0.0481"/>
      <param name="angular_adjustment" type="double" value="0.010"/> <!-- designed value = 0.235 -->
