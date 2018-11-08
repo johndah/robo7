@@ -84,6 +84,7 @@ public:
   {
     done = false;
 
+    //Plot the lidar scan in the map frame
     if(req.which_service == 0)
     {
       robo7_srvs::scanCoord::Request req1;
@@ -94,6 +95,7 @@ public:
       done = res1.success;
     }
 
+    //Follow a published path -> need to disappear (see 5)
     else if(req.which_service == 1)
     {
       robo7_srvs::PathFollowerSrv::Request req1;
@@ -103,6 +105,7 @@ public:
       done = res1.success;
     }
 
+    //Extract the walls in the map frame
     else if(req.which_service == 2)
     {
       robo7_srvs::scanCoord::Request req1;
@@ -118,6 +121,7 @@ public:
       ransac_srv.call(req2, res2);
     }
 
+    //Apply the convergence icp with the extracted corners of the ransac algorithm
     else if(req.which_service == 3)
     {
       robo7_srvs::scanCoord::Request req1;
@@ -138,9 +142,9 @@ public:
       req3.the_lidar_corners = res2.all_corners;
       req3.the_wall_corners = all_wall_points;
       icp_srv.call(req3, res3);
-
     }
 
+    //Make the convergence between the lidar coordinates and the discretize wall
     else if(req.which_service == 4)
     {
       robo7_srvs::scanCoord::Request req1;
@@ -158,6 +162,7 @@ public:
       icp_srv.call(req3, res3);
     }
 
+    //Follow a path precomputed by the path_planning service
     else if(req.which_service == 5)
     {
       robo7_srvs::path_planning::Request req1;
@@ -165,10 +170,16 @@ public:
       req1.robot_position = robot_position;
       path_planning_srv.call(req1, res1);
       done = res1.success;
+
+      robo7_srvs::PathFollowerSrv::Request req2;
+      robo7_srvs::PathFollowerSrv::Response res2;
+      req2.req = true;
+      req2.trajectory = res1.path_planned;
+      path_follower_srv.call(req2, res2);
+      done = res1.success;
     }
 
     res.success = done;
-
     return true;
   }
 
