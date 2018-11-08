@@ -49,7 +49,7 @@
    </node>
 
    <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
-      <param name="sigma_distance" type="double" value="0.1"/>
+      <param name="sigma_distance" type="double" value="1.0"/>
       <param name="sigma_angle" type="double" value="1.0"/>
    </node>
 
