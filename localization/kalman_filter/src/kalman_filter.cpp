@@ -63,7 +63,7 @@ public:
 
     //Other parameters
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
-    prev_mes_time = ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9);
+    prev_mes_time = ros::Time::now().sec + ((float)ros::Time::now().nsec / pow(10, 9));
     init_time = prev_mes_time;
 
     //Measure Request/Response initialisations
