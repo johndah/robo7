@@ -161,9 +161,9 @@ public:
     timeUpdate();
 
     //If we didn't get any measures for a while (and the previous one has already been received)
-    if((ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - init_time > 5))
+    if((ros::Time::now().sec + ((float)ros::Time::now().nsec / pow(10, 9)) - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9) - init_time > 5))
     {
-      ROS_INFO("Time in seconds : %lf, %lf", ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9), prev_mes_time);
+      ROS_INFO("Time in seconds : %lf, %lf", ros::Time::now().sec + ((float)ros::Time::now().nsec / pow(10, 9)), prev_mes_time);
       // ROS_INFO("Asking for measure");
       ROS_INFO("New Measure Asked");
       //Indix to show that there is a new request coming
@@ -192,7 +192,7 @@ public:
 
       //Update the variables
       previous_measure_received = false; //We have to wait for the answer
-      prev_mes_time = ros::Time::now().sec + ros::Time::now().nsec / pow(10, 9); //We update the last measure request
+      prev_mes_time = ros::Time::now().sec + ((float)ros::Time::now().nsec / pow(10, 9)); //We update the last measure request
     }
 
     the_robot_position.linear.x = x_pos;
