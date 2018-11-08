@@ -32,8 +32,8 @@
 
    <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
      <!-- Initial position of the robot  -->
-     <param name="initial_x_pos" type="double" value="2.15"/>
-     <param name="initial_y_pos" type="double" value="0.3"/>
+     <param name="initial_x_pos" type="double" value="2.00"/>
+     <param name="initial_y_pos" type="double" value="0.2"/>
      <param name="initial_z_angle" type="double" value="0"/>
      <!-- Linear adjustement of the dead_reckoning : increase it accuracy -->
      <param name="linear_adjustment" type="double" value="0.0481"/>
@@ -68,8 +68,8 @@
 
 <!-- The path_follower nodes -->
    <node pkg="path_follower" type="destination_point" name="destination_point" output="screen">
-     <param name="x_destination" type="double" value="2.15"/>
-     <param name="y_destination" type="double" value="0.3"/>
+     <param name="x_destination" type="double" value="2.00"/>
+     <param name="y_destination" type="double" value="0.2"/>
    </node>
 
    <!-- <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
