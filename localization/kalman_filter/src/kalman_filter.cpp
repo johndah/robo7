@@ -43,6 +43,9 @@ public:
     n.param<float>("/kalman_filter/sigma_angle", sigma_a, 0.1);
     n.param<float>("/kalman_filter/sigma_distance", sigma_d, 0.05);
 
+    //Two different methods to test
+    n.param<int>("/kalman_filter/which_method", test_method, 0);
+
     wheel_radius = 97.6/2000.0; //m
     wheel_distance = 217.3/1000.0; //m
     tics_per_rev = 897.96;
@@ -261,6 +264,9 @@ private:
   //Variance on both angle and distance of dead_reckoning
   float sigma_d, sigma_a;
 
+  //Compute the total distance and angle that changed over dead_reckoning
+  float tot_dist, tot_angle;
+
   //Time feedback for measurement asking
   int prev_mes_time;
   int init_time;
@@ -268,6 +274,9 @@ private:
 
   //the scan sensor_msgs
   sensor_msgs::LaserScan the_lidar_scan;
+
+  //Two method 0 or 1
+  int test_method;
 
 
 
@@ -303,14 +312,32 @@ private:
     z_angle = wrapAngle(z_angle);
 
     //Then we need to update the different matrices
-    matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
-    matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
-    matrix_W_it(0,0) = cos(z_angle);
-    matrix_W_it(1,0) = sin(z_angle);
+    if(test_method == 0)
+    {
+      matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
+      matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
+      matrix_W_it(0,0) = cos(z_angle);
+      matrix_W_it(1,0) = sin(z_angle);
 
-    //Add those iteration matrices to the main ones
-    the_A_matrix = the_A_matrix + matrix_A_it;
-    the_W_matrix = the_W_matrix + matrix_W_it;
+      //Add those iteration matrices to the main ones
+      the_A_matrix = the_A_matrix + matrix_A_it;
+      the_W_matrix = matrix_W_it;
+    }
+    else
+    {
+      //Update of the total distances that the robot moved
+      tot_dist += lin_dis;
+      tot_angle += ang_dis;
+
+      the_A_matrix(0,2) = -tot_dist * sin(z_angle);
+      the_A_matrix(1,2) = tot_dist * cos(z_angle);
+
+      the_W_matrix(0,0) = cos(z_angle);
+      the_W_matrix(1,0) = sin(z_angle);
+      the_W_matrix(2,1) = 1;
+    }
+
+
   }
 
   void initialize_matrices()
@@ -328,11 +355,11 @@ private:
   void reinitialize_A_W_matrices()
   {
     //Reinitialize the A&W matrices
-    the_A_matrix = Eigen::Matrix3f::Zero(3,3);
+    the_A_matrix = Eigen::Matrix3f::Identity(3,3);
     the_W_matrix = Eigen::MatrixXf::Zero(3,2);
 
     //Reinitialize A&W iterations matrices
-    matrix_A_it = Eigen::Matrix3f::Identity(3,3);
+    matrix_A_it = Eigen::Matrix3f::Zero(3,3);
     matrix_W_it = Eigen::MatrixXf::Zero(3,2);
     matrix_W_it(2,1) = 1;
   }

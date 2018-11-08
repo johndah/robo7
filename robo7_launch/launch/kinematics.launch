@@ -1,7 +1,6 @@
 <launch>
 
-   <!-- <include file="$(find motors)/launch/motors.launch"/> -->
-
+<!-- The kinematics nodes -->
    <node pkg="own_map" type="own_map" name="own_map"
          args="_map_file:=$(find own_map)/maps/lab_maze_2018.txt">
          <param name="discretization_step" type="double" value="0.01"/>
@@ -23,24 +22,66 @@
 
    <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" output="screen"/>
 
-   <!-- <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning" output="screen">
-     <param name="initial_x_pos" type="double" value="0.215"/>
-     <param name="initial_y_pos" type="double" value="0.2"/>
-     <param name="initial_z_angle" type="double" value="1.57"/>
-     <param name="linear_adjustment" type="double" value="0.0481"/>
-     <param name="angular_adjustment" type="double" value="0.0235"/>
-   </node> -->
 
+<!-- The localization nodes -->
    <node pkg="ransac" type="lidar_map_coordinates" name="lidar_map_coordinates" output="screen">
-     <param name="lidar_angle" type="double" value="3.14"/>
-   </node>
-
-   <node pkg="ransac" type="scan_to_coordinates" name="scan_to_coordinates">
      <param name="lidar_angle" type="double" value="3.14"/>
    </node>
 
    <node pkg="icp" type="icp" name="icp" output="screen"/>
 
+   <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
+     <param name="initial_x_pos" type="double" value="2.25"/>
+     <param name="initial_y_pos" type="double" value="0.3"/>
+     <param name="initial_z_angle" type="double" value="1.57"/>
+     <param name="linear_adjustment" type="double" value="0.0481"/>
+     <param name="angular_adjustment" type="double" value="0.03"/> <!-- designed value = 0.235 -->
+     <param name="which_method" type="int" value="0"/>
+     <param name="use_measure" type="bool" value="true"/>
+     <param name="time_between_two_measure" type="double" value="0.6"/>
+   </node>
+
+   <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
+      <param name="sigma_distance" type="double" value="0.1"/>
+      <param name="sigma_angle" type="double" value="0.05"/>
+   </node>
+
+<!-- The path_planner nodes -->
+  <node pkg="occupancy_grid" type="occupancy_grid_server" name="occupancy_grid_server"
+    output="screen">
+    <param name="grid_square_size" type="double" value="0.02"/>
+    <param name="min_distance" type="double" value="0.13"/>
+    <param name="smoothing_kernel_size" type="int" value="15"/>
+    <param name="smoothing_kernel_sd" type="int" value="3"/>
+  </node>
+
+  <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
+
+  <node pkg="path_testing" type="path_testing" name="path_testing" output="screen"/>
+
+<!-- The path_follower nodes -->
+   <node pkg="path_follower" type="destination_point" name="destination_point" output="screen">
+     <param name="x_destination" type="double" value="2.25"/>
+     <param name="y_destination" type="double" value="0.3"/>
+   </node>
+
+   <!-- <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
+     <param name="angle_P" type="double" value="3"/>
+     <param name="angle_I" type="double" value="2"/>
+     <param name="angle_D" type="double" value="0"/>
+     <param name="error_sat" type="double" value="0.3"/>
+     <param name="angular_velocity_saturation_threshold" type="double" value="3"/>
+     <param name="linear_speed" type="double" value="0.15"/>
+   </node> -->
+
+   <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
+     <param name="distance_to_destination_threshold" type="double" value="0.05"/>
+     <param name="distance_to_jump_to_next_point" type="double" value="0.1"/>
+   </node>
+
+   <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
+
+<!-- The mapping nodes -->
    <node pkg="ransac" type="ransac" name="ransac" output="screen">
      <param name="threshold" type="double" value="0.02"/>
      <param name="maximum_distance_between_points" type="double" value="0.25"/>
@@ -48,53 +89,8 @@
      <param name="minimum_point_for_a_gap" type="int" value="3"/>
    </node>
 
-   <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
-     <param name="initial_x_pos" type="double" value="2.15"/>
-     <param name="initial_y_pos" type="double" value="0.6"/>
-     <param name="initial_z_angle" type="double" value="1.57"/>
-     <param name="linear_adjustment" type="double" value="0.0481"/>
-     <param name="angular_adjustment" type="double" value="0.03"/> <!-- designed value = 0.235 -->
-     <param name="use_measure" type="bool" value="true"/>
-     <param name="time_between_two_measure" type="double" value="0.6"/>
-   </node>
 
-   <node pkg="path_follower" type="destination_point" name="destination_point" output="screen">
-     <param name="x_destination" type="double" value="2.15"/>
-     <param name="y_destination" type="double" value="0.6"/>
-   </node>
-
-   <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
-     <param name="angle_P" type="double" value="3"/>
-     <param name="angle_I" type="double" value="2"/>
-     <param name="angle_D" type="double" value="0"/>
-     <param name="error_sat" type="double" value="0.3"/>
-     <param name="angular_velocity_saturation_threshold" type="double" value="3"/>
-     <param name="linear_speed" type="double" value="0.15"/>
-   </node>
-
-   <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
-     <param name="distance_to_destination_threshold" type="double" value="0.05"/>
-     <param name="distance_to_jump_to_next_point" type="double" value="0.1"/>
-   </node>
-
-   <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
-     <param name="sigma_distance" type="double" value="0.1"/>
-     <param name="sigma_angle" type="double" value="0.05"/>
-   </node>
-
+<!-- The testing services node -->
    <node pkg="test_service" type="test_service" name="test_service" output="screen"/>
-
-   <node pkg="occupancy_grid" type="occupancy_grid_server" name="occupancy_grid_server"
-     output="screen">
-     <param name="grid_square_size" type="double" value="0.02"/>
-     <param name="min_distance" type="double" value="0.13"/>
-     <param name="smoothing_kernel_size" type="int" value="15"/>
-     <param name="smoothing_kernel_sd" type="int" value="3"/>
-   </node>
-
-   <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
-
-   <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
-
 
 </launch>
