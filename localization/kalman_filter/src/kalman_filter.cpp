@@ -279,7 +279,7 @@ private:
   float tot_dist, tot_angle;
 
   //Time feedback for measurement asking
-  int prev_mes_time;
+  float prev_mes_time;
   int init_time;
   int time_threshold;
 
