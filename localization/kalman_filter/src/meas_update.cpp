@@ -99,6 +99,7 @@ public:
       icp_srv.call(req3, res3);
 
       //Extract the corrected position end change it into a usable vector for EKF
+      current_position = new_measure_request.current_position;
       corrected_position = res3.new_position;
       change_pose_to_vector();
 
