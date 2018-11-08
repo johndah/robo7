@@ -321,7 +321,7 @@ private:
     //Then we need to update the different matrices
     if(test_method == 0)
     {
-      matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
+      matrix_A_it(0,2) = (lin_dis * sin(z_angle)) * (1 + linear_adjustment);
       matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
       matrix_W_it(0,0) = cos(z_angle);
       matrix_W_it(1,0) = sin(z_angle);
