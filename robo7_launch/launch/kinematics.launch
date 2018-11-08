@@ -46,13 +46,13 @@
      <!-- The sigma values for the dead_reckoning -->
      <param name="sigma_x" type="double" value="0.5"/>
      <param name="sigma_y" type="double" value="1"/>
-     <param name="sigma_angle" type="double" value="100"/>
+     <param name="sigma_angle" type="double" value="5"/>
    </node>
 
    <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
       <param name="sigma_x" type="double" value="0.005"/>
       <param name="sigma_y" type="double" value="0.05"/>
-      <param name="sigma_angle" type="double" value="1.0"/>
+      <param name="sigma_angle" type="double" value="0.4"/>
    </node>
 
 <!-- The path_planner nodes -->
