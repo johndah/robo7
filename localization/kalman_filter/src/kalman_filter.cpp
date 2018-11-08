@@ -160,7 +160,7 @@ public:
     //Dead_reckoning part
     timeUpdate();
 
-    ROS_INFO("Time in seconds : %lf, %lf, %lf", ros::Time::now().sec + ((float)ros::Time::now().nsec / pow(10, 9)), prev_mes_time, init_time);
+    // ROS_INFO("Time in seconds : %lf, %lf, %lf", ros::Time::now().sec + ((float)ros::Time::now().nsec / pow(10, 9)), prev_mes_time, init_time);
 
     //If we didn't get any measures for a while (and the previous one has already been received)
     if((ros::Time::now().sec + ((float)ros::Time::now().nsec / pow(10, 9)) - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().sec + ((float)ros::Time::now().nsec / pow(10, 9)) - init_time > 5))
