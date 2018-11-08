@@ -17,10 +17,10 @@ typedef std::vector<Array> Matrix;
 
 class OccupancyGridServer
 {
-  public:
+public:
 	ros::NodeHandle n;
 	ros::Subscriber map_sub;
-  ros::Publisher occupancy_pub;
+	ros::Publisher occupancy_pub;
 	ros::ServiceServer is_occupied_service;
 	Matrix grid;
 
@@ -35,7 +35,7 @@ class OccupancyGridServer
 		map_sub = n.subscribe("/own_map/wall_coordinates", 1, &OccupancyGridServer::mapCallback, this);
 		is_occupied_service = n.advertiseService("/occupancy_grid/is_occupied", &OccupancyGridServer::gridRequest, this);
 
-    occupancy_pub = n.advertise<robo7_msgs::occupancy_matrix>("occupancy_matrix", 1);
+		occupancy_pub = n.advertise<robo7_msgs::occupancy_matrix>("/occupancy_grid_server/occupancy_matrix", 1);
 
 		num_min_distance_squares = ceil(min_distance / grid_square_size);
 
@@ -53,7 +53,7 @@ class OccupancyGridServer
 	}
 
 	bool gridRequest(robo7_srvs::IsGridOccupied::Request &req,
-					 robo7_srvs::IsGridOccupied::Response &res)
+									 robo7_srvs::IsGridOccupied::Response &res)
 	{
 		ROS_DEBUG("New grid occupancy request recieved");
 
@@ -109,13 +109,13 @@ class OccupancyGridServer
 		updateGrid();
 	}
 
-  double distance_points(int x, int y, int a, int b)
-  {
-    double x_diff = x - a;
-    double y_diff = y - b;
-    //ROS_INFO("x: %d, y: %d, a: %d, b: %d", x, y, a, b);
-    return std::sqrt(x_diff * x_diff + y_diff * y_diff);
-  }
+	double distance_points(int x, int y, int a, int b)
+	{
+		double x_diff = x - a;
+		double y_diff = y - b;
+		//ROS_INFO("x: %d, y: %d, a: %d, b: %d", x, y, a, b);
+		return std::sqrt(x_diff * x_diff + y_diff * y_diff);
+	}
 
 	void updateGrid()
 	{
@@ -141,11 +141,11 @@ class OccupancyGridServer
 				{
 					if (!(i < 0) && !(i >= num_grid_squares_x) && !(j < 0) && !(j >= num_grid_squares_y))
 					{
-            // This keeps the wall expansion radial
-            if(distance_points(square_x, square_y, i, j) <= (num_min_distance_squares))
-            {
-              grid[i][j] = 1.0;
-            }
+						// This keeps the wall expansion radial
+						if (distance_points(square_x, square_y, i, j) <= (num_min_distance_squares))
+						{
+							grid[i][j] = 1.0;
+						}
 					}
 				}
 			}
@@ -170,45 +170,50 @@ class OccupancyGridServer
 
 		GaussianBlur(grid_in, grid_filtered, cv::Size(kernel_size, kernel_size), sigma, 0);
 
-    cv::Mat normalized_grid;
+		cv::Mat normalized_grid;
 		cv::normalize(grid_filtered, normalized_grid, 0, 1, cv::NORM_MINMAX, CV_32F);
 
-    cv::Mat normalized_grid_ones = normalized_grid.clone();
+		cv::Mat normalized_grid_ones = normalized_grid.clone();
 
-    for (int i = 0; i < normalized_grid.rows; ++i){
-      for (int j = 0; j < normalized_grid.cols; ++j){
-        if(unfiltered_grid[i][j] >= 1){
-          normalized_grid_ones.at<float>(i, j) = 1 ;
-        }
-      }
-    }
+		for (int i = 0; i < normalized_grid.rows; ++i)
+		{
+			for (int j = 0; j < normalized_grid.cols; ++j)
+			{
+				if (unfiltered_grid[i][j] >= 1)
+				{
+					normalized_grid_ones.at<float>(i, j) = 1;
+				}
+			}
+		}
 
-  	//DISPLAY: Uncomment here and
-  	// namedWindow("Display window", cv::WINDOW_NORMAL );
-  	// cv::resizeWindow("Display window", 600,600);
-  	// imshow( "Display window", grid_in );
-  	// cv::waitKey(0);
-    // imshow( "Display window", grid_filtered );
-    // cv::waitKey(0);
-    // imshow( "Display window", normalized_grid );
-    // cv::waitKey(0);
-    // imshow( "Display window", normalized_grid_ones );
-    // cv::waitKey(0);
-    // cvDestroyWindow("Display window");
+		//DISPLAY: Uncomment here and
+		// namedWindow("Display window", cv::WINDOW_NORMAL );
+		// cv::resizeWindow("Display window", 600,600);
+		// imshow( "Display window", grid_in );
+		// cv::waitKey(0);
+		// imshow( "Display window", grid_filtered );
+		// cv::waitKey(0);
+		// imshow( "Display window", normalized_grid );
+		// cv::waitKey(0);
+		// imshow( "Display window", normalized_grid_ones );
+		// cv::waitKey(0);
+		// cvDestroyWindow("Display window");
 
 		ROS_INFO("Gaussed grid ready");
 		return normalized_grid_ones;
 	}
 
-	void publishGrid()
+	robo7_msgs::occupancy_matrix publishGrid()
 	{
 		robo7_msgs::occupancy_row occupancy_row_msg;
 		robo7_msgs::occupancy_matrix occupancy_matrix_msg;
 
-		for (int i = 0; i < gauss_grid.rows; ++i)
+		std::vector<float> occupancy_row;
+
+		for (int i = 0; i < gauss_grid.rows; i++)
 		{
-			std::vector<float> occupancy_row(gauss_grid.cols);
-			for (int j = 0; j < gauss_grid.cols; ++j)
+			occupancy_row.clear();
+			for (int j = 0; j < gauss_grid.cols; j++)
 			{
 				occupancy_row.push_back(gauss_grid.at<float>(i, j));
 			}
@@ -216,13 +221,10 @@ class OccupancyGridServer
 			occupancy_matrix_msg.occupancy_rows.push_back(occupancy_row_msg);
 		}
 
-		for (int i = 0; i < 1000; i++)
-		{
-			occupancy_pub.publish(occupancy_matrix_msg);
-		}
+		return occupancy_matrix_msg;
 	}
 
-  private:
+private:
 	double min_distance;
 	int num_min_distance_squares;
 	double grid_square_size;
@@ -238,19 +240,25 @@ class OccupancyGridServer
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "occupancy_grid_server");
-
+	robo7_msgs::occupancy_matrix occupancy_matrix_msg;
 
 	OccupancyGridServer occupancy_grid_server;
 
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(1000);
 
 	ROS_INFO("Occupancy grid server running");
 
 	occupancy_grid_server.updateGridSize();
 
-	occupancy_grid_server.publishGrid();
+	occupancy_matrix_msg = occupancy_grid_server.publishGrid();
 
-	ros::spin();
+	while (ros::ok())
+	{
+		occupancy_grid_server.occupancy_pub.publish(occupancy_matrix_msg);
+
+		ros::spinOnce();
+		loop_rate.sleep();
+	}
 
 	return 0;
 }

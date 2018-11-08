@@ -12,7 +12,6 @@
 typedef std::vector<float> float_vector;
 std::vector<float_vector> paths_x, paths_y, goal_paths_x, goal_paths_y, trajectory_x, trajectory_y;
 float_vector start_goal_x(2), start_goal_y(2);                                                     
-double control_frequency = 10.0;
 int number_paths = 0;
 float path_height = 0.1;
 float marker_height = 0.15;
@@ -56,9 +55,9 @@ public:
 
   void startGoalCallback(const robo7_msgs::path::ConstPtr &start_goal_msg)
   {
-    //start_goal_x[0] = start_goal_msg->path_x[0];
+    start_goal_x[0] = start_goal_msg->path_x[0];
     start_goal_x[1] = start_goal_msg->path_x[1];
-    //start_goal_y[0] = start_goal_msg->path_y[0];
+    start_goal_y[0] = start_goal_msg->path_y[0];
     start_goal_y[1] = start_goal_msg->path_y[1];
 
     start_goal_received = true;
@@ -177,7 +176,7 @@ public:
     {
       start_goal_msg.markers.resize(2);
 
-      for (int i = 1; i < 2; i++)
+      for (int i = 0; i < 2; i++)
       {
         start_goal_msg.markers[i].header.frame_id = "/map";
         start_goal_msg.markers[i].header.stamp = ros::Time::now();
@@ -228,7 +227,7 @@ int main(int argc, char **argv)
   ROS_INFO("Init paths");
   Paths paths = Paths(nh, marker_array_pub, marker_pub);
 
-  ros::Rate loop_rate(control_frequency);
+  ros::Rate loop_rate(10);
 
   while (ros::ok())
   {

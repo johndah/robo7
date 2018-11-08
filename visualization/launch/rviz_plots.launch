@@ -33,4 +33,6 @@
 
   <node pkg="visualization" type="plot_path_discretized" name="plot_path_discretized" output="screen"/>
 
+  <node pkg="visualization" type="occupancy" name="occupancy" output="screen"/>
+  
 </launch>
