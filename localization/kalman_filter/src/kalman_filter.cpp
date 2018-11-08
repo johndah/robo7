@@ -371,13 +371,13 @@ private:
 
     the_Q_matrix(0,0) = sigma_x;
     the_Q_matrix(1,1) = sigma_y;
-    the_Q_matrix(1,1) = sigma_a;
+    the_Q_matrix(2,2) = sigma_a;
   }
 
   void reinitialize_A_W_matrices()
   {
     //Reinitialize the A&W matrices
-    the_A_matrix = Eigen::Matrix3f::Identity(3,3);
+    the_A_matrix = Eigen::Matrix3f::Zero(3,3);
     the_W_matrix = Eigen::MatrixXf::Zero(3,3);
 
     //Reinitialize A&W iterations matrices
