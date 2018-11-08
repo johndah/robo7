@@ -141,7 +141,7 @@ class OccupancyGridServer
 				{
 					if (!(i < 0) && !(i >= num_grid_squares_x) && !(j < 0) && !(j >= num_grid_squares_y))
 					{
-            // This if keeps the points wall expansion radial
+            // This keeps the wall expansion radial
             if(distance_points(square_x, square_y, i, j) <= (num_min_distance_squares))
             {
               grid[i][j] = 1.0;
@@ -197,7 +197,7 @@ class OccupancyGridServer
     // cvDestroyWindow("Display window");
 
 		ROS_INFO("Gaussed grid ready");
-		return normalized_grid;
+		return normalized_grid_ones;
 	}
 
 	void publishGrid()
