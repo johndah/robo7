@@ -282,8 +282,8 @@ private:
 
   //Time feedback for measurement asking
   float prev_mes_time;
-  int init_time;
-  int time_threshold;
+  float init_time;
+  float time_threshold;
 
   //the scan sensor_msgs
   sensor_msgs::LaserScan the_lidar_scan;
