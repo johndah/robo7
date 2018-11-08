@@ -42,7 +42,7 @@ public:
     the_R_matrix(0,0) = sigma_x;
     the_R_matrix(1,1) = sigma_x;
     the_R_matrix(2,2) = sigma_theta;
-    the_V_matrix(0,0) = Eigen::Matrix3f::Identity(3,3);
+    the_V_matrix = Eigen::Matrix3f::Identity(3,3);
 
     new_request = false;
 
