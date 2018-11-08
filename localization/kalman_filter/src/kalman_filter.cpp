@@ -36,7 +36,7 @@ public:
     //Definition of the adjustment parameters
     n.param<float>("/kalman_filter/linear_adjustment", linear_adjustment, 0);
     n.param<float>("/kalman_filter/angular_adjustment", angular_adjustment, 0);
-    n.param<float>("/kalman_filter/time_between_two_measure", time_threshold, 1);
+    n.param<double>("/kalman_filter/time_between_two_measure", time_threshold, 1);
 
     //The errors values
     n.param<float>("/kalman_filter/sigma_x", sigma_x, 0.05);
