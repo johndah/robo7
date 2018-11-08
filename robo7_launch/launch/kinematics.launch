@@ -45,7 +45,7 @@
      <param name="time_between_two_measure" type="double" value="0.2"/>
      <!-- The sigma values for the dead_reckoning -->
      <param name="sigma_angle" type="double" value="5"/>
-     <param name="sigma_distance" type="double" value="3"/>
+     <param name="sigma_distance" type="double" value="10"/>
    </node>
 
    <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
