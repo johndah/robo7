@@ -369,7 +369,7 @@ private:
     the_W_matrix = Eigen::MatrixXf::Zero(3,2);
 
     //Reinitialize A&W iterations matrices
-    matrix_A_it = Eigen::Matrix3f::Zero(3,3);
+    matrix_A_it = Eigen::Matrix3f::Identity(3,3);
     matrix_W_it = Eigen::MatrixXf::Zero(3,2);
     matrix_W_it(2,1) = 1;
   }
