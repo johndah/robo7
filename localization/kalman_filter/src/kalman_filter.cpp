@@ -160,13 +160,11 @@ public:
     //Dead_reckoning part
     timeUpdate();
 
-    // ROS_INFO("Time in seconds : %lf, %lf, %lf", ros::Time::now().toSec(), prev_mes_time, init_time);
-
     //If we didn't get any measures for a while (and the previous one has already been received)
     if((ros::Time::now().toSec() - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().toSec() - init_time > 5))
     {
       // ROS_INFO("Asking for measure");
-      ROS_INFO("New Measure Asked");
+      // ROS_INFO("New Measure Asked");
       //Indix to show that there is a new request coming
       request_id++;
 
