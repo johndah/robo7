@@ -216,7 +216,7 @@ class OccupancyGridServer
 			occupancy_matrix_msg.occupancy_rows.push_back(occupancy_row_msg);
 		}
 
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			occupancy_pub.publish(occupancy_matrix_msg);
 		}
