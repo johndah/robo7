@@ -393,8 +393,8 @@ private:
     ROS_INFO("tot_linear, angle : %lf, %lf", tot_dist, z_angle);
     ROS_INFO("matrix A : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_A_matrix(0,0), the_A_matrix(0,1), the_A_matrix(0,2), the_A_matrix(1,0), the_A_matrix(1,1), the_A_matrix(1,2), the_A_matrix(2,0), the_A_matrix(2,1), the_A_matrix(2,2));
     ROS_INFO("matrix P : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
-    ROS_INFO("matrix W : %f, %f, %f, %f, %f, %f", the_W_matrix(0,0), the_W_matrix(0,1), the_W_matrix(1,0), the_W_matrix(1,1), the_W_matrix(2,0), the_W_matrix(2,1));
-    ROS_INFO("matrix Q : %f, %f, %f, %f", the_Q_matrix(0,0), the_Q_matrix(0,1), the_Q_matrix(1,0), the_Q_matrix(1,1));
+    ROS_INFO("matrix W : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_W_matrix(0,0), the_W_matrix(0,1), the_W_matrix(0,2), the_W_matrix(1,0), the_W_matrix(1,1), the_W_matrix(1,2), the_W_matrix(2,0), the_W_matrix(2,1), the_W_matrix(2,2));
+    ROS_INFO("matrix Q : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_Q_matrix(0,0), the_Q_matrix(0,1), the_Q_matrix(0,2), the_Q_matrix(1,0), the_Q_matrix(1,1), the_Q_matrix(1,2), the_Q_matrix(2,0), the_Q_matrix(2,1), the_Q_matrix(2,2));
     the_P_minus_matrix = the_A_matrix * the_P_matrix * the_A_matrix.transpose() + the_W_matrix * the_Q_matrix * the_W_matrix.transpose();
     ROS_INFO("matrix P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
   }
