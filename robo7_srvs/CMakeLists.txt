@@ -15,6 +15,7 @@ add_service_files(
   PathFollowerSrv.srv
   scanCoord.srv
   objectToRobot.srv
+  path_planning.srv
 )
 
 
