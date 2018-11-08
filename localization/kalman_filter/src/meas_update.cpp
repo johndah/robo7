@@ -180,30 +180,30 @@ private:
 
   void compute_K_matrix()
   {
-    ROS_INFO("In measure ");
-    ROS_INFO("matrix P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
-    ROS_INFO("matrix H : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_H_matrix(0,0), the_H_matrix(0,1), the_H_matrix(0,2), the_H_matrix(1,0), the_H_matrix(1,1), the_H_matrix(1,2), the_H_matrix(2,0), the_H_matrix(2,1), the_H_matrix(2,2));
+    // ROS_INFO("In measure ");
+    // ROS_INFO("matrix P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
+    // ROS_INFO("matrix H : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_H_matrix(0,0), the_H_matrix(0,1), the_H_matrix(0,2), the_H_matrix(1,0), the_H_matrix(1,1), the_H_matrix(1,2), the_H_matrix(2,0), the_H_matrix(2,1), the_H_matrix(2,2));
     the_K_matrix = the_P_minus_matrix * the_H_matrix * ( the_H_matrix * the_P_minus_matrix * the_H_matrix.transpose() + the_V_matrix * the_R_matrix * the_V_matrix.transpose()).inverse();
-    ROS_INFO("matrx K : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_K_matrix(0,0), the_K_matrix(0,1), the_K_matrix(0,2), the_K_matrix(1,0), the_K_matrix(1,1), the_K_matrix(1,2), the_K_matrix(2,0), the_K_matrix(2,1), the_K_matrix(2,2));
+    // ROS_INFO("matrx K : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_K_matrix(0,0), the_K_matrix(0,1), the_K_matrix(0,2), the_K_matrix(1,0), the_K_matrix(1,1), the_K_matrix(1,2), the_K_matrix(2,0), the_K_matrix(2,1), the_K_matrix(2,2));
   }
 
   void compute_the_error()
   {
-    ROS_INFO("Curent position (x,y,thet) : (%lf, %lf, %lf)", current_position_vect(0), current_position_vect(1), current_position_vect(2));
-    ROS_INFO("Lidar Corrected position (x,y,thet) : (%lf, %lf, %lf)", the_lidar_pos_vect(0), the_lidar_pos_vect(1), the_lidar_pos_vect(2));
+    // ROS_INFO("Curent position (x,y,thet) : (%lf, %lf, %lf)", current_position_vect(0), current_position_vect(1), current_position_vect(2));
+    // ROS_INFO("Lidar Corrected position (x,y,thet) : (%lf, %lf, %lf)", the_lidar_pos_vect(0), the_lidar_pos_vect(1), the_lidar_pos_vect(2));
     position_error_vect = the_K_matrix * ( the_lidar_pos_vect - current_position_vect );
-    ROS_INFO("Position error (x,y,thet) : (%lf, %lf, %lf)", position_error_vect(0), position_error_vect(1), position_error_vect(2));
+    // ROS_INFO("Position error (x,y,thet) : (%lf, %lf, %lf)", position_error_vect(0), position_error_vect(1), position_error_vect(2));
   }
 
   void compute_P_matrix()
   {
-    ROS_INFO("matrx K : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_K_matrix(0,0), the_K_matrix(0,1), the_K_matrix(0,2), the_K_matrix(1,0), the_K_matrix(1,1), the_K_matrix(1,2), the_K_matrix(2,0), the_K_matrix(2,1), the_K_matrix(2,2));
-    ROS_INFO("matrix P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
-    ROS_INFO("matrix H : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_H_matrix(0,0), the_H_matrix(0,1), the_H_matrix(0,2), the_H_matrix(1,0), the_H_matrix(1,1), the_H_matrix(1,2), the_H_matrix(2,0), the_H_matrix(2,1), the_H_matrix(2,2));
-    inter = (identity - the_K_matrix * the_H_matrix);
-    ROS_INFO("Inter : %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf", inter(0,0), inter(0,1), inter(0,2), inter(1,0), inter(1,1), inter(1,2), inter(2,0), inter(2,1), inter(2,2));
+    // ROS_INFO("matrx K : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_K_matrix(0,0), the_K_matrix(0,1), the_K_matrix(0,2), the_K_matrix(1,0), the_K_matrix(1,1), the_K_matrix(1,2), the_K_matrix(2,0), the_K_matrix(2,1), the_K_matrix(2,2));
+    // ROS_INFO("matrix P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
+    // ROS_INFO("matrix H : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_H_matrix(0,0), the_H_matrix(0,1), the_H_matrix(0,2), the_H_matrix(1,0), the_H_matrix(1,1), the_H_matrix(1,2), the_H_matrix(2,0), the_H_matrix(2,1), the_H_matrix(2,2));
+    // inter = (identity - the_K_matrix * the_H_matrix);
+    // ROS_INFO("Inter : %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf", inter(0,0), inter(0,1), inter(0,2), inter(1,0), inter(1,1), inter(1,2), inter(2,0), inter(2,1), inter(2,2));
     the_P_matrix = (identity - the_K_matrix * the_H_matrix) * the_P_minus_matrix;
-    ROS_INFO("matrix P : %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
+    // ROS_INFO("matrix P : %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
   }
 
   void change_pose_to_vector()
