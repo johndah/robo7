@@ -184,7 +184,10 @@ private:
 
   void compute_the_error()
   {
+    ROS_INFO("Curent position (x,y,thet) : (%lf, %lf, %lf)", current_position_vect(0), current_position_vect(1), current_position_vect(2));
+    ROS_INFO("Lidar Corrected position (x,y,thet) : (%lf, %lf, %lf)", the_lidar_pos_vect(0), the_lidar_pos_vect(1), the_lidar_pos_vect(2));
     position_error_vect = the_K_matrix * ( the_lidar_pos_vect - current_position_vect );
+    ROS_INFO("Position error (x,y,thet) : (%lf, %lf, %lf)", position_error_vect(0), position_error_vect(1), position_error_vect(2));
   }
 
   void compute_P_matrix()
