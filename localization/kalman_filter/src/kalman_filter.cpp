@@ -341,6 +341,7 @@ private:
       the_A_matrix(0,2) = -tot_dist * sin(z_angle);
       the_A_matrix(1,2) = tot_dist * cos(z_angle);
 
+      ROS_INFO("Z_angle : %lf", z_angle);
       the_W_matrix(0,0) = cos(z_angle);
       the_W_matrix(1,0) = sin(z_angle);
       the_W_matrix(2,1) = 1;
