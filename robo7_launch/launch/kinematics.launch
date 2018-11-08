@@ -49,8 +49,8 @@
    </node>
 
    <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
-      <param name="sigma_distance" type="double" value="0.001"/>
-      <param name="sigma_angle" type="double" value="0.01"/>
+      <param name="sigma_distance" type="double" value="0"/>
+      <param name="sigma_angle" type="double" value="0"/>
    </node>
 
 <!-- The path_planner nodes -->
