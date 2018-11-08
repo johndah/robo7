@@ -44,9 +44,9 @@
      <param name="trust_lidar_and_dead_reckoning" type="bool" value="true"/>
      <param name="time_between_two_measure" type="double" value="0.3"/>
      <!-- The sigma values for the dead_reckoning -->
-     <param name="sigma_x" type="double" value="0.5"/>
-     <param name="sigma_y" type="double" value="0.5"/>
-     <param name="sigma_angle" type="double" value="100"/>
+     <param name="sigma_x" type="double" value="5"/>
+     <param name="sigma_y" type="double" value="5"/>
+     <param name="sigma_angle" type="double" value="1000"/>
    </node>
 
    <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
