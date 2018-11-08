@@ -314,12 +314,6 @@ private:
     ang_dis = angular_distance_linearised(om_L, -om_R);
     lin_dis = linear_distance_linearised(om_L, -om_R);
 
-    //Compute the linear distances and angles of the robot
-    x_pos += (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
-    y_pos += (lin_dis * sin(z_angle)) * (1 + linear_adjustment);
-    z_angle += ang_dis * (1 + angular_adjustment);
-    z_angle = wrapAngle(z_angle);
-
     //Update of the total distances that the robot moved
     tot_dist += lin_dis;
     tot_angle += ang_dis;
@@ -336,6 +330,18 @@ private:
       the_A_matrix = the_A_matrix + matrix_A_it;
       the_W_matrix = the_W_matrix + matrix_W_it;
     }
+    else if(test_method == 1)
+    {
+      matrix_A_it = Eigen::Matrix3f::Zero(3,3);
+      matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
+      matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
+      matrix_W_it(0,0) = cos(z_angle);
+      matrix_W_it(1,0) = sin(z_angle);
+
+      //Add those iteration matrices to the main ones
+      the_A_matrix = the_A_matrix + matrix_A_it;
+      the_W_matrix = matrix_W_it;
+    }
     else
     {
       the_A_matrix(0,2) = -tot_dist * sin(z_angle);
@@ -347,7 +353,11 @@ private:
       the_W_matrix(2,1) = 1;
     }
 
-
+    //Compute the linear distances and angles of the robot
+    x_pos += (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
+    y_pos += (lin_dis * sin(z_angle)) * (1 + linear_adjustment);
+    z_angle += ang_dis * (1 + angular_adjustment);
+    z_angle = wrapAngle(z_angle);
   }
 
   void initialize_matrices()
