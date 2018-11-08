@@ -194,7 +194,7 @@ public:
 
       //Update the variables
       previous_measure_received = false; //We have to wait for the answer
-      prev_mes_time = ros::Time::now().sec + ((float)ros::Time::now().nsec / pow(10, 9)); //We update the last measure request
+      prev_mes_time = toSec(); //We update the last measure request
     }
 
     the_robot_position.linear.x = x_pos;
