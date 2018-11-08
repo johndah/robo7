@@ -151,6 +151,7 @@ private:
   Eigen::Matrix3f the_P_minus_matrix;
   Eigen::Matrix3f the_P_matrix;
   Eigen::Matrix3f identity;
+  Eigen::Matrix3f inter;
   Eigen::Matrix2f the_R_matrix;
   Eigen::MatrixXf the_V_matrix;
 
@@ -200,6 +201,8 @@ private:
     ROS_INFO("matrx K : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_K_matrix(0,0), the_K_matrix(0,1), the_K_matrix(0,2), the_K_matrix(1,0), the_K_matrix(1,1), the_K_matrix(1,2), the_K_matrix(2,0), the_K_matrix(2,1), the_K_matrix(2,2));
     ROS_INFO("matrix P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
     ROS_INFO("matrix H : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_H_matrix(0,0), the_H_matrix(0,1), the_H_matrix(0,2), the_H_matrix(1,0), the_H_matrix(1,1), the_H_matrix(1,2), the_H_matrix(2,0), the_H_matrix(2,1), the_H_matrix(2,2));
+    inter = (identity - the_K_matrix * the_H_matrix);
+    ROS_INFO("Inter : %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf", inter(0,0), inter(0,1), inter(0,2), inter(1,0), inter(1,1), inter(1,2), inter(2,0), inter(2,1), inter(2,2));
     the_P_matrix = (identity - the_K_matrix * the_H_matrix) * the_P_minus_matrix;
     ROS_INFO("matrix P : %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
   }
