@@ -320,6 +320,10 @@ private:
     z_angle += ang_dis * (1 + angular_adjustment);
     z_angle = wrapAngle(z_angle);
 
+    //Update of the total distances that the robot moved
+    tot_dist += lin_dis;
+    tot_angle += ang_dis;
+    
     //Then we need to update the different matrices
     if(test_method == 0)
     {
@@ -334,10 +338,6 @@ private:
     }
     else
     {
-      //Update of the total distances that the robot moved
-      tot_dist += lin_dis;
-      tot_angle += ang_dis;
-
       the_A_matrix(0,2) = -tot_dist * sin(z_angle);
       the_A_matrix(1,2) = tot_dist * cos(z_angle);
 
@@ -375,12 +375,14 @@ private:
 
   void compute_P_minus()
   {
-    // ROS_INFO("matrx A : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_A_matrix(0,0), the_A_matrix(0,1), the_A_matrix(0,2), the_A_matrix(1,0), the_A_matrix(1,1), the_A_matrix(1,2), the_A_matrix(2,0), the_A_matrix(2,1), the_A_matrix(2,2));
-    // ROS_INFO("matrx P : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
-    // ROS_INFO("matrx W : %f, %f, %f, %f, %f, %f", the_W_matrix(0,0), the_W_matrix(0,1), the_W_matrix(1,0), the_W_matrix(1,1), the_W_matrix(2,0), the_W_matrix(2,1));
-    // ROS_INFO("matrx Q : %f, %f, %f, %f", the_Q_matrix(0,0), the_Q_matrix(0,1), the_Q_matrix(1,0), the_Q_matrix(1,1));
+    ROS_INFO("New_computation");
+    ROS_INFO("")
+    ROS_INFO("matrix A : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_A_matrix(0,0), the_A_matrix(0,1), the_A_matrix(0,2), the_A_matrix(1,0), the_A_matrix(1,1), the_A_matrix(1,2), the_A_matrix(2,0), the_A_matrix(2,1), the_A_matrix(2,2));
+    ROS_INFO("matrix P : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
+    ROS_INFO("matrix W : %f, %f, %f, %f, %f, %f", the_W_matrix(0,0), the_W_matrix(0,1), the_W_matrix(1,0), the_W_matrix(1,1), the_W_matrix(2,0), the_W_matrix(2,1));
+    ROS_INFO("matrix Q : %f, %f, %f, %f", the_Q_matrix(0,0), the_Q_matrix(0,1), the_Q_matrix(1,0), the_Q_matrix(1,1));
     the_P_minus_matrix = the_A_matrix * the_P_matrix * the_A_matrix.transpose() + the_W_matrix * the_Q_matrix * the_W_matrix.transpose();
-    // ROS_INFO("matrx P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
+    ROS_INFO("matrix P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
   }
 
   //Other useful function

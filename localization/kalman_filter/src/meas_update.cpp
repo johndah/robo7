@@ -37,7 +37,7 @@ public:
 
     //Creation of the matrices
     identity = Eigen::Matrix3f::Identity(3,3);
-    the_H_matrix = identity;
+    the_H_matrix = Eigen::Matrix3f::Identity(3,3);
     the_R_matrix(0,0) = sigma_xy;
     the_R_matrix(1,1) = sigma_theta;
     the_V_matrix.resize(3,2);
@@ -181,6 +181,7 @@ private:
   void compute_K_matrix()
   {
     the_K_matrix = the_P_minus_matrix * the_H_matrix * ( the_H_matrix * the_P_minus_matrix * the_H_matrix.transpose() + the_V_matrix * the_R_matrix * the_V_matrix.transpose()).inverse();
+    ROS_INFO("matrx K : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_K_matrix(0,0), the_K_matrix(0,1), the_K_matrix(0,2), the_K_matrix(1,0), the_K_matrix(1,1), the_K_matrix(1,2), the_K_matrix(2,0), the_K_matrix(2,1), the_K_matrix(2,2));
   }
 
   void compute_the_error()
