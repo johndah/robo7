@@ -18,7 +18,7 @@ class PathPlanning;
 typedef std::shared_ptr<Node> node_ptr;
 float pi = 3.14159265358979323846;
 
-int target_index = 2; // 0-5
+int target_index = 5; // 0-7
 std::vector<float> x_targets = {.2, .55, 1.6, 1, 2.2, 2.2, .8};
 std::vector<float> y_targets = {2.2, .55, .8, 1.55, 2.2, .2, .2};
 float theta_target = pi / 2;
@@ -88,7 +88,7 @@ class Node
 		this->occupancy_srv.request.y = this->y;
 		if (this->occupancy_client.call(this->occupancy_srv))
 		{
-			return this->occupancy_srv.response.occupancy > 0.8;
+			return this->occupancy_srv.response.occupancy >= 1;
 		}
 		else
 		{
@@ -526,6 +526,7 @@ int main(int argc, char **argv)
 	{
 		if (!search_done)
 		{
+			// Will do this to a service
 			search_done = path_planning.getPath();
 		}
 		else
