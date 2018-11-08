@@ -334,7 +334,7 @@ private:
 
       //Add those iteration matrices to the main ones
       the_A_matrix = the_A_matrix + matrix_A_it;
-      the_W_matrix = matrix_W_it;
+      the_W_matrix = the_W_matrix + matrix_W_it;
     }
     else
     {
