@@ -36,7 +36,6 @@ public:
     //Definition of the adjustment parameters
     n.param<float>("/kalman_filter/linear_adjustment", linear_adjustment, 0);
     n.param<float>("/kalman_filter/angular_adjustment", angular_adjustment, 0);
-    n.param<bool>("/kalman_filter/use_measure", use_measure, false);
     n.param<int>("/kalman_filter/time_between_two_measure", time_threshold, 1);
 
     //The errors values
@@ -45,6 +44,8 @@ public:
 
     //Two different methods to test
     n.param<int>("/kalman_filter/which_method", test_method, 0);
+    n.param<bool>("/kalman_filter/use_measure", use_measure, false);
+    n.param<bool>("/kalman_filter/trust_lidar_and_dead_reckoning", true_kalman, false);
 
     wheel_radius = 97.6/2000.0; //m
     wheel_distance = 217.3/1000.0; //m
@@ -134,11 +135,18 @@ public:
       }
 
       //Update the position based on the error received
-      // update_position_error();
-      the_robot_position = measure_feedback.position_corrected;
-      x_pos = the_robot_position.linear.x;
-      y_pos = the_robot_position.linear.y;
-      z_angle = the_robot_position.angular.z;
+      if(true_kalman)
+      {
+        update_position_error();
+      }
+      else
+      {
+        the_robot_position = measure_feedback.position_corrected;
+        x_pos = the_robot_position.linear.x;
+        y_pos = the_robot_position.linear.y;
+        z_angle = the_robot_position.angular.z;
+      }
+
 
       // ROS_INFO("Corrected position (x,y,thet) : %f, %f, %f, %f", x_pos, y_pos, z_angle, measure_feedback.position_corrected.linear.x);
 
@@ -241,6 +249,7 @@ private:
 
   //Boolean telling if we want to use the measures or not
   bool use_measure;
+  bool true_kalman;
 
   //Boolean for sending and receiving measures
   bool new_measure_received;
