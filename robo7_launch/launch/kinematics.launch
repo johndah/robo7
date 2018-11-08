@@ -36,6 +36,7 @@
      <param name="initial_z_angle" type="double" value="1.57"/>
      <param name="linear_adjustment" type="double" value="0.0481"/>
      <param name="angular_adjustment" type="double" value="0.03"/> <!-- designed value = 0.235 -->
+     <param name="which_method" type="int" value="0"/>
      <param name="use_measure" type="bool" value="false"/>
      <param name="time_between_two_measure" type="double" value="0.6"/>
    </node>
