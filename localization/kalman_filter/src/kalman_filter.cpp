@@ -282,9 +282,9 @@ private:
   float tot_dist, tot_angle;
 
   //Time feedback for measurement asking
-  float prev_mes_time;
-  float init_time;
-  float time_threshold;
+  double prev_mes_time;
+  double init_time;
+  double time_threshold;
 
   //the scan sensor_msgs
   sensor_msgs::LaserScan the_lidar_scan;
