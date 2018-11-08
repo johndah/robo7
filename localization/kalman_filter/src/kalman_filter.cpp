@@ -39,8 +39,9 @@ public:
     n.param<int>("/kalman_filter/time_between_two_measure", time_threshold, 1);
 
     //The errors values
+    n.param<float>("/kalman_filter/sigma_x", sigma_x, 0.05);
+    n.param<float>("/kalman_filter/sigma_y", sigma_y, 0.05);
     n.param<float>("/kalman_filter/sigma_angle", sigma_a, 0.1);
-    n.param<float>("/kalman_filter/sigma_distance", sigma_d, 0.05);
 
     //Two different methods to test
     n.param<int>("/kalman_filter/which_method", test_method, 0);
@@ -261,10 +262,10 @@ private:
   Eigen::Matrix3f the_P_minus_matrix;
   Eigen::Matrix3f the_P_matrix;
   Eigen::Matrix3f identity;
-  Eigen::Matrix2f the_Q_matrix;
-  Eigen::MatrixXf the_W_matrix;
+  Eigen::Matrix3f the_Q_matrix;
+  Eigen::Matrix3f the_W_matrix;
   Eigen::Matrix3f matrix_A_it;
-  Eigen::MatrixXf matrix_W_it;
+  Eigen::Matrix3f matrix_W_it;
 
   Eigen::Vector3f position_error;
   geometry_msgs::Twist current_position;
@@ -324,7 +325,7 @@ private:
       matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
       matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
       matrix_W_it(0,0) = cos(z_angle);
-      matrix_W_it(1,0) = sin(z_angle);
+      matrix_W_it(1,1) = sin(z_angle);
 
       //Add those iteration matrices to the main ones
       the_A_matrix = the_A_matrix + matrix_A_it;
@@ -336,7 +337,7 @@ private:
       matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
       matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
       matrix_W_it(0,0) = cos(z_angle);
-      matrix_W_it(1,0) = sin(z_angle);
+      matrix_W_it(1,1) = sin(z_angle);
 
       //Add those iteration matrices to the main ones
       the_A_matrix = the_A_matrix + matrix_A_it;
@@ -349,8 +350,8 @@ private:
 
       // ROS_INFO("Z_angle : %lf", z_angle);
       the_W_matrix(0,0) = cos(z_angle);
-      the_W_matrix(1,0) = sin(z_angle);
-      the_W_matrix(2,1) = 1;
+      the_W_matrix(1,1) = sin(z_angle);
+      the_W_matrix(2,2) = 1;
     }
 
     //Compute the linear distances and angles of the robot
@@ -366,9 +367,10 @@ private:
 
     the_P_matrix = Eigen::Matrix3f::Zero(3,3);
 
-    the_Q_matrix = Eigen::Matrix2f::Zero(2,2);
+    the_Q_matrix = Eigen::Matrix3f::Zero(3,3);
 
-    the_Q_matrix(0,0) = sigma_d;
+    the_Q_matrix(0,0) = sigma_x;
+    the_Q_matrix(1,1) = sigma_y;
     the_Q_matrix(1,1) = sigma_a;
   }
 
@@ -376,12 +378,12 @@ private:
   {
     //Reinitialize the A&W matrices
     the_A_matrix = Eigen::Matrix3f::Identity(3,3);
-    the_W_matrix = Eigen::MatrixXf::Zero(3,2);
+    the_W_matrix = Eigen::MatrixXf::Zero(3,3);
 
     //Reinitialize A&W iterations matrices
     matrix_A_it = Eigen::Matrix3f::Identity(3,3);
-    matrix_W_it = Eigen::MatrixXf::Zero(3,2);
-    matrix_W_it(2,1) = 1;
+    matrix_W_it = Eigen::MatrixXf::Zero(3,3);
+    matrix_W_it(2,2) = 1;
   }
 
   void compute_P_minus()

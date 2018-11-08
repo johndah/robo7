@@ -32,18 +32,17 @@ public:
   {
     ROS_INFO("Starting Measure update");
     //Measurement erros
-    n.param<float>("/meas_update/sigma_distance", sigma_xy, 0.1);
+    n.param<float>("/meas_update/sigma_x", sigma_x, 0.1);
+    n.param<float>("/meas_update/sigma_y", sigma_y, 0.1);
     n.param<float>("/meas_update/sigma_angle", sigma_theta, 0.05);
 
     //Creation of the matrices
     identity = Eigen::Matrix3f::Identity(3,3);
     the_H_matrix = Eigen::Matrix3f::Identity(3,3);
-    the_R_matrix(0,0) = sigma_xy;
-    the_R_matrix(1,1) = sigma_theta;
-    the_V_matrix.resize(3,2);
-    the_V_matrix(0,0) = 1;
-    the_V_matrix(1,0) = 1;
-    the_V_matrix(2,1) = 1;
+    the_R_matrix(0,0) = sigma_x;
+    the_R_matrix(1,1) = sigma_x;
+    the_R_matrix(2,2) = sigma_theta;
+    the_V_matrix(0,0) = Eigen::Matrix3f::Identity(3,3);
 
     new_request = false;
 
@@ -152,8 +151,8 @@ private:
   Eigen::Matrix3f the_P_matrix;
   Eigen::Matrix3f identity;
   Eigen::Matrix3f inter;
-  Eigen::Matrix2f the_R_matrix;
-  Eigen::MatrixXf the_V_matrix;
+  Eigen::Matrix3f the_R_matrix;
+  Eigen::Matrix3f the_V_matrix;
 
   //Declaration of all the vectors
   Eigen::Vector3f position_error_vect;
@@ -161,7 +160,7 @@ private:
   Eigen::Vector3f current_position_vect;
 
   //Error estimation on the lidar measurement
-  float sigma_xy, sigma_theta;
+  float sigma_x, sigma_y, sigma_theta;
 
   //New request received
   bool new_request;
