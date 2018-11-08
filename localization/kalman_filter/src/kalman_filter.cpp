@@ -160,12 +160,11 @@ public:
     //Dead_reckoning part
     timeUpdate();
 
-    ROS_INFO("Time in seconds : %lf, %lf, %lf", ros::Time::now().toSec(), prev_mes_time, init_time);
+    // ROS_INFO("Time in seconds : %lf, %lf, %lf", ros::Time::now().toSec(), prev_mes_time, init_time);
 
     //If we didn't get any measures for a while (and the previous one has already been received)
     if((ros::Time::now().toSec() - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().toSec() - init_time > 5))
     {
-      ROS_INFO("Time in seconds : %lf, %lf", ros::Time::now().toSec(), prev_mes_time);
       // ROS_INFO("Asking for measure");
       ROS_INFO("New Measure Asked");
       //Indix to show that there is a new request coming
@@ -194,7 +193,9 @@ public:
 
       //Update the variables
       previous_measure_received = false; //We have to wait for the answer
+      ROS_INFO("Time in seconds : %lf, %lf", ros::Time::now().toSec(), prev_mes_time);
       prev_mes_time = ros::Time::now().toSec(); //We update the last measure request
+      ROS_INFO("Time in seconds : %lf, %lf", ros::Time::now().toSec(), prev_mes_time);
     }
 
     the_robot_position.linear.x = x_pos;
