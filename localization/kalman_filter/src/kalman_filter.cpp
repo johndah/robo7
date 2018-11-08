@@ -272,7 +272,7 @@ private:
   geometry_msgs::Twist the_robot_position;
 
   //Variance on both angle and distance of dead_reckoning
-  float sigma_d, sigma_a;
+  float sigma_x, sigma_y, sigma_a;
 
   //Compute the total distance and angle that changed over dead_reckoning
   float tot_dist, tot_angle;
