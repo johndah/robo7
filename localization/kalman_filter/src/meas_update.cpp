@@ -46,8 +46,8 @@ public:
 
     new_request = false;
 
-    meas_request_sub = n.subscribe("/localization/kalman_filter/measure_request", 10, &meas_update::measure_request_callBack, this);
-    meas_result_pub = n.advertise<robo7_msgs::MeasureFeedback>("/localization/meas_update/measure_response", 10);
+    meas_request_sub = n.subscribe("/localization/kalman_filter/measure_request", 1, &meas_update::measure_request_callBack, this);
+    meas_result_pub = n.advertise<robo7_msgs::MeasureFeedback>("/localization/meas_update/measure_response", 1);
 
     map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &meas_update::maze_map_callBack, this);
     scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");

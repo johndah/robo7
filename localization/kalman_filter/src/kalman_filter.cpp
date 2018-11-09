@@ -79,8 +79,8 @@ public:
     measure_sub = n.subscribe("/localization/meas_update/measure_response", 1, &kalmanFilter::measureFeedback_callBack, this);
     scan_sub = n.subscribe("/scan", 1, &kalmanFilter::scan_callBack, this);
     // robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/pos", 10);
-    robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/position", 10);
-    new_measure_req_pub = n.advertise<robo7_msgs::MeasureRequest>("/localization/kalman_filter/measure_request", 10);
+    robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/position", 1);
+    new_measure_req_pub = n.advertise<robo7_msgs::MeasureRequest>("/localization/kalman_filter/measure_request", 1);
 
     ROS_INFO("EKF initialisation done");
   }
@@ -97,16 +97,7 @@ public:
 
   void scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
   {
-      the_lidar_scan.header = msg->header;
-      the_lidar_scan.angle_min = msg->angle_min;
-      the_lidar_scan.angle_max = msg->angle_max;
-      the_lidar_scan.angle_increment = msg->angle_increment;
-      the_lidar_scan.time_increment = msg->time_increment;
-      the_lidar_scan.scan_time = msg->scan_time;
-      the_lidar_scan.range_min = msg->range_min;
-      the_lidar_scan.range_max = msg->range_max;
-      the_lidar_scan.ranges = msg->ranges;
-      the_lidar_scan.intensities = msg->intensities;
+      the_lidar_scan = *msg;
   }
 
   void measureFeedback_callBack(const robo7_msgs::MeasureFeedback::ConstPtr &msg)
@@ -120,6 +111,7 @@ public:
 
   void updatePosition()
   {
+    time_start = ros::Time::now();
     //We check if we received a new measure computations
     if(new_measure_received && use_measure)
     {
@@ -172,7 +164,7 @@ public:
       compute_P_minus();
 
       //Prepare the measure request message
-      new_measure_request.time = ros::Time::now();
+      new_measure_request.time = time_start;
       new_measure_request.id_number = request_id;
       new_measure_request.current_position = the_robot_position;
       new_measure_request.lidar_scan = the_lidar_scan;
@@ -281,6 +273,7 @@ private:
   double prev_mes_time;
   double init_time;
   double time_threshold;
+  ros::Time time_start;
 
   //the scan sensor_msgs
   sensor_msgs::LaserScan the_lidar_scan;
