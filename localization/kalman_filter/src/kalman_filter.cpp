@@ -501,6 +501,12 @@ private:
       j++;
     }
 
+    if(test_method == 1)
+    {
+      matrix_A_it = Eigen::Matrix3f::Identity(3,3);
+      the_A_matrix = the_A_matrix + matrix_A_it;
+    }
+
     //Compute the_P_minus_matrix that is going to be used
     compute_P_minus();
   }
