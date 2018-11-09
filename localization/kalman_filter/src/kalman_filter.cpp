@@ -449,7 +449,7 @@ private:
   {
     int j = positions_for_matrices[0].id_number;
     int j_init = j;
-    ROS_INFO("%d, %d", j, saved_position[corres_pos_index].id_number);
+    // ROS_INFO("%d, %d", j, saved_position[corres_pos_index].id_number);
 
     //Then we need to update the different matrices
     while(j <= saved_position[corres_pos_index].id_number)
