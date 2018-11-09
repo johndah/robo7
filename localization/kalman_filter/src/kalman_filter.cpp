@@ -25,6 +25,7 @@ public:
   ros::Subscriber scan_sub;
   ros::Publisher robot_position;
   ros::Publisher new_measure_req_pub;
+  ros::Publisher angle_pub;
 
   kalmanFilter()
   {
@@ -85,6 +86,7 @@ public:
     // robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/pos", 10);
     robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/position", 1);
     new_measure_req_pub = n.advertise<robo7_msgs::MeasureRequest>("/localization/kalman_filter/measure_request", 1);
+    angle_pub = n.advertise<std_msgs::Float32>("/localization/kalman_filter/angle", 1);
 
     ROS_INFO("EKF initialisation done");
   }
@@ -143,6 +145,7 @@ public:
     positions_for_matrices.push_back( previous_pos );
 
     robot_position.publish( the_robot_position );
+    angle_pub.publish( angle );
     // ROS_INFO("Position published");
   }
 
