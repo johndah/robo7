@@ -120,7 +120,11 @@ public:
     //We check if we received a new measure computations
     if(new_measure_received && use_measure)
     {
+      ROS_INFO("Measure received");
       position_measure_response();
+      //Set the new_measure_value back to zero
+      new_measure_received = false;
+      previous_measure_received = true;
     }
 
     //Dead_reckoning part
@@ -129,6 +133,7 @@ public:
     //If we didn't get any measures for a while (and the previous one has already been received)
     if((ros::Time::now().toSec() - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().toSec() - init_time > 5))
     {
+      ROS_INFO("Request sent");
       // print_position_times();
       // ROS_INFO("Times are (lidar, corres_pos, diff): %lf, %lf, %lf", the_lidar_scan.header.stamp.toSec(), corresp_pos.time.toSec(), std::abs(the_lidar_scan.header.stamp.toSec() - corresp_pos.time.toSec()));
       find_corresponding_position_for_lidar();
@@ -136,6 +141,7 @@ public:
       position_measure_request();
       reinitialize_the_position_for_matrices();
       reinitialize_A_W_matrices();
+      previous_measure_received = false; //We have to wait for the answer
     }
 
     update_the_robot_position();
@@ -270,7 +276,6 @@ private:
     new_measure_req_pub.publish( new_measure_request );
 
     //Update the variables
-    previous_measure_received = false; //We have to wait for the answer
     prev_mes_time = ros::Time::now().toSec(); //We update the last measure request
   }
 
@@ -300,10 +305,6 @@ private:
       y_pos = the_robot_position.linear.y;
       z_angle = the_robot_position.angular.z;
     }
-
-    //Set the new_measure_value back to zero
-    new_measure_received = false;
-    previous_measure_received = true;
   }
 
   void update_position_error()
