@@ -117,6 +117,10 @@ public:
 
   void updatePosition()
   {
+
+    //Dead_reckoning part
+    timeUpdate();
+
     //We check if we received a new measure computations
     if(new_measure_received && use_measure)
     {
@@ -125,9 +129,6 @@ public:
       new_measure_received = false;
       previous_measure_received = true;
     }
-
-    //Dead_reckoning part
-    timeUpdate();
 
     update_the_robot_position();
 
