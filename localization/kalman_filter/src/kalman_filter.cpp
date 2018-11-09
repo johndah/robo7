@@ -120,7 +120,6 @@ public:
     //We check if we received a new measure computations
     if(new_measure_received && use_measure)
     {
-      ROS_INFO("Measure received");
       position_measure_response();
       //Set the new_measure_value back to zero
       new_measure_received = false;
@@ -145,11 +144,8 @@ public:
     //If we didn't get any measures for a while (and the previous one has already been received)
     if((ros::Time::now().toSec() - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().toSec() - init_time > 5))
     {
-      ROS_INFO("Request sent");
       // print_position_times();
-      // ROS_INFO("Times are (lidar, corres_pos, diff): %lf, %lf, %lf", the_lidar_scan.header.stamp.toSec(), corresp_pos.time.toSec(), std::abs(the_lidar_scan.header.stamp.toSec() - corresp_pos.time.toSec()));
       find_corresponding_position_for_lidar();
-      ROS_INFO("(x,y,thet) : (%lf, %lf, %lf)", corresp_pos.position.linear.x, corresp_pos.position.linear.y, corresp_pos.position.angular.z);
       compute_matrices();
       position_measure_request();
       reinitialize_the_position_for_matrices();
@@ -415,15 +411,15 @@ private:
 
   void compute_P_minus()
   {
-    ROS_INFO("New_computation");
-    ROS_INFO("In kalman");
-    ROS_INFO("tot_linear, angle : %lf, %lf", tot_dist, z_angle);
-    ROS_INFO("matrix A : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_A_matrix(0,0), the_A_matrix(0,1), the_A_matrix(0,2), the_A_matrix(1,0), the_A_matrix(1,1), the_A_matrix(1,2), the_A_matrix(2,0), the_A_matrix(2,1), the_A_matrix(2,2));
-    ROS_INFO("matrix P : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
-    ROS_INFO("matrix W : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_W_matrix(0,0), the_W_matrix(0,1), the_W_matrix(0,2), the_W_matrix(1,0), the_W_matrix(1,1), the_W_matrix(1,2), the_W_matrix(2,0), the_W_matrix(2,1), the_W_matrix(2,2));
-    ROS_INFO("matrix Q : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_Q_matrix(0,0), the_Q_matrix(0,1), the_Q_matrix(0,2), the_Q_matrix(1,0), the_Q_matrix(1,1), the_Q_matrix(1,2), the_Q_matrix(2,0), the_Q_matrix(2,1), the_Q_matrix(2,2));
+    // ROS_INFO("New_computation");
+    // ROS_INFO("In kalman");
+    // ROS_INFO("tot_linear, angle : %lf, %lf", tot_dist, z_angle);
+    // ROS_INFO("matrix A : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_A_matrix(0,0), the_A_matrix(0,1), the_A_matrix(0,2), the_A_matrix(1,0), the_A_matrix(1,1), the_A_matrix(1,2), the_A_matrix(2,0), the_A_matrix(2,1), the_A_matrix(2,2));
+    // ROS_INFO("matrix P : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
+    // ROS_INFO("matrix W : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_W_matrix(0,0), the_W_matrix(0,1), the_W_matrix(0,2), the_W_matrix(1,0), the_W_matrix(1,1), the_W_matrix(1,2), the_W_matrix(2,0), the_W_matrix(2,1), the_W_matrix(2,2));
+    // ROS_INFO("matrix Q : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_Q_matrix(0,0), the_Q_matrix(0,1), the_Q_matrix(0,2), the_Q_matrix(1,0), the_Q_matrix(1,1), the_Q_matrix(1,2), the_Q_matrix(2,0), the_Q_matrix(2,1), the_Q_matrix(2,2));
     the_P_minus_matrix = the_A_matrix * the_P_matrix * the_A_matrix.transpose() + the_W_matrix * the_Q_matrix * the_W_matrix.transpose();
-    ROS_INFO("matrix P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
+    // ROS_INFO("matrix P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
   }
 
   void update_the_robot_position()
