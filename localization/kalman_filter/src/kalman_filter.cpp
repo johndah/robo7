@@ -314,6 +314,19 @@ private:
     x_pos += position_error(0);
     y_pos += position_error(1);
     z_angle += position_error(2);
+
+    for(int i = 0; i < saved_position.size() - 1; i++)
+    {
+      saved_position[i].position.linear.x += position_error(0);
+      saved_position[i].position.linear.y += position_error(1);
+      saved_position[i].position.angular.z += position_error(2);
+    }
+    for(int i = 0; i < positions_for_matrices.size() - 1; i++)
+    {
+      positions_for_matrices[i].position.linear.x += position_error(0);
+      positions_for_matrices[i].position.linear.y += position_error(1);
+      positions_for_matrices[i].position.angular.z += position_error(2);
+    }
   }
 
   void timeUpdate()
