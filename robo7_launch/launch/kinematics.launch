@@ -52,7 +52,7 @@
    <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
       <param name="sigma_x" type="double" value="0.1"/>
       <param name="sigma_y" type="double" value="0.1"/>
-      <param name="sigma_angle" type="double" value="0"/>
+      <param name="sigma_angle" type="double" value="0.1"/>
    </node>
 
 <!-- The path_planner nodes -->
