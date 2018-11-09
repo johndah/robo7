@@ -111,42 +111,10 @@ public:
 
   void updatePosition()
   {
-    time_start = ros::Time::now();
     //We check if we received a new measure computations
     if(new_measure_received && use_measure)
     {
-      // ROS_INFO("Measure feedback");
-      //Extract the usefull datas out of the measure received
-      position_error(0) = measure_feedback.error.x;
-      position_error(1) = measure_feedback.error.y;
-      position_error(2) = measure_feedback.error.z;
-      for(int i=0; i<3; i++)
-      {
-        the_P_matrix(0,i) = measure_feedback.P_matrix.line0[i];
-        the_P_matrix(1,i) = measure_feedback.P_matrix.line1[i];
-        the_P_matrix(2,i) = measure_feedback.P_matrix.line2[i];
-      }
-
-      //Update the position based on the error received
-      if(true_kalman)
-      {
-        update_position_error();
-      }
-      else
-      {
-        the_robot_position = measure_feedback.position_corrected;
-        x_pos = the_robot_position.linear.x;
-        y_pos = the_robot_position.linear.y;
-        z_angle = the_robot_position.angular.z;
-      }
-
-
-      // ROS_INFO("Corrected position (x,y,thet) : %f, %f, %f, %f", x_pos, y_pos, z_angle, measure_feedback.position_corrected.linear.x);
-
-      //Set the new_measure_value back to zero
-      reinitialize_A_W_matrices();
-      new_measure_received = false;
-      previous_measure_received = true;
+      position_measure_response();
     }
 
     //Dead_reckoning part
@@ -155,43 +123,22 @@ public:
     //If we didn't get any measures for a while (and the previous one has already been received)
     if((ros::Time::now().toSec() - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().toSec() - init_time > 5))
     {
-      // ROS_INFO("Asking for measure");
-      // ROS_INFO("New Measure Asked");
-      //Indix to show that there is a new request coming
-      request_id++;
-
-      //Compute the_P_minus_matrix that is going to be used
-      compute_P_minus();
-
-      //Prepare the measure request message
-      new_measure_request.time = time_start;
-      new_measure_request.id_number = request_id;
-      new_measure_request.current_position = the_robot_position;
-      new_measure_request.lidar_scan = the_lidar_scan;
-      new_measure_request.P_minus_matrix.line0.clear();
-      new_measure_request.P_minus_matrix.line1.clear();
-      new_measure_request.P_minus_matrix.line2.clear();
-      for(int i=0; i<3; i++)
-      {
-        new_measure_request.P_minus_matrix.line0.push_back(the_P_minus_matrix(0,i));
-        new_measure_request.P_minus_matrix.line1.push_back(the_P_minus_matrix(1,i));
-        new_measure_request.P_minus_matrix.line2.push_back(the_P_minus_matrix(2,i));
-      }
-
-      //Publish the new request
-      new_measure_req_pub.publish( new_measure_request );
-
-      //Update the variables
-      previous_measure_received = false; //We have to wait for the answer
-      prev_mes_time = ros::Time::now().toSec(); //We update the last measure request
+      position_measure_request();
     }
 
-    the_robot_position.linear.x = x_pos;
-    the_robot_position.linear.y = y_pos;
-    the_robot_position.linear.z = 0;
-    the_robot_position.angular.x = 0;
-    the_robot_position.angular.y = 0;
-    the_robot_position.angular.z = z_angle;
+    update_the_robot_position();
+
+    if(std::abs(ros::Time::now().toSec() - the_lidar_scan.header.stamp.toSec())
+          < std::abs(corresp_pos.time.toSec() - the_lidar_scan.header.stamp.toSec()))
+        {
+          save_corresponding_position();
+        }
+
+    previous_pos.time = ros::Time::now();
+    previous_pos.position = the_robot_position;
+    previous_pos.parameters.lin_dis = lin_dis;
+    previous_pos.parameters.ang_dis = ang_dis;
+    saved_pos.saved_position.push_bak(previous_pos);
 
     robot_position.publish( the_robot_position );
     // ROS_INFO("Position published");
@@ -281,8 +228,79 @@ private:
   //Two method 0 or 1
   int test_method;
 
+  //Save the position so that you send the corresponding position with the lidar scan
+  robo7_msgs::saved_position saved_pos;
+  robo7_msgs::former_position previous_pos;
+  robo7_msgs::former_position corresp_pos;
 
 
+  void position_measure_request()
+  {
+    //Indix to show that there is a new request coming
+    request_id++;
+
+    //Compute the_P_minus_matrix that is going to be used
+    compute_P_minus();
+
+    //Prepare the measure request message
+    time_start = ros::Time::now();
+    new_measure_request.time = corresp_pos.time;
+    new_measure_request.id_number = request_id;
+    new_measure_request.current_position = corresp_pos.position;
+    new_measure_request.lidar_scan = the_lidar_scan;
+    new_measure_request.P_minus_matrix.line0.clear();
+    new_measure_request.P_minus_matrix.line1.clear();
+    new_measure_request.P_minus_matrix.line2.clear();
+    for(int i=0; i<3; i++)
+    {
+      new_measure_request.P_minus_matrix.line0.push_back(the_P_minus_matrix(0,i));
+      new_measure_request.P_minus_matrix.line1.push_back(the_P_minus_matrix(1,i));
+      new_measure_request.P_minus_matrix.line2.push_back(the_P_minus_matrix(2,i));
+    }
+
+    //Publish the new request
+    new_measure_req_pub.publish( new_measure_request );
+
+    //Update the variables
+    previous_measure_received = false; //We have to wait for the answer
+    prev_mes_time = ros::Time::now().toSec(); //We update the last measure request
+  }
+
+  void position_measure_response()
+  {
+    // ROS_INFO("Measure feedback");
+    //Extract the usefull datas out of the measure received
+    position_error(0) = measure_feedback.error.x;
+    position_error(1) = measure_feedback.error.y;
+    position_error(2) = measure_feedback.error.z;
+    for(int i=0; i<3; i++)
+    {
+      the_P_matrix(0,i) = measure_feedback.P_matrix.line0[i];
+      the_P_matrix(1,i) = measure_feedback.P_matrix.line1[i];
+      the_P_matrix(2,i) = measure_feedback.P_matrix.line2[i];
+    }
+
+    //Update the position based on the error received
+    if(true_kalman)
+    {
+      update_position_error();
+    }
+    else
+    {
+      the_robot_position = measure_feedback.position_corrected;
+      x_pos = the_robot_position.linear.x;
+      y_pos = the_robot_position.linear.y;
+      z_angle = the_robot_position.angular.z;
+    }
+
+
+    // ROS_INFO("Corrected position (x,y,thet) : %f, %f, %f, %f", x_pos, y_pos, z_angle, measure_feedback.position_corrected.linear.x);
+
+    //Set the new_measure_value back to zero
+    reinitialize_A_W_matrices();
+    new_measure_received = false;
+    previous_measure_received = true;
+  }
 
   void update_position_error()
   {
@@ -391,6 +409,26 @@ private:
     the_P_minus_matrix = the_A_matrix * the_P_matrix * the_A_matrix.transpose() + the_W_matrix * the_Q_matrix * the_W_matrix.transpose();
     // ROS_INFO("matrix P minus : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_minus_matrix(0,0), the_P_minus_matrix(0,1), the_P_minus_matrix(0,2), the_P_minus_matrix(1,0), the_P_minus_matrix(1,1), the_P_minus_matrix(1,2), the_P_minus_matrix(2,0), the_P_minus_matrix(2,1), the_P_minus_matrix(2,2));
   }
+
+  void update_the_robot_position()
+  {
+    the_robot_position.linear.x = x_pos;
+    the_robot_position.linear.y = y_pos;
+    the_robot_position.linear.z = 0;
+    the_robot_position.angular.x = 0;
+    the_robot_position.angular.y = 0;
+    the_robot_position.angular.z = z_angle;
+  }
+
+  void save_corresponding_position()
+  {
+    corresp_pos.time = ros::Time::now();
+    corresp_pos.position = the_robot_position;
+    corresp_pos.parameters.lin_dis = lin_dis;
+    corresp_pos.parameters.ang_dis = ang_dis;
+  }
+
+
 
   //Other useful function
   int sgn(int v)
