@@ -88,7 +88,7 @@
      <param name="distance_to_jump_to_next_point" type="double" value="0.1"/>
    </node>
 
-   <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
+   <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>
 
 <!-- The mapping nodes -->
    <node pkg="ransac" type="ransac" name="ransac" output="screen">
