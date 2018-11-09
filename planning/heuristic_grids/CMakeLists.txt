@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(occupancy_grid)
+project(heuristic_grids)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -22,10 +22,10 @@ include_directories(
 )
 
 
-add_executable(occupancy_grid_server src/occupancy_grid_server.cpp)
+add_executable(heuristic_grids_server src/heuristic_grids_server.cpp)
 
-target_link_libraries(occupancy_grid_server
+target_link_libraries(heuristic_grids_server
 ${catkin_LIBRARIES}
 ${OpenCV_LIBRARIES})
 
-add_dependencies(occupancy_grid_server ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(heuristic_grids_server ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

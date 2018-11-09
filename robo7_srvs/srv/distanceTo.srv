@@ -1,0 +1,13 @@
+# Request
+# The position in x,y coordinates
+
+float32 x_from
+float32 y_from
+float32 x_to
+float32 y_to
+---
+
+# Response
+# an integer of the distance between the requested positions
+
+int32 distance

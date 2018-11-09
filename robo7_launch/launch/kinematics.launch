@@ -84,7 +84,7 @@
 
    <node pkg="test_service" type="test_service" name="test_service" output="screen"/>
 
-   <node pkg="occupancy_grid" type="occupancy_grid_server" name="occupancy_grid_server"
+   <node pkg="heuristic_grids" type="heuristic_grids_server" name="heuristic_grids_server"
      output="screen">
      <param name="grid_square_size" type="double" value="0.02"/>
      <param name="min_distance" type="double" value="0.13"/>

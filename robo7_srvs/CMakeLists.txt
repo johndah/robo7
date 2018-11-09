@@ -16,6 +16,7 @@ add_service_files(
   scanCoord.srv
   objectToRobot.srv
   path_planning.srv
+  distanceTo.srv
 )
 
 
