@@ -146,7 +146,7 @@ public:
 
     robot_position.publish( the_robot_position );
     std_msgs::Float32 angle;
-    angle = z_angle;
+    angle.data = z_angle;
     angle_pub.publish( angle );
     // ROS_INFO("Position published");
   }
