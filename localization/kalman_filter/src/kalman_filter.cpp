@@ -130,6 +130,18 @@ public:
     //Dead_reckoning part
     timeUpdate();
 
+    update_the_robot_position();
+
+    update_saved_positions();
+
+    positions_for_matrices.push_back( previous_pos );
+
+    robot_position.publish( the_robot_position );
+    std_msgs::Float32 angle;
+    angle.data = z_angle;
+    angle_pub.publish( angle );
+    // ROS_INFO("Position published");
+
     //If we didn't get any measures for a while (and the previous one has already been received)
     if((ros::Time::now().toSec() - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().toSec() - init_time > 5))
     {
@@ -144,17 +156,6 @@ public:
       previous_measure_received = false; //We have to wait for the answer
     }
 
-    update_the_robot_position();
-
-    update_saved_positions();
-
-    positions_for_matrices.push_back( previous_pos );
-
-    robot_position.publish( the_robot_position );
-    std_msgs::Float32 angle;
-    angle.data = z_angle;
-    angle_pub.publish( angle );
-    // ROS_INFO("Position published");
   }
 
 
