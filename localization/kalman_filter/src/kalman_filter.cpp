@@ -332,6 +332,7 @@ private:
     //Compute the linear distances and angles of the robot
     x_pos += (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
     y_pos += (lin_dis * sin(z_angle)) * (1 + linear_adjustment);
+    ROS_INFO("%lf", angular_adjustment);
     z_angle += ang_dis * (1 + angular_adjustment);
     z_angle = wrapAngle(z_angle);
   }
