@@ -149,6 +149,7 @@ public:
       // print_position_times();
       // ROS_INFO("Times are (lidar, corres_pos, diff): %lf, %lf, %lf", the_lidar_scan.header.stamp.toSec(), corresp_pos.time.toSec(), std::abs(the_lidar_scan.header.stamp.toSec() - corresp_pos.time.toSec()));
       find_corresponding_position_for_lidar();
+      ROS_INFO("(x,y,thet) : (%lf, %lf, %lf)", corres_pos.position.linear.x, corres_pos.position.linear.y, corres_pos.position.angular.z);
       compute_matrices();
       position_measure_request();
       reinitialize_the_position_for_matrices();
