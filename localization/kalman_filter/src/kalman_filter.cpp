@@ -514,14 +514,14 @@ private:
     return ((2*pi*encod)/(tics_per_rev));
   }
 
-  float linear_distance_linearised(float left_wheel_speed, float right_wheel_speed)
+  float linear_distance_linearised(float left_wheel_distance, float right_wheel_distance)
   {
-    return wheel_radius*(right_wheel_speed + left_wheel_speed)/2;
+    return wheel_radius*(right_wheel_distance + left_wheel_distance)/2;
   }
 
-  float angular_distance_linearised(float left_wheel_speed, float right_wheel_speed)
+  float angular_distance_linearised(float left_wheel_distance, float right_wheel_distance)
   {
-    return wheel_radius*(right_wheel_speed - left_wheel_speed)/wheel_distance;
+    return wheel_radius*(right_wheel_distance - left_wheel_distance)/wheel_distance;
   }
 
   float wrapAngle( double angle )
