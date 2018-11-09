@@ -37,7 +37,7 @@
      <param name="initial_z_angle" type="double" value="1.57"/>
      <!-- Linear adjustement of the dead_reckoning : increase it accuracy -->
      <param name="linear_adjustment" type="double" value="0.0481"/>
-     <param name="angular_adjustment" type="double" value="0.0015"/> <!-- designed value = 0.0235 -->
+     <param name="angular_adjustment" type="double" value="0.0015"/> <!-- designed value = 0.00235 -->
      <!-- Method use for the localization -->
      <param name="which_method" type="int" value="1"/>
      <param name="use_measure" type="bool" value="false"/>
