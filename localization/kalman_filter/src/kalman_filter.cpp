@@ -13,7 +13,7 @@
 
 
 // Control @ 10 Hz
-double control_frequency = 100.0;
+double control_frequency = 50.0;
 
 class kalmanFilter
 {
