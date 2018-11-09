@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 
     ros::Publisher occupancy_grid_pub = nh.advertise<nav_msgs::OccupancyGrid>("OccupancyGrid", 100);
 
-    ROS_INFO("Init occupancy visualization");
+    ROS_INFO("Init Occupancy Visualization");
     OccupancyGrid occupancy_grid = OccupancyGrid(nh, occupancy_grid_pub);
 
     ros::Rate loop_rate(10);
