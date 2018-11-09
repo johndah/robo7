@@ -40,7 +40,7 @@
      <param name="angular_adjustment" type="double" value="0.0235"/> <!-- designed value = 0.0235 -->
      <!-- Method use for the localization -->
      <param name="which_method" type="int" value="1"/>
-     <param name="use_measure" type="bool" value="true"/>
+     <param name="use_measure" type="bool" value="false"/>
      <param name="trust_lidar_and_dead_reckoning" type="bool" value="true"/>
      <param name="time_between_two_measure" type="double" value="0.4"/>
      <!-- The sigma values for the dead_reckoning -->
@@ -52,7 +52,7 @@
    <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
       <param name="sigma_x" type="double" value="0.01"/>
       <param name="sigma_y" type="double" value="0.01"/>
-      <param name="sigma_angle" type="double" value="0.1"/>
+      <param name="sigma_angle" type="double" value="0.01"/>
    </node>
 
 <!-- The path_planner nodes -->
