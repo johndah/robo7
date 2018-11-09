@@ -145,7 +145,7 @@ public:
     positions_for_matrices.push_back( previous_pos );
 
     robot_position.publish( the_robot_position );
-    angle_pub.publish( the_robot_position.angular.z );
+    angle_pub.publish( z_angle );
     // ROS_INFO("Position published");
   }
 
