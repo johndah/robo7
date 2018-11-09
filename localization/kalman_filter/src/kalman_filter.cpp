@@ -478,6 +478,7 @@ private:
       }
       else if(test_method == 1)
       {
+        ROS_INFO("there");
         matrix_A_it = Eigen::Matrix3f::Zero(3,3);
         matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
         matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
