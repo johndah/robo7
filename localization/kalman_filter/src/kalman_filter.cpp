@@ -145,7 +145,9 @@ public:
     positions_for_matrices.push_back( previous_pos );
 
     robot_position.publish( the_robot_position );
-    angle_pub.publish( z_angle );
+    std_msgs::Float32 angle;
+    angle = z_angle;
+    angle_pub.publish( angle );
     // ROS_INFO("Position published");
   }
 
