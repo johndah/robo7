@@ -64,7 +64,7 @@
     <param name="smoothing_kernel_sd" type="int" value="3"/>
   </node>
 
-  <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
+  <!-- <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/> -->
 
   <node pkg="path_testing" type="path_testing" name="path_testing" output="screen"/>
 

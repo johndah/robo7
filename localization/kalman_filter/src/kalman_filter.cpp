@@ -9,6 +9,7 @@
 
 #include <robo7_msgs/MeasureFeedback.h>
 #include <robo7_msgs/MeasureRequest.h>
+#include <robo7_msgs/former_position.h>
 
 
 // Control @ 10 Hz
@@ -71,6 +72,9 @@ public:
     previous_measure_received = true;
     new_measure_received = false;
 
+    //Initialize the vector containing all the saved position
+    saver_initialization();
+
     //Initialize the different matrices
     initialize_matrices();
 
@@ -123,22 +127,20 @@ public:
     //If we didn't get any measures for a while (and the previous one has already been received)
     if((ros::Time::now().toSec() - prev_mes_time > time_threshold)&&(previous_measure_received)&&use_measure&&(ros::Time::now().toSec() - init_time > 5))
     {
+      // print_position_times();
+      // ROS_INFO("Times are (lidar, corres_pos, diff): %lf, %lf, %lf", the_lidar_scan.header.stamp.toSec(), corresp_pos.time.toSec(), std::abs(the_lidar_scan.header.stamp.toSec() - corresp_pos.time.toSec()));
+      find_corresponding_position_for_lidar();
+      compute_matrices();
       position_measure_request();
+      reinitialize_the_position_for_matrices();
+      reinitialize_A_W_matrices();
     }
 
     update_the_robot_position();
 
-    if(std::abs(ros::Time::now().toSec() - the_lidar_scan.header.stamp.toSec())
-          < std::abs(corresp_pos.time.toSec() - the_lidar_scan.header.stamp.toSec()))
-        {
-          save_corresponding_position();
-        }
+    update_saved_positions();
 
-    previous_pos.time = ros::Time::now();
-    previous_pos.position = the_robot_position;
-    previous_pos.parameters.lin_dis = lin_dis;
-    previous_pos.parameters.ang_dis = ang_dis;
-    saved_pos.saved_position.push_bak(previous_pos);
+    positions_for_matrices.push_back( previous_pos );
 
     robot_position.publish( the_robot_position );
     // ROS_INFO("Position published");
@@ -229,18 +231,19 @@ private:
   int test_method;
 
   //Save the position so that you send the corresponding position with the lidar scan
-  robo7_msgs::saved_position saved_pos;
   robo7_msgs::former_position previous_pos;
   robo7_msgs::former_position corresp_pos;
+  int corres_pos_index;
+  std::vector<robo7_msgs::former_position> saved_position;
+  std::vector<robo7_msgs::former_position> positions_for_matrices;
+  int number_of_instance_saved;
+  int index_for_position;
 
 
   void position_measure_request()
   {
     //Indix to show that there is a new request coming
     request_id++;
-
-    //Compute the_P_minus_matrix that is going to be used
-    compute_P_minus();
 
     //Prepare the measure request message
     time_start = ros::Time::now();
@@ -293,11 +296,7 @@ private:
       z_angle = the_robot_position.angular.z;
     }
 
-
-    // ROS_INFO("Corrected position (x,y,thet) : %f, %f, %f, %f", x_pos, y_pos, z_angle, measure_feedback.position_corrected.linear.x);
-
     //Set the new_measure_value back to zero
-    reinitialize_A_W_matrices();
     new_measure_received = false;
     previous_measure_received = true;
   }
@@ -330,46 +329,42 @@ private:
     tot_dist += lin_dis;
     tot_angle += ang_dis;
 
-    //Then we need to update the different matrices
-    if(test_method == 0)
-    {
-      matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
-      matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
-      matrix_W_it(0,0) = cos(z_angle);
-      matrix_W_it(1,1) = sin(z_angle);
-
-      //Add those iteration matrices to the main ones
-      the_A_matrix = the_A_matrix + matrix_A_it;
-      the_W_matrix = the_W_matrix + matrix_W_it;
-    }
-    else if(test_method == 1)
-    {
-      matrix_A_it = Eigen::Matrix3f::Zero(3,3);
-      matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
-      matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
-      matrix_W_it(0,0) = cos(z_angle);
-      matrix_W_it(1,1) = sin(z_angle);
-
-      //Add those iteration matrices to the main ones
-      the_A_matrix = the_A_matrix + matrix_A_it;
-      the_W_matrix = matrix_W_it;
-    }
-    else
-    {
-      the_A_matrix(0,2) = -tot_dist * sin(z_angle);
-      the_A_matrix(1,2) = tot_dist * cos(z_angle);
-
-      // ROS_INFO("Z_angle : %lf", z_angle);
-      the_W_matrix(0,0) = cos(z_angle);
-      the_W_matrix(1,1) = sin(z_angle);
-      the_W_matrix(2,2) = 1;
-    }
-
     //Compute the linear distances and angles of the robot
     x_pos += (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
     y_pos += (lin_dis * sin(z_angle)) * (1 + linear_adjustment);
     z_angle += ang_dis * (1 + angular_adjustment);
     z_angle = wrapAngle(z_angle);
+  }
+
+  void saver_initialization()
+  {
+    number_of_instance_saved = (int)control_frequency;
+    previous_pos.time = ros::Time::now();
+    previous_pos.position = the_robot_position;
+    previous_pos.parameters.lin_dis = lin_dis;
+    previous_pos.parameters.ang_dis = ang_dis;
+    saved_position = std::vector<robo7_msgs::former_position>(number_of_instance_saved, previous_pos);
+  }
+
+  void print_position_times()
+  {
+    for(int i=0; i < number_of_instance_saved; i++)
+    {
+      ROS_INFO("%d, %lf", saved_position[i].id_number, saved_position[i].time.toSec());
+    }
+  }
+
+  void update_saved_positions()
+  {
+    previous_pos.time = ros::Time::now();
+    previous_pos.id_number++;
+    previous_pos.position = the_robot_position;
+    previous_pos.parameters.lin_dis = lin_dis;
+    previous_pos.parameters.ang_dis = ang_dis;
+
+    //Update all the saved positions
+    saved_position.erase(saved_position.begin());
+    saved_position.push_back(previous_pos);
   }
 
   void initialize_matrices()
@@ -428,7 +423,82 @@ private:
     corresp_pos.parameters.ang_dis = ang_dis;
   }
 
+  void find_corresponding_position_for_lidar()
+  {
+    corresp_pos = saved_position[saved_position.size()-1];
+    for(int i = static_cast<int>(saved_position.size()) - 2; i > -1; i--)
+    {
+      if(std::abs(corresp_pos.time.toSec() - the_lidar_scan.header.stamp.toSec()) > std::abs(saved_position[i].time.toSec() - the_lidar_scan.header.stamp.toSec()))
+      {
+        corresp_pos = saved_position[i];
+        corres_pos_index = i;
+      }
+    }
+  }
 
+  void reinitialize_the_position_for_matrices()
+  {
+    positions_for_matrices.clear();
+    for(int i = index_for_position; i < number_of_instance_saved - 1; i++)
+    {
+      positions_for_matrices.push_back(saved_position[i]);
+    }
+  }
+
+  void compute_matrices()
+  {
+    int j = positions_for_matrices[0].id_number;
+    int j_init = j;
+    ROS_INFO("%d, %d", j, saved_position[corres_pos_index].id_number);
+
+    //Then we need to update the different matrices
+    while(j <= saved_position[corres_pos_index].id_number)
+    {
+      //Update the needed parameters
+      lin_dis = positions_for_matrices[j - j_init].parameters.lin_dis;
+      ang_dis = positions_for_matrices[j - j_init].parameters.ang_dis;
+      z_angle = positions_for_matrices[j - j_init].position.angular.z;
+
+
+      if(test_method == 0)
+      {
+        matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
+        matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
+        matrix_W_it(0,0) = cos(z_angle);
+        matrix_W_it(1,1) = sin(z_angle);
+
+        //Add those iteration matrices to the main ones
+        the_A_matrix = the_A_matrix + matrix_A_it;
+        the_W_matrix = the_W_matrix + matrix_W_it;
+      }
+      else if(test_method == 1)
+      {
+        matrix_A_it = Eigen::Matrix3f::Zero(3,3);
+        matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
+        matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
+        matrix_W_it(0,0) = cos(z_angle);
+        matrix_W_it(1,1) = sin(z_angle);
+
+        //Add those iteration matrices to the main ones
+        the_A_matrix = the_A_matrix + matrix_A_it;
+        the_W_matrix = matrix_W_it;
+      }
+      else
+      {
+        the_A_matrix(0,2) = -tot_dist * sin(z_angle);
+        the_A_matrix(1,2) = tot_dist * cos(z_angle);
+
+        // ROS_INFO("Z_angle : %lf", z_angle);
+        the_W_matrix(0,0) = cos(z_angle);
+        the_W_matrix(1,1) = sin(z_angle);
+        the_W_matrix(2,2) = 1;
+      }
+      j++;
+    }
+
+    //Compute the_P_minus_matrix that is going to be used
+    compute_P_minus();
+  }
 
   //Other useful function
   int sgn(int v)

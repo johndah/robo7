@@ -32,7 +32,6 @@ add_message_files(
   aObject.msg
   allObjects.msg
   former_position.msg
-  saved_position.msg
   dead_reck_param.msg
 )
 

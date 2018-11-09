@@ -2,4 +2,4 @@
 
 # Data of the points
 float32 lin_dis
-float32 ang_dist 
+float32 ang_dis 
