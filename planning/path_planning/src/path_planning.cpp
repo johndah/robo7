@@ -12,6 +12,7 @@
 #include <robo7_msgs/trajectory.h>
 #include <robo7_msgs/trajectory_point.h>
 #include "robo7_srvs/IsGridOccupied.h"
+#include "robo7_srvs/distanceTo.h"
 #include <robo7_srvs/path_planning.h>
 
 class Node;
@@ -20,29 +21,32 @@ class PathPlanning;
 typedef std::shared_ptr<Node> node_ptr;
 float pi = 3.14159265358979323846;
 
+/*
 int target_index = 5; // 0-7
 std::vector<float> x_targets = {.2, .55, 1.6, 1, 2.2, 2.2, .8};
 std::vector<float> y_targets = {2.2, .55, .8, 1.55, 2.2, .2, .2};
 float theta_target = pi / 2;
-
+*/
 float x_target; // = x_targets[target_index];
 float y_target; // = y_targets[target_index];
+//float distance_grid[][];
 
 class Node
 {
   public:
 	std::shared_ptr<Node> parent;
-	ros::ServiceClient occupancy_client;
+	ros::ServiceClient occupancy_client, distance_client;
 	robo7_srvs::IsGridOccupied occupancy_srv;
+	robo7_srvs::distanceTo distance_srv;
 	float x, y, theta;
 	float angular_velocity, time, dt;
-	float path_cost, cost_to_come, path_length;
+	float path_cost, cost_to_come, cost_to_go, path_length;
 	float steering_angle_max, angular_velocity_resolution;
 	float tolerance_radius, tolerance_angle;
 	unsigned int node_id;
 	std::vector<float> path_x, path_y, path_theta;
 
-	Node(float x, float y, float theta, float angular_velocity, std::vector<float> path_x, std::vector<float> path_y, std::vector<float> path_theta, float path_cost, float cost_to_come, ros::ServiceClient occupancy_client, unsigned int node_id)
+	Node(float x, float y, float theta, float angular_velocity, std::vector<float> path_x, std::vector<float> path_y, std::vector<float> path_theta, float path_cost, float cost_to_come, ros::ServiceClient occupancy_client, ros::ServiceClient distance_client, unsigned int node_id)
 	{
 		this->x = x;
 		this->y = y;
@@ -64,19 +68,31 @@ class Node
 		this->tolerance_angle = pi / 8;
 
 		this->occupancy_client = occupancy_client;
+		this->distance_client = distance_client;
 
 		this->node_id = node_id;
 	}
 
 	float getCost()
 	{
-		//ROS_INFO("crC: %f, ctG: %f", cost_to_come, 20*getHeuristicCost());
-		return cost_to_come + 7 * getHeuristicCost();
+		//ROS_INFO("crC: %f, ctG: %f", cost_to_come, cost_to_go);
+		return cost_to_come + cost_to_go;
 	}
 
 	float getHeuristicCost()
 	{
-		return sqrt(pow(x - x_target, 2.0) + pow(y - y_target, 2.0));
+		this->distance_srv.request.x_from = x;
+		this->distance_srv.request.y_from = y;
+		this->distance_srv.request.x_to = x_target;
+		this->distance_srv.request.y_to = y_target;
+
+		if (false) //(this->distance_client.call(this->distance_srv))
+		{ 
+			//ROS_INFO("client %f    dist  %f", (float)this->distance_srv.response.distance, (float)sqrt(pow(x - x_target, 2.0) + pow(y - y_target, 2.0)));
+			return this->distance_srv.response.distance;
+		}
+		else
+			return sqrt(pow(x - x_target, 2.0) + pow(y - y_target, 2.0));
 	}
 
 	float distanceSquared(node_ptr other_node)
@@ -118,17 +134,17 @@ class PathPlanning
 	ros::NodeHandle nh;
 	ros::ServiceServer path_service;
 	ros::Publisher paths_pub, start_goal_pub, goal_path_pub, target_path_pub, trajectory_pub;
-	//ros::Subscriber robot_position;
-	ros::ServiceClient occupancy_client;
+	ros::Subscriber robot_position;
+	ros::ServiceClient occupancy_client, distance_client;
 	robo7_srvs::IsGridOccupied occupancy_srv;
+	robo7_srvs::distanceTo distance_srv;
 	//robo7_msgs::paths target_paths_msg;
 	//robo7_msgs::trajectory_point trajectory_point_msg;
 	//robo7_msgs::trajectory trajectory_msg;
 
-
 	// Initialisation
-	float goal_radius_tolerance, angle_tolerance;
-	float x0, y0, theta0, position_updated;
+	float goal_radius_tolerance;
+	float x0, y0, theta0, x0_default, y0_default, theta0_default, position_updated;
 	unsigned int node_id;
 
 	PathPlanning(ros::NodeHandle nh, ros::Publisher paths_pub, ros::Publisher start_goal_pub, ros::Publisher target_path_pub, ros::Publisher trajectory_pub)
@@ -139,29 +155,29 @@ class PathPlanning
 		this->target_path_pub = target_path_pub;
 		this->trajectory_pub = trajectory_pub;
 
-		x0 = .215;
-		y0 = .2;
+		// x0 = .215;
+		// y0 = .2;
 
-		//robot_position = nh.subscribe("/localization/kalman_filter/position", 1000, &PathPlanning::getPositionCallBack, this);
-		
+		robot_position = nh.subscribe("/localization/kalman_filter/position", 1000, &PathPlanning::getPositionCallBack, this);
+
 		path_service = nh.advertiseService("path_service", &PathPlanning::getPath, this);
 
 		this->occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
+		this->distance_client = nh.serviceClient<robo7_srvs::distanceTo>("/distance_grid/distance");
 
 		goal_radius_tolerance = .03;
-		angle_tolerance = 2 * pi;
 		node_id = 1;
 	}
 
-	/*void getPositionCallBack(const geometry_msgs::Twist::ConstPtr &msg)
+	void getPositionCallBack(const geometry_msgs::Twist::ConstPtr &msg)
 	{
 
-		x0 = msg->linear.x;
-		y0 = msg->linear.y;
-		theta0 = msg->angular.z;
+		x0_default = msg->linear.x;
+		y0_default = msg->linear.y;
+		theta0_default = msg->angular.z;
 
 		position_updated = true;
-	}*/
+	}
 
 	std::vector<node_ptr> getSuccessorNodes(node_ptr node)
 	{
@@ -169,7 +185,7 @@ class PathPlanning
 		float angle_diff_tol, cost_to_come, cost;
 		std::vector<node_ptr> successors;
 		std::vector<float> path_x, path_y, path_theta;
-		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
+		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
 
 		//node->steering_angle_max = pi;
 		//node->angular_velocity_resolution = pi /2;
@@ -229,7 +245,8 @@ class PathPlanning
 				path_y.push_back(y);
 				path_theta.push_back(theta);
 
-				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, this->node_id++);
+				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
+				// successor_node->cost_to_go = successor_node->getHeuristicCost();
 
 				if (successor_node->inCollision())
 				{
@@ -237,7 +254,7 @@ class PathPlanning
 					break;
 				}
 
-				if (successor_node->distanceSquared(node_target) < this->goal_radius_tolerance && std::abs(successor_node->theta - theta_target) < this->angle_tolerance)
+				if (successor_node->distanceSquared(node_target) < this->goal_radius_tolerance)
 					break;
 
 				this->occupancy_srv.request.x = x;
@@ -264,12 +281,11 @@ class PathPlanning
 
 			if (add_node)
 			{
-
+					/*
 				if (this->occupancy_client.call(this->occupancy_srv))
 				{
 					cost = this->occupancy_srv.response.occupancy * penalty_factor;
 					path_cost += cost;
-					/*
 					if (cost <= 0.6)
 					{
 
@@ -282,10 +298,13 @@ class PathPlanning
 						node->steering_angle_max = 2*pi;
 						node->angular_velocity_resolution = pi;
 					}
-					*/
 				}
+					*/
 				cost_to_come += path_cost;
-				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, this->node_id++);
+
+				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
+				successor_node->cost_to_go = successor_node->getHeuristicCost();
+
 				successors.push_back(successor_node);
 			}
 			//}
@@ -309,6 +328,13 @@ class PathPlanning
 		y0 = robot_position.linear.y;
 		theta0 = robot_position.angular.z;
 
+		if (position_updated && x0 == 0 && y0 == 0 && theta0 == 0)
+		{
+			x0 = x0_default;
+			y0 = y0_default;
+			theta0 = theta0_default;
+		}
+
 		x_target = destination_position.x;
 		y_target = destination_position.y;
 
@@ -317,7 +343,8 @@ class PathPlanning
 
 		//if (position_updated){
 
-		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
+		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
+		node_target->cost_to_go = 0;
 
 		float theta0_resolution = pi / 2;
 
@@ -325,7 +352,8 @@ class PathPlanning
 		//for (float theta0 = -pi; theta0 < pi; theta0 += theta0_resolution)
 		{
 			//ROS_INFO("Theta0 %f", theta0);
-			node_ptr node_start = std::make_shared<Node>(x0, y0, t0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, this->node_id++);
+			node_ptr node_start = std::make_shared<Node>(x0, y0, t0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
+			node_start->cost_to_go = node_start->getHeuristicCost();
 			alive_nodes.push_back(node_start);
 		}
 
@@ -415,7 +443,7 @@ class PathPlanning
 	bool get_found_path(node_ptr node_current, robo7_srvs::path_planning::Response &res)
 	{
 		std::vector<node_ptr> target_nodes; //goal_path_nodes
-		robo7_msgs::path target_path_msg; // goal_path_msg
+		robo7_msgs::path target_path_msg;   // goal_path_msg
 		robo7_msgs::paths target_paths_msg; //goal_paths_msg
 		robo7_msgs::trajectory_point trajectory_point_msg;
 		robo7_msgs::trajectory trajectory_msg;
@@ -465,9 +493,12 @@ class PathPlanning
 					float angular_velocity = partial_node->angular_velocity;
 					float path_cost = partial_node->path_cost / parts;
 					float cost_to_come = partial_node->cost_to_come;
+					float cost_to_go = partial_node->getHeuristicCost();
+
 
 					cost_to_come += path_cost;
-					partial_node_parent = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, this->node_id++);
+					partial_node_parent = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
+					partial_node_parent->cost_to_go = partial_node_parent->getHeuristicCost();
 
 					partial_node->parent = partial_node_parent;
 					partial_node = partial_node_parent;
@@ -558,7 +589,7 @@ int main(int argc, char **argv)
 
 	ros::Rate loop_rate(control_frequency);
 
-		/*
+	/*
 	while (nh.ok())
 	{
 		if (!search_done)

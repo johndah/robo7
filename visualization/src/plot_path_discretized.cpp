@@ -11,7 +11,7 @@
 #include <geometry_msgs/Vector3.h>
 
 // Control @ 10 Hz
-double control_frequency = 1.0;
+double control_frequency = 100.0;
 
 
 class plot_trajectory

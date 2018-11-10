@@ -227,7 +227,7 @@ int main(int argc, char **argv)
   ROS_INFO("Init paths");
   Paths paths = Paths(nh, marker_array_pub, marker_pub);
 
-  ros::Rate loop_rate(10);
+  ros::Rate loop_rate(100);
 
   while (ros::ok())
   {
