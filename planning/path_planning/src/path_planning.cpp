@@ -76,7 +76,7 @@ class Node
 	float getCost()
 	{
 		//ROS_INFO("crC: %f, ctG: %f", cost_to_come, cost_to_go);
-		return cost_to_come + cost_to_go;
+		return cost_to_come + getHeuristicCost();//cost_to_go;
 	}
 
 	float getHeuristicCost()
@@ -303,7 +303,7 @@ class PathPlanning
 				cost_to_come += path_cost;
 
 				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
-				successor_node->cost_to_go = successor_node->getHeuristicCost();
+				//successor_node->cost_to_go = successor_node->getHeuristicCost();
 
 				successors.push_back(successor_node);
 			}
@@ -344,7 +344,7 @@ class PathPlanning
 		//if (position_updated){
 
 		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
-		node_target->cost_to_go = 0;
+		//node_target->cost_to_go = 0;
 
 		float theta0_resolution = pi / 2;
 
@@ -353,7 +353,7 @@ class PathPlanning
 		{
 			//ROS_INFO("Theta0 %f", theta0);
 			node_ptr node_start = std::make_shared<Node>(x0, y0, t0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
-			node_start->cost_to_go = node_start->getHeuristicCost();
+			//node_start->cost_to_go = node_start->getHeuristicCost();
 			alive_nodes.push_back(node_start);
 		}
 
@@ -493,12 +493,12 @@ class PathPlanning
 					float angular_velocity = partial_node->angular_velocity;
 					float path_cost = partial_node->path_cost / parts;
 					float cost_to_come = partial_node->cost_to_come;
-					float cost_to_go = partial_node->getHeuristicCost();
+					//float cost_to_go = partial_node->getHeuristicCost();
 
 
 					cost_to_come += path_cost;
 					partial_node_parent = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
-					partial_node_parent->cost_to_go = partial_node_parent->getHeuristicCost();
+					//partial_node_parent->cost_to_go = partial_node_parent->getHeuristicCost();
 
 					partial_node->parent = partial_node_parent;
 					partial_node = partial_node_parent;

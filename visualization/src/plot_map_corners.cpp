@@ -12,7 +12,7 @@
 #include <geometry_msgs/Vector3.h>
 
 // Control @ 10 Hz
-double control_frequency = 100.0;
+double control_frequency = 10.0;
 
 
 class plot_map_corners

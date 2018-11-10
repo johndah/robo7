@@ -9,7 +9,7 @@
 #include <robo7_msgs/destination_point.h>
 
 // Control @ 10 Hz
-double control_frequency = 100.0;
+double control_frequency = 10.0;
 
 
 class dest_point_plot

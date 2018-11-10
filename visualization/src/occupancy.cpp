@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     ROS_INFO("Init Occupancy Visualization");
     OccupancyGrid occupancy_grid = OccupancyGrid(nh, occupancy_grid_pub, distance_grid_pub);
 
-    ros::Rate loop_rate(1000);
+    ros::Rate loop_rate(10);
 
     while (ros::ok())
     {
