@@ -161,7 +161,7 @@ public:
       // ROS_INFO("height: %d", o.height);
 
       // ROS_INFO("-------------------------------");
-      
+
       // ROS_INFO("x: %d", large_bbx.x);
       // ROS_INFO("y: %d", large_bbx.y);
       // ROS_INFO("width: %d", large_bbx.width);
@@ -193,7 +193,7 @@ public:
 
         result = origImg.clone();
 
-        // draw bounding boxes 
+        // draw bounding boxes
         for (const auto& o : objects)
         {
           cv::rectangle(result, o, { 0, 255, 0 }, 2, 8);
@@ -203,8 +203,8 @@ public:
 
           // ROS_INFO("x: %d", o.x);
           // ROS_INFO("y: %d", o.y);
-          // ROS_INFO("width: %d", o.width);
-          // ROS_INFO("height: %d", o.height);
+          ROS_INFO("width: %d", o.width);
+          ROS_INFO("height: %d", o.height);
 
           // make sure the bbx don't out of the image
           if (o.x >= 0 && o.y >= 0 && (o.x + o.width) <= origImg.cols && (o.y + o.height) <= origImg.rows)
@@ -223,8 +223,8 @@ public:
             // get the pos of the object
             geometry_msgs::Point pos;
 
-            
-            
+
+
             if (pCloud_cam.width != 0)
             {
               pos = pixelTo3DPoint(pCloud_cam, center.x, center.y);
