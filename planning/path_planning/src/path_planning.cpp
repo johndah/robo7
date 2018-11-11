@@ -75,8 +75,11 @@ class Node
 
 	float getCost()
 	{
-		//ROS_INFO("crC: %f, ctG: %f", cost_to_come, cost_to_go);
-		return cost_to_come + getHeuristicCost();//cost_to_go;
+		//ROS_INFO("crC: %f, ctG: %f", cost_to_come, cost_to_go/10);
+		//ROS_INFO("crC: %f, ctG: %f", cost_to_come, 7*getHeuristicCost());
+		//return cost_to_come + 7* sqrt(pow(x - x_target, 2.0) + pow(y - y_target, 2.0));//cost_to_go;
+
+		return cost_to_come + cost_to_go / 10;
 	}
 
 	float getHeuristicCost()
@@ -86,8 +89,8 @@ class Node
 		this->distance_srv.request.x_to = x_target;
 		this->distance_srv.request.y_to = y_target;
 
-		if (false) //(this->distance_client.call(this->distance_srv))
-		{ 
+		if (this->distance_client.call(this->distance_srv))
+		{
 			//ROS_INFO("client %f    dist  %f", (float)this->distance_srv.response.distance, (float)sqrt(pow(x - x_target, 2.0) + pow(y - y_target, 2.0)));
 			return this->distance_srv.response.distance;
 		}
@@ -246,7 +249,7 @@ class PathPlanning
 				path_theta.push_back(theta);
 
 				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
-				// successor_node->cost_to_go = successor_node->getHeuristicCost();
+				successor_node->cost_to_go = successor_node->getHeuristicCost();
 
 				if (successor_node->inCollision())
 				{
@@ -281,7 +284,7 @@ class PathPlanning
 
 			if (add_node)
 			{
-					/*
+				/*
 				if (this->occupancy_client.call(this->occupancy_srv))
 				{
 					cost = this->occupancy_srv.response.occupancy * penalty_factor;
@@ -303,7 +306,7 @@ class PathPlanning
 				cost_to_come += path_cost;
 
 				node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
-				//successor_node->cost_to_go = successor_node->getHeuristicCost();
+				successor_node->cost_to_go = successor_node->getHeuristicCost();
 
 				successors.push_back(successor_node);
 			}
@@ -344,7 +347,7 @@ class PathPlanning
 		//if (position_updated){
 
 		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
-		//node_target->cost_to_go = 0;
+		node_target->cost_to_go = 0;
 
 		float theta0_resolution = pi / 2;
 
@@ -353,7 +356,7 @@ class PathPlanning
 		{
 			//ROS_INFO("Theta0 %f", theta0);
 			node_ptr node_start = std::make_shared<Node>(x0, y0, t0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
-			//node_start->cost_to_go = node_start->getHeuristicCost();
+			node_start->cost_to_go = node_start->getHeuristicCost();
 			alive_nodes.push_back(node_start);
 		}
 
@@ -365,9 +368,11 @@ class PathPlanning
 		start_goal_msg.path_x = start_goal_x;
 		start_goal_msg.path_y = start_goal_y;
 
+		for (i = 0; i > 10; i++)
+			start_goal_pub.publish(start_goal_msg);
+			
 		while (!alive_nodes.empty())
 		{
-			start_goal_pub.publish(start_goal_msg);
 
 			auto min_cost_iterator = std::min_element(alive_nodes.begin(), alive_nodes.end(), [](const node_ptr a, const node_ptr b) {
 				return a->getCost() < b->getCost();
@@ -495,10 +500,9 @@ class PathPlanning
 					float cost_to_come = partial_node->cost_to_come;
 					//float cost_to_go = partial_node->getHeuristicCost();
 
-
 					cost_to_come += path_cost;
 					partial_node_parent = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
-					//partial_node_parent->cost_to_go = partial_node_parent->getHeuristicCost();
+					partial_node_parent->cost_to_go = partial_node_parent->getHeuristicCost();
 
 					partial_node->parent = partial_node_parent;
 					partial_node = partial_node_parent;

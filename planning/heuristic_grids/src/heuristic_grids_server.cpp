@@ -371,7 +371,7 @@ int main(int argc, char **argv)
 
 	HeuristicGridsServer heuristic_grids_server;
 
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(5000);
 
 	ROS_INFO("Heuristic grids server running");
 
