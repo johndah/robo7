@@ -54,26 +54,70 @@ public:
       obj_detected_pub = n.advertise<acfDetector::detectedObj>("/vision/object", 1);
 
 
+      std::string Model;
+      n.param<string>("/multi_acf_detector/Model", Model, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb");
+      all_detector = std::make_shared<acf::Detector>(Model);
+      if (all_detector.get() && all_detector->good()) {
+        all_detector->setDoNonMaximaSuppression(true);
+      }
+      else
+        ROS_INFO("Fail to load detector!");
+
       std::string y_Model;
-      n.param<string>("/multi_acf_detector/y_Model", y_Model, "/home/jtao/CLionProjects/lab1/model_color_mag.cpb");
+      n.param<string>("/multi_acf_detector/y_Model", y_Model, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/y_model.cpb");
       y_detector = std::make_shared<acf::Detector>(y_Model);
       if (y_detector.get() && y_detector->good()) {
         y_detector->setDoNonMaximaSuppression(true);
       }
+      else
+        ROS_INFO("Fail to load y_detector!");
+
 
       std::string g_Model;
-      n.param<string>("/multi_acf_detector/g_Model", g_Model, "/home/jtao/CLionProjects/lab1/model_color_mag.cpb");
+      n.param<string>("/multi_acf_detector/g_Model", g_Model, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/g_model.cpb");
       g_detector = std::make_shared<acf::Detector>(g_Model);
       if (g_detector.get() && g_detector->good()) {
         g_detector->setDoNonMaximaSuppression(true);
       }
+      else
+        ROS_INFO("Fail to load g_detector!");
 
       std::string o_Model;
-      n.param<string>("/multi_acf_detector/o_Model", o_Model, "/home/jtao/CLionProjects/lab1/model_color_mag.cpb");
+      n.param<string>("/multi_acf_detector/o_Model", o_Model, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/o_model.cpb");
       o_detector = std::make_shared<acf::Detector>(o_Model);
       if (o_detector.get() && o_detector->good()) {
         o_detector->setDoNonMaximaSuppression(true);
       }
+      else
+        ROS_INFO("Fail to load o_detector!");
+
+      std::string r_Model;
+      n.param<string>("/multi_acf_detector/r_Model", r_Model, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/r_model.cpb");
+      r_detector = std::make_shared<acf::Detector>(r_Model);
+      if (r_detector.get() && r_detector->good()) {
+        r_detector->setDoNonMaximaSuppression(true);
+      }
+      else
+        ROS_INFO("Fail to load r_detector!");
+
+      std::string b_Model;
+      n.param<string>("/multi_acf_detector/b_Model", b_Model, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/b_model.cpb");
+      b_detector = std::make_shared<acf::Detector>(b_Model);
+      if (b_detector.get() && b_detector->good()) {
+        b_detector->setDoNonMaximaSuppression(true);
+      }
+      else
+        ROS_INFO("Fail to load b_detector!");
+
+
+      std::string p_Model;
+      n.param<string>("/multi_acf_detector/p_Model", p_Model, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/p_model.cpb");
+      p_detector = std::make_shared<acf::Detector>(p_Model);
+      if (p_detector.get() && p_detector->good()) {
+        p_detector->setDoNonMaximaSuppression(true);
+      }
+      else
+        ROS_INFO("Fail to load b_detector!");
 
     }
 
@@ -195,8 +239,8 @@ public:
 
         // ROS_INFO("x: %d", o.x);
         // ROS_INFO("y: %d", o.y);
-        ROS_INFO("width: %d", o.width);
-        ROS_INFO("height: %d", o.height);
+        // ROS_INFO("width: %d", o.width);
+        // ROS_INFO("height: %d", o.height);
 
         // make sure the bbx don't out of the image
         if (o.x >= 0 && o.y >= 0 && (o.x + o.width) <= origImg.cols && (o.y + o.height) <= origImg.rows)
@@ -240,11 +284,11 @@ public:
               }
             }
 
-            ROS_INFO("center x: %d", center.x);
-            ROS_INFO("center y: %d", center.y);
-            ROS_INFO("final_x: %f", pos.x);
-            ROS_INFO("final_y: %f", pos.y);
-            ROS_INFO("final_z: %f", pos.z);
+            // ROS_INFO("center x: %d", center.x);
+            // ROS_INFO("center y: %d", center.y);
+            // ROS_INFO("final_x: %f", pos.x);
+            // ROS_INFO("final_y: %f", pos.y);
+            // ROS_INFO("final_z: %f", pos.z);
           }
 
           // obj_pos_pub.publish(pos);
@@ -271,12 +315,16 @@ public:
       {
         resultImg = origImg.clone();
 
-        ACFdetector::applyDetector(y_detector, origImg);
-        ACFdetector::applyDetector(g_detector, origImg);
-        ACFdetector::applyDetector(o_detector, origImg);
+        // ACFdetector::applyDetector(all_detector, origImg);
+        // ACFdetector::applyDetector(y_detector, origImg);
+        // ACFdetector::applyDetector(g_detector, origImg);
+        // ACFdetector::applyDetector(o_detector, origImg);
+        // ACFdetector::applyDetector(r_detector, origImg);
+        // ACFdetector::applyDetector(b_detector, origImg);
+        ACFdetector::applyDetector(p_detector, origImg);
 
-        imshow("Detected image", resultImg);
-        // cv::waitKey(10);
+        cv::imshow("Detected image", resultImg);
+        cv::waitKey(5);
       }
 
   	}
@@ -287,9 +335,13 @@ private:
 	cv_bridge::CvImagePtr cv_ptr;
   sensor_msgs::PointCloud2 pCloud_cam;
 
+  AcfPtr all_detector;
   AcfPtr y_detector;
   AcfPtr g_detector;
   AcfPtr o_detector;
+  AcfPtr r_detector;
+  AcfPtr b_detector;
+  AcfPtr p_detector;
 
   cv::Mat resultImg;
 

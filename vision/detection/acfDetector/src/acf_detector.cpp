@@ -49,7 +49,7 @@ public:
 
 
       std::string sModel;
-      n.param<string>("/acf_detector/sModel", sModel, "/home/jtao/CLionProjects/lab1/model_color_mag.cpb");
+      n.param<string>("/acf_detector/sModel", sModel, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb");
 
       // std::string sModel = "/home/jtao/CLionProjects/lab1/model_color_mag.cpb";
       detector = std::make_shared<acf::Detector>(sModel);

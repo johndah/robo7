@@ -62,7 +62,7 @@ class classifier:
     def applyModel(self, data):
         origImg = self.bridge.imgmsg_to_cv2(data, "bgr8")
 
-        origImg = cv2.resize(origImg, (60, 60))
+        origImg = cv2.resize(origImg, (width, height))
 
         cv2.imshow("object image", origImg)
         cv2.waitKey(3)
