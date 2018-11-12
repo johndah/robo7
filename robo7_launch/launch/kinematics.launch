@@ -48,7 +48,7 @@
      <param name="sigma_y" type="double" value="10.0"/>
      <param name="sigma_angle" type="double" value="10"/>
 
-     <param name="time_adjust" type="double" value="-0.1"/>
+     <param name="time_adjust" type="double" value="-0.05"/>
    </node>
 
    <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
