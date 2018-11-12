@@ -469,6 +469,8 @@ private:
     int j_init = j;
     // ROS_INFO("%d, %d", j, saved_position[corres_pos_index].id_number);
 
+    tot_dist = 0;
+    tot_angle = 0;
     //Then we need to update the different matrices
     while(j <= saved_position[corres_pos_index].id_number)
     {
@@ -499,6 +501,11 @@ private:
 
         //Add those iteration matrices to the main ones
         the_A_matrix = the_A_matrix + matrix_A_it;
+      }
+      else
+      {
+        tot_dist += lin_dis;
+        tot_angle += ang_dis;
       }
       j++;
     }
