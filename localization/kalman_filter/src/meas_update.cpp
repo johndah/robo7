@@ -62,7 +62,7 @@ public:
     if((new_measure_request.id_number != msg->id_number)&&(msg->id_number >= 1))
     {
       // ROS_INFO("New Measure");
-      new_measure_request.time = msg->time;;
+      new_measure_request.time = msg->time;
       new_measure_request.id_number = msg->id_number;
       new_measure_request.current_position = msg->current_position;
       new_measure_request.lidar_scan = msg->lidar_scan;
