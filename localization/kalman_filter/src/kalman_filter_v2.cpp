@@ -32,6 +32,9 @@ public:
   ros::Publisher new_measure_req_pub;
   ros::Publisher angle_pub;
 
+  ros::ServiceClient scan_to_coord_srv;
+  ros::ServiceClient icp_srv;
+
   kalmanFilter()
   {
     ROS_INFO("Starting EKF");
@@ -85,7 +88,10 @@ public:
     encoder_Right = n.subscribe("/r_motor/encoder", 1, &kalmanFilter::encoder_R_callBack, this);
     measure_sub = n.subscribe("/localization/meas_update/measure_response", 1, &kalmanFilter::measureFeedback_callBack, this);
     scan_sub = n.subscribe("/scan", 1, &kalmanFilter::scan_callBack, this);
-    map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &meas_update::maze_map_callBack, this);
+    map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &kalmanFilter::maze_map_callBack, this);
+
+    scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
+    icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
 
     // robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/pos", 10);
     robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/position", 1);
@@ -248,6 +254,10 @@ private:
   std::vector<robo7_msgs::former_position> positions_for_matrices;
   int number_of_instance_saved;
   int index_for_position;
+
+  //Service request
+  robo7_msgs::cornerList all_wall_points;
+  geometry_msgs::Twist corrected_position;
 
 
   void position_measure_request()
