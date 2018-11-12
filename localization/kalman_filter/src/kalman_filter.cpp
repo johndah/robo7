@@ -49,6 +49,7 @@ public:
     n.param<int>("/kalman_filter/which_method", test_method, 0);
     n.param<bool>("/kalman_filter/use_measure", use_measure, false);
     n.param<bool>("/kalman_filter/trust_lidar_and_dead_reckoning", true_kalman, false);
+    n.param<double>("/kalman_filter/time_adjustment", time_adjust, 0.1);
 
     wheel_radius = 97.6/2000.0; //m
     wheel_distance = 217.3/1000.0; //m
@@ -232,6 +233,7 @@ private:
   double prev_mes_time;
   double init_time;
   double time_threshold;
+  double time_adjust;
   ros::Time time_start;
 
   //the scan sensor_msgs
@@ -446,7 +448,7 @@ private:
     corresp_pos = saved_position[saved_position.size()-1];
     for(int i = static_cast<int>(saved_position.size()) - 2; i > -1; i--)
     {
-      if(std::abs(corresp_pos.time.toSec() - the_lidar_scan.header.stamp.toSec()) > std::abs(saved_position[i].time.toSec() - the_lidar_scan.header.stamp.toSec()))
+      if(std::abs(corresp_pos.time.toSec() + time_adjust - the_lidar_scan.header.stamp.toSec()) > std::abs(saved_position[i].time.toSec() + time_adjust - the_lidar_scan.header.stamp.toSec()))
       {
         corresp_pos = saved_position[i];
         corres_pos_index = i;
