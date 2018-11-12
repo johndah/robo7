@@ -41,6 +41,7 @@ float y_point_robot;
 
 //Break info parameters
 bool danger;
+bool drive_backward;
 
 //Controller parameters
 float a_P;
