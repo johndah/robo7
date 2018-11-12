@@ -406,6 +406,12 @@ private:
 
   void compute_P_minus()
   {
+    ROS_INFO("matrx A : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_A_matrix(0,0), the_A_matrix(0,1), the_A_matrix(0,2), the_A_matrix(1,0), the_A_matrix(1,1), the_A_matrix(1,2), the_A_matrix(2,0), the_A_matrix(2,1), the_A_matrix(2,2));
+    ROS_INFO("matrix P: %f, %f, %f, %f, %f, %f, %f, %f, %f", the_P_matrix(0,0), the_P_matrix(0,1), the_P_matrix(0,2), the_P_matrix(1,0), the_P_matrix(1,1), the_P_matrix(1,2), the_P_matrix(2,0), the_P_matrix(2,1), the_P_matrix(2,2));
+    ROS_INFO("matrix W : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_W_matrix(0,0), the_W_matrix(0,1), the_W_matrix(0,2), the_W_matrix(1,0), the_W_matrix(1,1), the_W_matrix(1,2), the_W_matrix(2,0), the_W_matrix(2,1), the_W_matrix(2,2));
+    ROS_INFO("matrix Q : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_Q_matrix(0,0), the_Q_matrix(0,1), the_Q_matrix(0,2), the_Q_matrix(1,0), the_Q_matrix(1,1), the_Q_matrix(1,2), the_Q_matrix(2,0), the_Q_matrix(2,1), the_Q_matrix(2,2));
+    inter = (identity - the_K_matrix * the_H_matrix);
+    ROS_INFO("Inter : %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf", inter(0,0), inter(0,1), inter(0,2), inter(1,0), inter(1,1), inter(1,2), inter(2,0), inter(2,1), inter(2,2));
     the_P_minus_matrix = the_A_matrix * the_P_matrix * the_A_matrix.transpose() + the_W_matrix * the_Q_matrix * the_W_matrix.transpose();
   }
 
