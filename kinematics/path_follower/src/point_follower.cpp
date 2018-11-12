@@ -131,6 +131,12 @@ float findangle(float x, float y)
   // return atan(x/y);
 }
 
+float wrapAngle( double angle )
+{
+  float twoPi = 2.0 * pi;
+  return angle - twoPi * floor( angle / twoPi );
+}
+
 void PID_update()
 {
   dif_error = diff_angle - error;
@@ -178,6 +184,7 @@ int main(int argc, char **argv)
   n.param<float>("/point_follower/error_sat", err_sat, 10);
   n.param<float>("/point_follower/angular_velocity_saturation_threshold", desire_vel_threshold, 10);
   n.param<float>("/point_follower/linear_speed", aver_lin_vel, 0);
+  n.param<float>("/point_follower/drive_backward", drive_backward, false);
 
   ros::Subscriber twist_sub = n.subscribe("/kinematics/path_follower/dest_point", 1, destination_callback);
   ros::Subscriber robot_position = n.subscribe("/localization/kalman_filter/position", 1, position_callBack);
@@ -208,15 +215,15 @@ int main(int argc, char **argv)
     point_plot.linear.y = y_point_robot;
 
     dist_left = sqrt(pow(x_point_robot,2) + pow(y_point_robot,2));
-    if(drive_backward)
+    if(!drive_backward)
     {
       diff_angle = findangle(x_point_robot, y_point_robot);
-      velocity_sign = + 1;
+      velocity_sign = +1;
     }
     else
     {
-      diff_angle = findangle(x_point_robot, y_point_robot) + pi;
-      velocity_sign = - 1;
+      diff_angle = wrapAngle(findangle(x_point_robot, y_point_robot) + pi);
+      velocity_sign = -1;
     }
 
 
