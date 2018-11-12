@@ -108,7 +108,7 @@
 
    <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
      <param name="distance_to_destination_threshold" type="double" value="0.05"/>
-     <param name="distance_to_jump_to_next_point" type="double" value="0.1"/>
+     <param name="distance_to_jump_to_next_point" type="double" value="0.4"/>
    </node>
 
    <node pkg="path_follower" type="breaker" name="breaker" output="screen"/>
