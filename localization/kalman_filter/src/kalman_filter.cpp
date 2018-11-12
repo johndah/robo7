@@ -265,7 +265,7 @@ private:
     //Prepare the measure request message
     time_start = left_encoder_msg.header.stamp;
     new_measure_request.time = corresp_pos.header.stamp;
-    new_measure_request.header.seq = request_id;
+    new_measure_request.id_number = request_id;
     new_measure_request.current_position = corresp_pos.position;
     new_measure_request.lidar_scan = the_lidar_scan;
     new_measure_request.P_minus_matrix.line0.clear();
