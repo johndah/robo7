@@ -208,7 +208,17 @@ int main(int argc, char **argv)
     point_plot.linear.y = y_point_robot;
 
     dist_left = sqrt(pow(x_point_robot,2) + pow(y_point_robot,2));
-    diff_angle = findangle(x_point_robot, y_point_robot);
+    if(drive_backward)
+    {
+      diff_angle = findangle(x_point_robot, y_point_robot);
+      velocity_sign = + 1;
+    }
+    else
+    {
+      diff_angle = findangle(x_point_robot, y_point_robot) + pi;
+      velocity_sign = - 1;
+    }
+
 
     if(dist_left < dist_threshold)
     {
