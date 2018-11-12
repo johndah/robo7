@@ -500,16 +500,6 @@ private:
         //Add those iteration matrices to the main ones
         the_A_matrix = the_A_matrix + matrix_A_it;
       }
-      else
-      {
-        the_A_matrix(0,2) = -tot_dist * sin(z_angle);
-        the_A_matrix(1,2) = tot_dist * cos(z_angle);
-
-        // ROS_INFO("Z_angle : %lf", z_angle);
-        the_W_matrix(0,0) = cos(corresp_pos.position.angular.z);
-        the_W_matrix(1,1) = sin(corresp_pos.position.angular.z);
-        the_W_matrix(2,2) = 1;
-      }
       j++;
     }
 
@@ -517,6 +507,16 @@ private:
     {
       matrix_A_it = Eigen::Matrix3f::Identity(3,3);
       the_A_matrix = the_A_matrix + matrix_A_it;
+
+      // ROS_INFO("Z_angle : %lf", z_angle);
+      the_W_matrix(0,0) = cos(corresp_pos.position.angular.z);
+      the_W_matrix(1,1) = sin(corresp_pos.position.angular.z);
+      the_W_matrix(2,2) = 1;
+    }
+    else if(test_method == 2)
+    {
+      the_A_matrix(0,2) = -tot_dist * sin(corresp_pos.position.angular.z);
+      the_A_matrix(1,2) = tot_dist * cos(corresp_pos.position.angular.z);
 
       // ROS_INFO("Z_angle : %lf", z_angle);
       the_W_matrix(0,0) = cos(corresp_pos.position.angular.z);
