@@ -224,7 +224,8 @@ int main(int argc, char **argv)
     }
     else
     {
-      diff_angle = wrapAngle(findangle(x_point_robot, y_point_robot) + pi);
+      diff_angle = findangle(x_point_robot, y_point_robot) + pi;
+      // diff_angle = wrapAngle(diff_angle);
       velocity_sign = -1;
     }
 
