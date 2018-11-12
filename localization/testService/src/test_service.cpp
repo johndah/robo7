@@ -14,6 +14,7 @@
 #include <robo7_srvs/ICPAlgorithm.h>
 #include <robo7_srvs/callServiceTest.h>
 #include <robo7_srvs/PathFollowerSrv.h>
+#include <robo7_srvs/objectToRobot.h>
 
 
 
@@ -27,10 +28,12 @@ public:
   ros::Subscriber laser_scan;
   ros::Subscriber map_point_sub;
   ros::Subscriber position_sub;
+  ros::Subscriber position_object;
   ros::ServiceClient scan_to_coord_srv;
   ros::ServiceClient ransac_srv;
   ros::ServiceClient icp_srv;
   ros::ServiceClient path_follower_srv;
+  ros::ServiceClient object_position_srv;
   ros::ServiceServer to_test_service;
 
   test_server()
@@ -48,6 +51,12 @@ public:
     ransac_srv = n.serviceClient<robo7_srvs::RansacWall>("/localization/ransac");
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
     map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &test_server::maze_map_callBack, this);
+
+
+    object_position_srv = n.serviceClient<robo7_srvs::objectToRobot>("/localization/object_to_robot");
+    map_point_sub = n.subscribe("/vision/object/pos", 1, &test_server::object_callBack, this);
+
+
   }
 
   void laser_scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
@@ -72,6 +81,11 @@ public:
   void maze_map_callBack(const robo7_msgs::cornerList::ConstPtr &msg)
   {
     all_wall_points = *msg;
+  }
+
+  void object_callBack(const geometry_msgs::Point::ConstPtr &msg)
+  {
+    object_pos = *msg;
   }
 
 
@@ -152,7 +166,16 @@ public:
       req3.the_lidar_corners = res1.the_lidar_point_cloud;
       req3.the_wall_corners = all_wall_points;
       icp_srv.call(req3, res3);
+    }
 
+    else if(req.which_service == 5)
+    {
+      robo7_srvs::objectToRobot::Request req1;
+      robo7_srvs::objectToRobot::Response res1;
+      req1.camera_position = object_pos;
+      req1.robot_position = robot_position;
+      object_position_srv.call(req1, res1);
+      done = res1.success;
     }
 
     res.success = done;
@@ -164,6 +187,8 @@ public:
 private:
   sensor_msgs::LaserScan the_lidar_scan;
   geometry_msgs::Twist robot_position;
+
+  geometry_msgs::Point object_pos;
 
   robo7_msgs::cornerList all_wall_points;
 

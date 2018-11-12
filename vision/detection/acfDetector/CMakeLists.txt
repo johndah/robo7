@@ -8,17 +8,25 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   roscpp
+  message_generation
 )
 
 find_package(OpenCV REQUIRED)
 
-catkin_package(
-  DEPENDS
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge geometry_msgs image_transport
+add_message_files(
+  FILES
+  detectedObj.msg
 )
 
-include_directories(include 
-	${catkin_INCLUDE_DIRS} 
+generate_messages(DEPENDENCIES std_msgs sensor_msgs)
+
+catkin_package(
+  DEPENDS
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge geometry_msgs image_transport message_runtime
+)
+
+include_directories(include
+	${catkin_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS})
 
 # /home/jtao/robo7_vision/ACF_detection/acf/_install/gcc-5-pic-hid-sections-lto/include)
@@ -36,9 +44,19 @@ endif()
 
 add_executable(acf_detector src/acf_detector.cpp)
 
-target_link_libraries(acf_detector 
-${catkin_LIBRARIES} 
+target_link_libraries(acf_detector
+${catkin_LIBRARIES}
 ${OpenCV_LIBRARIES}
-/home/jtao/robo7_vision/ACF_detection/acf/_install/gcc-5-pic-hid-sections-lto/lib/libacf.so)
+/home/ras17/acf/_install/gcc-5-pic-hid-sections-lto/lib/libacf.so)
 
-add_dependencies(acf_detector ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) 
+add_dependencies(acf_detector ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
+add_executable(multi_acf_detector src/multi_acf_detector.cpp)
+
+target_link_libraries(multi_acf_detector
+${catkin_LIBRARIES}
+${OpenCV_LIBRARIES}
+/home/ras17/acf/_install/gcc-5-pic-hid-sections-lto/lib/libacf.so)
+
+add_dependencies(multi_acf_detector ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
