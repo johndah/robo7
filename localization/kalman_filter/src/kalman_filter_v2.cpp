@@ -341,7 +341,7 @@ private:
 
   void update_position_error()
   {
-    ROS_INFO("the error : %lf, %lf, %lf", position_error_vect(0), position_error_vect(1), position_error_vect(2));
+    // ROS_INFO("the error : %lf, %lf, %lf", position_error_vect(0), position_error_vect(1), position_error_vect(2));
     x_pos += position_error_vect(0);
     y_pos += position_error_vect(1);
     z_angle += position_error_vect(2);
