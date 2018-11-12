@@ -401,7 +401,7 @@ private:
   {
     //Reinitialize the A&W matrices
     the_A_matrix = Eigen::Matrix3f::Identity(3,3);
-    the_W_matrix = Eigen::MatrixXf::Zero(3,3);
+    the_W_matrix = Eigen::MatrixXf::Identity(3,3);
   }
 
   void compute_P_minus()
