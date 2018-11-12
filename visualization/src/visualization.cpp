@@ -39,18 +39,16 @@ public:
     z2_pos = 0;
     nh.param<float>("/visualization/lidar_angle", lidar_angle, 0);
 
-    robot_position1 = n.subscribe("/localization/kalman_filter/position", 1, &markerRviz::deadReckoning_callBack, this);
+    robot_position1 = n.subscribe("/localization/kalman_filter/position_timed", 1, &markerRviz::deadReckoning_callBack, this);
     robot_position2 = n.subscribe("/localization/icp/position", 1, &markerRviz::deadReckoning2_callBack, this);
 
     marker_parameters1 = n.advertise<visualization_msgs::Marker>("robotMarker", 1);
     marker_parameters2 = n.advertise<visualization_msgs::Marker>("robotMarker2", 1);
   }
 
-  void deadReckoning_callBack(const geometry_msgs::Twist::ConstPtr &msg)
+  void deadReckoning_callBack(const robo7_msgs::former_position::ConstPtr &msg)
   {
-      x_pos = msg->linear.x;
-      y_pos = msg->linear.y;
-      z_angle = msg->angular.z;
+      robot_position = *msg;
   }
 
   void deadReckoning2_callBack(const geometry_msgs::Twist::ConstPtr &msg)
@@ -90,8 +88,8 @@ public:
     // marker.color.g = 0.0;
     // marker.color.b = 0.0;
 
+    marker.header = robot_position.header;
     marker.header.frame_id = "robot";
-    marker.header.stamp = t;
     marker.ns = "map";
     marker.id = 0;
     marker.type = visualization_msgs::Marker::ARROW;
@@ -116,7 +114,7 @@ public:
     tf::Quaternion q;
     q.setRPY(x_angle, y_angle, z_angle);
     transform.setRotation(q);
-    br.sendTransform(tf::StampedTransform(transform, t, "map", "robot"));
+    br.sendTransform(tf::StampedTransform(transform, robot_position.header.stamp, "map", "robot"));
 
     //Set the frame centered on the robot
     transform2.setOrigin( tf::Vector3(x2_pos, y2_pos, z2_pos) );
@@ -148,6 +146,8 @@ private:
   float x2_angle;
   float y2_angle;
   float z2_angle;
+
+  robo7_msgs::former_position robot_position;
 
   //Time constant
   ros::Time t;
