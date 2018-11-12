@@ -389,7 +389,7 @@ private:
 
   void update_saved_positions()
   {
-    previous_pos.time = ros::Time::now();
+    previous_pos.time = left_encoder_msg.header.stamp;
     previous_pos.id_number++;
     previous_pos.position = the_robot_position;
     previous_pos.parameters.lin_dis = lin_dis;
