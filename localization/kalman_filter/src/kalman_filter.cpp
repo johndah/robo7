@@ -375,7 +375,7 @@ private:
   {
     for(int i=0; i < number_of_instance_saved; i++)
     {
-      ROS_INFO("%d, %lf", saved_position[i].header.seq, saved_position[i].header.seq.toSec());
+      ROS_INFO("%d, %lf", saved_position[i].header.seq, saved_position[i].header.stamp.toSec());
     }
   }
 
