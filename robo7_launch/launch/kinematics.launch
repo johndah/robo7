@@ -49,6 +49,12 @@
      <param name="sigma_angle" type="double" value="10"/>
    </node>
 
+   <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
+      <param name="sigma_x" type="double" value="0.1"/>
+      <param name="sigma_y" type="double" value="0.1"/>
+      <param name="sigma_angle" type="double" value="0.01"/>
+   </node>
+
    <!-- <node pkg="kalman_filter" type="kalman_filter_v2" name="kalman_filter" output="screen">
 
      <param name="initial_x_pos" type="double" value="2.20"/>
@@ -69,12 +75,6 @@
      <param name="sigma_y_lidar" type="double" value="0.01"/>
      <param name="sigma_angle_lidar" type="double" value="0.01"/>
    </node> -->
-
-   <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
-      <param name="sigma_x" type="double" value="0.1"/>
-      <param name="sigma_y" type="double" value="0.1"/>
-      <param name="sigma_angle" type="double" value="1"/>
-   </node>
 
 <!-- The path_planner nodes -->
   <node pkg="occupancy_grid" type="occupancy_grid_server" name="occupancy_grid_server"
