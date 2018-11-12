@@ -225,6 +225,7 @@ private:
   Eigen::Vector3f position_error;
   geometry_msgs::Twist current_position;
   geometry_msgs::Twist the_robot_position;
+  geometry_msgs::Twist corresp_position;
 
   //Declaration of all the vectors
   Eigen::Vector3f position_error_vect;
@@ -417,6 +418,7 @@ private:
 
   void update_the_robot_position()
   {
+    time_now = ros::Time::now();
     the_robot_position.linear.x = x_pos;
     the_robot_position.linear.y = y_pos;
     the_robot_position.linear.z = 0;
@@ -437,6 +439,12 @@ private:
 
     //Compute the_P_minus_matrix that is going to be used
     compute_P_minus();
+  }
+
+  void position_for_lidar()
+  {
+    diff_time = time_now.toSec() - the_lidar_scan.header.stamp.toSec();
+    corresp_pos = the_robot_position;
   }
 
   //Other useful function

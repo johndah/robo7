@@ -477,15 +477,15 @@ private:
       //Update the needed parameters
       lin_dis = positions_for_matrices[j - j_init].parameters.lin_dis;
       ang_dis = positions_for_matrices[j - j_init].parameters.ang_dis;
-      z_angle = positions_for_matrices[j - j_init].position.angular.z;
+      // z_angle = positions_for_matrices[j - j_init].position.angular.z;
 
 
       if(test_method == 0)
       {
-        matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
-        matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
-        matrix_W_it(0,0) = cos(z_angle);
-        matrix_W_it(1,1) = sin(z_angle);
+        matrix_A_it(0,2) = -(lin_dis * sin(positions_for_matrices[j - j_init].position.angular.z)) * (1 + linear_adjustment);
+        matrix_A_it(1,2) = (lin_dis * cos(positions_for_matrices[j - j_init].position.angular.z)) * (1 + linear_adjustment);
+        matrix_W_it(0,0) = cos(positions_for_matrices[j - j_init].position.angular.z);
+        matrix_W_it(1,1) = sin(positions_for_matrices[j - j_init].position.angular.z);
 
         //Add those iteration matrices to the main ones
         the_A_matrix = the_A_matrix + matrix_A_it;
@@ -494,10 +494,10 @@ private:
       else if(test_method == 1)
       {
         matrix_A_it = Eigen::Matrix3f::Zero(3,3);
-        matrix_A_it(0,2) = -(lin_dis * sin(z_angle)) * (1 + linear_adjustment);
-        matrix_A_it(1,2) = (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
-        matrix_W_it(0,0) = cos(z_angle);
-        matrix_W_it(1,1) = sin(z_angle);
+        matrix_A_it(0,2) = -(lin_dis * sin(positions_for_matrices[j - j_init].position.angular.z)) * (1 + linear_adjustment);
+        matrix_A_it(1,2) = (lin_dis * cos(positions_for_matrices[j - j_init].position.angular.z)) * (1 + linear_adjustment);
+        matrix_W_it(0,0) = cos(positions_for_matrices[j - j_init].position.angular.z);
+        matrix_W_it(1,1) = sin(positions_for_matrices[j - j_init].position.angular.z);
 
         //Add those iteration matrices to the main ones
         the_A_matrix = the_A_matrix + matrix_A_it;
