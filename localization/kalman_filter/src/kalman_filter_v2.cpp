@@ -441,11 +441,11 @@ private:
     compute_P_minus();
   }
 
-  void position_for_lidar()
-  {
-    diff_time = time_now.toSec() - the_lidar_scan.header.stamp.toSec();
-    corresp_pos = the_robot_position;
-  }
+  // void position_for_lidar()
+  // {
+  //   diff_time = time_now.toSec() - the_lidar_scan.header.stamp.toSec();
+  //   corresp_pos = the_robot_position;
+  // }
 
   //Other useful function
   int sgn(int v)
