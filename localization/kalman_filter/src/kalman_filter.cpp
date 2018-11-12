@@ -10,6 +10,7 @@
 #include <robo7_msgs/MeasureFeedback.h>
 #include <robo7_msgs/MeasureRequest.h>
 #include <robo7_msgs/former_position.h>
+#include <robo7_msgs/robotPositionTest.h>
 
 
 // Control @ 10 Hz
@@ -26,6 +27,7 @@ public:
   ros::Publisher robot_position;
   ros::Publisher new_measure_req_pub;
   ros::Publisher angle_pub;
+  ros::Publisher encoders_pub;
 
   kalmanFilter()
   {
@@ -88,6 +90,7 @@ public:
     robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/position", 1);
     new_measure_req_pub = n.advertise<robo7_msgs::MeasureRequest>("/localization/kalman_filter/measure_request", 1);
     angle_pub = n.advertise<std_msgs::Float32>("/localization/kalman_filter/angle", 1);
+    encoders_pub = n.advertise<robo7_msgs::robotPositionTest>("/localization/kalman_filter/position_time", 1);
 
     ROS_INFO("EKF initialisation done");
   }
@@ -143,6 +146,12 @@ public:
     std_msgs::Float32 angle;
     angle.data = z_angle;
     angle_pub.publish( angle );
+    robo7_msgs::robotPositionTest test_message;
+    test_message.time = previous_pos.time;
+    test_message.position = the_robot_position;
+    test_message.right_encoder = right_encoder_msg;
+    test_message.left_encoder = left_encoder_msg;
+    encoders_pub.publish( test_message );
     // ROS_INFO("Position published");
 
     //If we didn't get any measures for a while (and the previous one has already been received)
