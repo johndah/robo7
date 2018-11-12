@@ -8,10 +8,12 @@
 #include <cmath>
 #include <vector>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Vector3.h>
+
 
 typedef std::vector<float> float_vector;
 std::vector<float_vector> paths_x, paths_y, goal_paths_x, goal_paths_y, trajectory_x, trajectory_y;
-float_vector start_goal_x(2), start_goal_y(2);                                                     
+float x_target, y_target;
 int number_paths = 0;
 float path_height = 0.1;
 float marker_height = 0.15;
@@ -19,24 +21,24 @@ float marker_height = 0.15;
 class Paths
 {
 public:
-  ros::Subscriber robot_position, paths_sub, start_goal_sub, goal_path_sub, target_paths_sub;
+  ros::Subscriber robot_position, paths_sub, target_sub, goal_path_sub, target_paths_sub;
   ros::Publisher marker_array_pub, marker_pub;
 
   //Initialisation
   float x0, y0, theta0;
-  bool paths_received, start_goal_received, goal_path_received, trajectory_received;
+  bool paths_received, target_received, goal_path_received, trajectory_received;
 
   Paths(ros::NodeHandle nh, ros::Publisher marker_array_pub, ros::Publisher marker_pub)
   {
     this->paths_sub = nh.subscribe("/path_planning/paths_vector", 1000, &Paths::pathsCallback, this);
-    this->start_goal_sub = nh.subscribe("/path_planning/start_goal", 1000, &Paths::startGoalCallback, this);
+    this->target_sub = nh.subscribe("/path_planning/target", 1000, &Paths::targetCallback, this);
     this->target_paths_sub = nh.subscribe("/path_planning/target_path", 1000, &Paths::trajectoryCallback, this);
 
     this->marker_array_pub = marker_array_pub;
     this->marker_pub = marker_pub;
 
     this->paths_received = false;
-    this->start_goal_received = false;
+    this->target_received = false;
     this->trajectory_received = false;
   }
 
@@ -53,14 +55,12 @@ public:
     paths_received = true;
   }
 
-  void startGoalCallback(const robo7_msgs::path::ConstPtr &start_goal_msg)
+  void targetCallback(const geometry_msgs::Point::ConstPtr &target_msg)
   {
-    start_goal_x[0] = start_goal_msg->path_x[0];
-    start_goal_x[1] = start_goal_msg->path_x[1];
-    start_goal_y[0] = start_goal_msg->path_y[0];
-    start_goal_y[1] = start_goal_msg->path_y[1];
+    x_target = target_msg->x;
+    y_target = target_msg->y;
 
-    start_goal_received = true;
+    target_received = true;
   }
 
   void trajectoryCallback(const robo7_msgs::paths::ConstPtr &target_paths_msg)
@@ -80,7 +80,7 @@ public:
   void updatePaths()
   {
 
-    visualization_msgs::MarkerArray curve_array_msg, points_array_msg, start_goal_msg, goal_paths_msg, target_points_msg, target_paths_msg;
+    visualization_msgs::MarkerArray curve_array_msg, points_array_msg, target_msg, goal_paths_msg, target_points_msg, target_paths_msg;
 
     if (this->paths_received)
     {
@@ -172,45 +172,33 @@ public:
       }
     }
 
-    if (this->start_goal_received)
+    if (this->target_received)
     {
-      start_goal_msg.markers.resize(2);
+        target_msg.markers.resize(1);
 
-      for (int i = 0; i < 2; i++)
-      {
-        start_goal_msg.markers[i].header.frame_id = "/map";
-        start_goal_msg.markers[i].header.stamp = ros::Time::now();
-        start_goal_msg.markers[i].action = visualization_msgs::Marker::ADD;
-        start_goal_msg.markers[i].pose.orientation.w = 1.0;
-        start_goal_msg.markers[i].id = i;
+        target_msg.markers[0].header.frame_id = "/map";
+        target_msg.markers[0].header.stamp = ros::Time::now();
+        target_msg.markers[0].action = visualization_msgs::Marker::ADD;
+        target_msg.markers[0].pose.orientation.w = 1.0;
+        target_msg.markers[0].id = 0;
 
-        if (i == 0)
-        {
-          start_goal_msg.markers[i].ns = "Start";
-          start_goal_msg.markers[i].type = visualization_msgs::Marker::CYLINDER;
-          start_goal_msg.markers[i].color.r = 1.0;
-          start_goal_msg.markers[i].color.a = 1.0;
-        }
-        else
-        {
-          start_goal_msg.markers[i].ns = "Goal";
-          start_goal_msg.markers[i].type = visualization_msgs::Marker::CUBE;
-          start_goal_msg.markers[i].color.g = 1.0;
-          start_goal_msg.markers[i].color.a = 1.0;
-        }
+        target_msg.markers[0].ns = "Target";
+        target_msg.markers[0].type = visualization_msgs::Marker::CUBE;
+        target_msg.markers[0].color.g = 1.0;
+        target_msg.markers[0].color.a = 1.0;
+      
 
-        start_goal_msg.markers[i].scale.x = 0.1;
-        start_goal_msg.markers[i].scale.y = 0.1;
-        start_goal_msg.markers[i].scale.z = 0.1;
+        target_msg.markers[0].scale.x = 0.1;
+        target_msg.markers[0].scale.y = 0.1;
+        target_msg.markers[0].scale.z = 0.1;
 
-        start_goal_msg.markers[i].pose.position.x = start_goal_x[i];
-        start_goal_msg.markers[i].pose.position.y = start_goal_y[i];
-        start_goal_msg.markers[i].pose.position.z = marker_height;
-      }
+        target_msg.markers[0].pose.position.x = x_target;
+        target_msg.markers[0].pose.position.y = y_target;
+        target_msg.markers[0].pose.position.z = marker_height;
     }
 
     marker_array_pub.publish(curve_array_msg);
-    marker_array_pub.publish(start_goal_msg);
+    marker_array_pub.publish(target_msg);
     marker_array_pub.publish(target_paths_msg);
     marker_array_pub.publish(target_points_msg);
   }
@@ -227,7 +215,7 @@ int main(int argc, char **argv)
   ROS_INFO("Init paths");
   Paths paths = Paths(nh, marker_array_pub, marker_pub);
 
-  ros::Rate loop_rate(10);
+  ros::Rate loop_rate(100);
 
   while (ros::ok())
   {

@@ -7,6 +7,8 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <robo7_msgs/occupancy_matrix.h>
 #include <robo7_msgs/occupancy_row.h>
+#include "robo7_msgs/grid_matrix.h"
+#include "robo7_msgs/grid_row.h"
 #include <std_msgs/Int8MultiArray.h>
 #include<algorithm>
 
@@ -38,6 +40,7 @@ class OccupancyGrid
 
         occupancy_grid_width = occupancy_matrix_msg->occupancy_rows.size();
         occupancy_grid_height = occupancy_matrix_msg->occupancy_rows[0].occupancy_row.size();
+        ROS_INFO("Received occupancy");
 
         for (int j = 0; j < occupancy_grid_height; j++)
         {
@@ -56,6 +59,7 @@ class OccupancyGrid
 
         distance_grid_width = distance_matrix_msg->occupancy_rows.size();
         distance_grid_height = distance_matrix_msg->occupancy_rows[0].occupancy_row.size();
+        ROS_INFO("Received distance");
 
         for (int j = 0; j < distance_grid_height; j++)
         {
@@ -91,7 +95,7 @@ class OccupancyGrid
                 occupancy_grid.data.push_back(grid_value);
             }
 
-            //occupancy_grid_pub.publish(occupancy_grid);
+            occupancy_grid_pub.publish(occupancy_grid);
         }
     }
    
@@ -135,12 +139,12 @@ int main(int argc, char **argv)
     ROS_INFO("Init Occupancy Visualization");
     OccupancyGrid occupancy_grid = OccupancyGrid(nh, occupancy_grid_pub, distance_grid_pub);
 
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(100);
 
     while (ros::ok())
     {
 
-        //occupancy_grid.updateOccupancyGrid();
+        occupancy_grid.updateOccupancyGrid();
         occupancy_grid.updateDistanceGrid();
 
         ros::spinOnce();

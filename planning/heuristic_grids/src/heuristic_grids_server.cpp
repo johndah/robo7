@@ -13,6 +13,8 @@
 #include <image_transport/image_transport.h>
 #include "robo7_msgs/occupancy_matrix.h"
 #include "robo7_msgs/occupancy_row.h"
+#include "robo7_msgs/grid_matrix.h"
+#include "robo7_msgs/grid_row.h"
 
 typedef std::vector<double> Array;
 typedef std::vector<Array> Matrix;
@@ -23,6 +25,7 @@ class HeuristicGridsServer
 	ros::NodeHandle n;
 	ros::Subscriber map_sub;
 	ros::Publisher occupancy_pub, distance_pub;
+	robo7_msgs::occupancy_matrix occupancy_matrix_msg, distance_matrix_msg;
 	ros::ServiceServer is_occupied_service;
 	ros::ServiceServer distance_to_service;
 	Matrix grid;
@@ -72,6 +75,14 @@ class HeuristicGridsServer
 		float x_to = req.x_to;
 		float y_to = req.y_to;
 
+		if (x_to != current_x_to || y_to != current_y_to)
+		{
+			distance_grid_init = false;
+			current_x_to = x_to;
+			current_y_to = y_to;
+			ROS_INFO("New target!");
+		}
+
 		res.distance = getDistanceFromGrid(x_to, y_to, x_from, y_from);
 
 		return true;
@@ -99,6 +110,17 @@ class HeuristicGridsServer
 				res.occupancy = value;
 			}
 		}
+
+		if (!occupancy_grid_init)
+		{
+			occupancy_matrix_msg = publishOccupancyGrid();
+
+			for (int i = 0; i < 10; i++)
+				occupancy_pub.publish(occupancy_matrix_msg);
+
+			occupancy_grid_init = true;
+		}
+
 		return true;
 	}
 
@@ -184,6 +206,7 @@ class HeuristicGridsServer
 				basic_grid.at<double>(i, j) = grid[i][j];
 			}
 		}
+
 		occupancy_grid = gaussFilter(basic_grid, smoothing_kernel_size, smoothing_kernel_sd);
 	}
 
@@ -277,6 +300,7 @@ class HeuristicGridsServer
 
 	int getDistanceFromGrid(double x_to, double y_to, double x_from, double y_from)
 	{
+
 		if (distance_grid_init)
 			return distance_grid.at<int>(sq(x_from), sq(y_from));
 		else
@@ -300,6 +324,11 @@ class HeuristicGridsServer
 				// cvDestroyWindow("Display window");
 
 				distance_grid_init = true;
+
+				distance_matrix_msg = publishDistanceGrid();
+
+				for (int i = 0; i < 10; i++)
+					distance_pub.publish(distance_matrix_msg);
 
 				return distance_grid.at<int>(sq(x_from), sq(y_from));
 			}
@@ -361,13 +390,13 @@ class HeuristicGridsServer
 	cv::Mat basic_grid;
 	cv::Mat occupancy_grid;
 	cv::Mat distance_grid;
-	bool distance_grid_init;
+	float current_x_to, current_y_to;
+	bool occupancy_grid_init, distance_grid_init;
 };
 
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "heuristic_grids_server");
-	robo7_msgs::occupancy_matrix occupancy_matrix_msg, distance_matrix_msg;
 
 	HeuristicGridsServer heuristic_grids_server;
 
@@ -377,17 +406,20 @@ int main(int argc, char **argv)
 
 	heuristic_grids_server.updateBasicGridSize();
 
-	occupancy_matrix_msg = heuristic_grids_server.publishOccupancyGrid();
-	distance_matrix_msg = heuristic_grids_server.publishOccupancyGrid();
-
+	/*
 	while (ros::ok())
 	{
+		occupancy_matrix_msg = heuristic_grids_server.publishOccupancyGrid();
+		distance_matrix_msg = heuristic_grids_server.publishDistanceGrid();
+
 		heuristic_grids_server.occupancy_pub.publish(occupancy_matrix_msg);
-		heuristic_grids_server.distance_pub.publish(occupancy_matrix_msg);
+		heuristic_grids_server.distance_pub.publish(distance_matrix_msg);
 
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
+		*/
+	ros::spin();
 
 	return 0;
 }
