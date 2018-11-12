@@ -50,6 +50,9 @@ public:
   void deadReckoning_callBack(const robo7_msgs::former_position::ConstPtr &msg)
   {
       robot_position = *msg;
+      x_pos = robot_position.position.linear.x;
+      y_pos = robot_position.position.linear.y;
+      z_angle = robot_position.position.angular.z;
   }
 
   void deadReckoning2_callBack(const geometry_msgs::Twist::ConstPtr &msg)
