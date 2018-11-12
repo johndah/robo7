@@ -31,7 +31,6 @@ add_message_files(
   occupancy_row.msg
   aObject.msg
   allObjects.msg
-  former_position.msg
   dead_reck_param.msg
   robotPositionTest.msg
 )
