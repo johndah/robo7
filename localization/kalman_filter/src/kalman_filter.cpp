@@ -25,6 +25,7 @@ public:
   ros::Subscriber measure_sub;
   ros::Subscriber scan_sub;
   ros::Publisher robot_position;
+  ros::Publisher robot_position_timed;
   ros::Publisher new_measure_req_pub;
   ros::Publisher angle_pub;
   ros::Publisher encoders_pub;
@@ -88,10 +89,9 @@ public:
     scan_sub = n.subscribe("/scan", 1, &kalmanFilter::scan_callBack, this);
     // robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/pos", 10);
     robot_position = n.advertise<geometry_msgs::Twist>("/localization/kalman_filter/position", 1);
+    robot_position_timed = n.advertise<robo7_mgs::former_position>("/localization/kalman_filter/position_timed", 100);
     new_measure_req_pub = n.advertise<robo7_msgs::MeasureRequest>("/localization/kalman_filter/measure_request", 1);
-    angle_pub = n.advertise<std_msgs::Float32>("/localization/kalman_filter/angle", 1);
-    encoders_pub = n.advertise<robo7_msgs::robotPositionTest>("/localization/kalman_filter/position_time", 1);
-
+    
     ROS_INFO("EKF initialisation done");
   }
 
@@ -143,15 +143,7 @@ public:
     positions_for_matrices.push_back( previous_pos );
 
     robot_position.publish( the_robot_position );
-    std_msgs::Float32 angle;
-    angle.data = z_angle;
-    angle_pub.publish( angle );
-    robo7_msgs::robotPositionTest test_message;
-    test_message.time = previous_pos.time;
-    test_message.position = the_robot_position;
-    test_message.right_encoder = right_encoder_msg;
-    test_message.left_encoder = left_encoder_msg;
-    encoders_pub.publish( test_message );
+    robot_position_timed.publish( previous_pos );
     // ROS_INFO("Position published");
 
     //If we didn't get any measures for a while (and the previous one has already been received)
@@ -272,8 +264,8 @@ private:
 
     //Prepare the measure request message
     time_start = ros::Time::now();
-    new_measure_request.time = corresp_pos.time;
-    new_measure_request.id_number = request_id;
+    new_measure_request.time = corresp_pos.header.stamp;
+    new_measure_request.header.seq = request_id;
     new_measure_request.current_position = corresp_pos.position;
     new_measure_request.lidar_scan = the_lidar_scan;
     new_measure_request.P_minus_matrix.line0.clear();
@@ -372,7 +364,7 @@ private:
   void saver_initialization()
   {
     number_of_instance_saved = (int)control_frequency;
-    previous_pos.time = ros::Time::now();
+    previous_pos.header.stamp = ros::Time::now();
     previous_pos.position = the_robot_position;
     previous_pos.parameters.lin_dis = lin_dis;
     previous_pos.parameters.ang_dis = ang_dis;
@@ -389,8 +381,8 @@ private:
 
   void update_saved_positions()
   {
-    previous_pos.time = left_encoder_msg.header.stamp;
-    previous_pos.id_number++;
+    previous_pos.header.stamp = left_encoder_msg.header.stamp;
+    previous_pos.header.seq++;
     previous_pos.position = the_robot_position;
     previous_pos.parameters.lin_dis = lin_dis;
     previous_pos.parameters.ang_dis = ang_dis;
@@ -450,7 +442,7 @@ private:
 
   void save_corresponding_position()
   {
-    corresp_pos.time = ros::Time::now();
+    corresp_pos.header.stamp = ros::Time::now();
     corresp_pos.position = the_robot_position;
     corresp_pos.parameters.lin_dis = lin_dis;
     corresp_pos.parameters.ang_dis = ang_dis;
@@ -461,7 +453,7 @@ private:
     corresp_pos = saved_position[saved_position.size()-1];
     for(int i = static_cast<int>(saved_position.size()) - 2; i > -1; i--)
     {
-      if(std::abs(corresp_pos.time.toSec() + time_adjust - the_lidar_scan.header.stamp.toSec()) > std::abs(saved_position[i].time.toSec() + time_adjust - the_lidar_scan.header.stamp.toSec()))
+      if(std::abs(corresp_pos.header.stamp.toSec() + time_adjust - the_lidar_scan.header.stamp.toSec()) > std::abs(saved_position[i].time.toSec() + time_adjust - the_lidar_scan.header.stamp.toSec()))
       {
         corresp_pos = saved_position[i];
         corres_pos_index = i;
