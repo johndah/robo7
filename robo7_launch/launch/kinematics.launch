@@ -33,7 +33,7 @@
    <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
 
      <param name="initial_x_pos" type="double" value="1.65"/>
-     <param name="initial_y_pos" type="double" value="1.68"/>
+     <param name="initial_y_pos" type="double" value="1.07"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
 
      <param name="linear_adjustment" type="double" value="0.0481"/>
@@ -73,7 +73,7 @@
 <!-- The path_follower nodes -->
    <node pkg="path_follower" type="destination_point" name="destination_point" output="screen">
      <param name="x_destination" type="double" value="1.65"/>
-     <param name="y_destination" type="double" value="1.68"/>
+     <param name="y_destination" type="double" value="1.07"/>
    </node>
 
    <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
