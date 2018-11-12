@@ -94,12 +94,14 @@ public:
 
   void encoder_L_callBack(const phidgets::motor_encoder::ConstPtr &msg)
   {
-      count_L = msg->count;
+    left_encoder_msg = *msg;
+    count_L = left_encoder_msg.count;
   }
 
   void encoder_R_callBack(const phidgets::motor_encoder::ConstPtr &msg)
   {
-      count_R = msg->count;
+    right_encoder_msg = *msg;
+    count_R = right_encoder_msg.count;
   }
 
   void scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
@@ -238,6 +240,8 @@ private:
 
   //the scan sensor_msgs
   sensor_msgs::LaserScan the_lidar_scan;
+  phidgets::motor_encoder left_encoder_msg;
+  phidgets::motor_encoder right_encoder_msg;
 
   //Two method 0 or 1
   int test_method;
