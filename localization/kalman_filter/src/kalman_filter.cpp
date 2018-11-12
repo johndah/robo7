@@ -13,7 +13,7 @@
 
 
 // Control @ 10 Hz
-double control_frequency = 50.0;
+double control_frequency = 20.0;
 
 class kalmanFilter
 {
@@ -499,9 +499,6 @@ private:
 
         //Add those iteration matrices to the main ones
         the_A_matrix = the_A_matrix + matrix_A_it;
-        the_W_matrix(0,0) = cos(z_angle);
-        the_W_matrix(1,1) = sin(z_angle);
-        the_W_matrix(2,2) = 1;
       }
       else
       {
@@ -509,8 +506,8 @@ private:
         the_A_matrix(1,2) = tot_dist * cos(z_angle);
 
         // ROS_INFO("Z_angle : %lf", z_angle);
-        the_W_matrix(0,0) = cos(z_angle);
-        the_W_matrix(1,1) = sin(z_angle);
+        the_W_matrix(0,0) = cos(corresp_pos.position.angular.z);
+        the_W_matrix(1,1) = sin(corresp_pos.position.angular.z);
         the_W_matrix(2,2) = 1;
       }
       j++;
@@ -520,6 +517,11 @@ private:
     {
       matrix_A_it = Eigen::Matrix3f::Identity(3,3);
       the_A_matrix = the_A_matrix + matrix_A_it;
+
+      // ROS_INFO("Z_angle : %lf", z_angle);
+      the_W_matrix(0,0) = cos(corresp_pos.position.angular.z);
+      the_W_matrix(1,1) = sin(corresp_pos.position.angular.z);
+      the_W_matrix(2,2) = 1;
     }
 
     //Compute the_P_minus_matrix that is going to be used
