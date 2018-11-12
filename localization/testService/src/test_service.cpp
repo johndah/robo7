@@ -14,7 +14,11 @@
 #include <robo7_srvs/ICPAlgorithm.h>
 #include <robo7_srvs/callServiceTest.h>
 #include <robo7_srvs/PathFollowerSrv.h>
+<<<<<<< HEAD
 #include <robo7_srvs/objectToRobot.h>
+=======
+#include <robo7_srvs/path_planning.h>
+>>>>>>> 70f5a958bbe8613c85dce6bfd5a7eb2b1e4fde35
 
 
 
@@ -33,7 +37,11 @@ public:
   ros::ServiceClient ransac_srv;
   ros::ServiceClient icp_srv;
   ros::ServiceClient path_follower_srv;
+<<<<<<< HEAD
   ros::ServiceClient object_position_srv;
+=======
+  ros::ServiceClient path_planning_srv;
+>>>>>>> 70f5a958bbe8613c85dce6bfd5a7eb2b1e4fde35
   ros::ServiceServer to_test_service;
 
   test_server()
@@ -52,11 +60,15 @@ public:
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
     map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &test_server::maze_map_callBack, this);
 
+<<<<<<< HEAD
 
     object_position_srv = n.serviceClient<robo7_srvs::objectToRobot>("/localization/object_to_robot");
     map_point_sub = n.subscribe("/vision/object/pos", 1, &test_server::object_callBack, this);
 
 
+=======
+    path_planning_srv = n.serviceClient<robo7_srvs::path_planning>("/path_planning/path_testing");
+>>>>>>> 70f5a958bbe8613c85dce6bfd5a7eb2b1e4fde35
   }
 
   void laser_scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
@@ -94,6 +106,7 @@ public:
   {
     done = false;
 
+    //Plot the lidar scan in the map frame
     if(req.which_service == 0)
     {
       robo7_srvs::scanCoord::Request req1;
@@ -104,6 +117,7 @@ public:
       done = res1.success;
     }
 
+    //Follow a published path -> need to disappear (see 5)
     else if(req.which_service == 1)
     {
       robo7_srvs::PathFollowerSrv::Request req1;
@@ -113,6 +127,7 @@ public:
       done = res1.success;
     }
 
+    //Extract the walls in the map frame
     else if(req.which_service == 2)
     {
       robo7_srvs::scanCoord::Request req1;
@@ -128,6 +143,7 @@ public:
       ransac_srv.call(req2, res2);
     }
 
+    //Apply the convergence icp with the extracted corners of the ransac algorithm
     else if(req.which_service == 3)
     {
       robo7_srvs::scanCoord::Request req1;
@@ -148,9 +164,9 @@ public:
       req3.the_lidar_corners = res2.all_corners;
       req3.the_wall_corners = all_wall_points;
       icp_srv.call(req3, res3);
-
     }
 
+    //Make the convergence between the lidar coordinates and the discretize wall
     else if(req.which_service == 4)
     {
       robo7_srvs::scanCoord::Request req1;
@@ -168,6 +184,7 @@ public:
       icp_srv.call(req3, res3);
     }
 
+<<<<<<< HEAD
     else if(req.which_service == 5)
     {
       robo7_srvs::objectToRobot::Request req1;
@@ -175,11 +192,26 @@ public:
       req1.camera_position = object_pos;
       req1.robot_position = robot_position;
       object_position_srv.call(req1, res1);
+=======
+    //Follow a path precomputed by the path_planning service
+    else if(req.which_service == 5)
+    {
+      robo7_srvs::path_planning::Request req1;
+      robo7_srvs::path_planning::Response res1;
+      req1.robot_position = robot_position;
+      path_planning_srv.call(req1, res1);
+      done = res1.success;
+
+      robo7_srvs::PathFollowerSrv::Request req2;
+      robo7_srvs::PathFollowerSrv::Response res2;
+      req2.req = true;
+      req2.trajectory = res1.path_planned;
+      path_follower_srv.call(req2, res2);
+>>>>>>> 70f5a958bbe8613c85dce6bfd5a7eb2b1e4fde35
       done = res1.success;
     }
 
     res.success = done;
-
     return true;
   }
 
