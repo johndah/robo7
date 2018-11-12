@@ -247,7 +247,7 @@ int main(int argc, char **argv)
       }
       else
       {
-        desire_vel.linear.x = aver_lin_vel;
+        desire_vel.linear.x = velocity_sign * aver_lin_vel;
         PID_AWU_update();
         desire_vel.angular.z = desire_angular_vel;
       }
