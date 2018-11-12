@@ -64,7 +64,7 @@ public:
     //Generate the future published twist msg
     visualization_msgs::Marker marker;
 
-    t = ros::Time::now();
+    t = robot_position.header.stamp;
 
     // marker.header.frame_id = "robot";
     // marker.header.stamp = t;
@@ -115,7 +115,7 @@ public:
     tf::Quaternion q;
     q.setRPY(x_angle, y_angle, z_angle);
     transform.setRotation(q);
-    br.sendTransform(tf::StampedTransform(transform, robot_position.header.stamp, "map", "robot"));
+    br.sendTransform(tf::StampedTransform(transform, t, "map", "robot"));
 
     //Set the frame centered on the robot
     transform2.setOrigin( tf::Vector3(x2_pos, y2_pos, z2_pos) );
