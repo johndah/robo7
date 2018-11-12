@@ -35,6 +35,7 @@ float robot_theta;
 
 // Average velocity of the robot
 float aver_lin_vel;
+float velocity_sign;
 float x_point_robot;
 float y_point_robot;
 
