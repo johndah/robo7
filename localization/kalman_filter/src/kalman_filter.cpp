@@ -69,7 +69,7 @@ public:
 
     //Other parameters
     Dt = 1/control_frequency; //ms - time between two consecutive iterations
-    prev_mes_time = left_encoder_msg.header.stamp.toSec();
+    prev_mes_time = ros::Time::now();
     init_time = prev_mes_time;
 
     //Measure Request/Response initialisations
