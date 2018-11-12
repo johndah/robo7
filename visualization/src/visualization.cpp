@@ -5,6 +5,7 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Quaternion.h>
+#include <robo7_msgs/former_position.h>
 #include <visualization_msgs/Marker.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
