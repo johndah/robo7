@@ -34,6 +34,7 @@ add_message_files(
   former_position.msg
   dead_reck_param.msg
   robotPositionTest.msg
+  wallPoint.msg
 )
 
 generate_messages(

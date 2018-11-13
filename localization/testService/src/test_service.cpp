@@ -113,12 +113,12 @@ public:
       req1.robot_position = robot_position;
       req1.lidar_scan = the_lidar_scan;
       scan_to_coord_srv.call(req1, res1);
-      done = res1.success;
 
       robo7_srvs::RansacWall::Request req2;
       robo7_srvs::RansacWall::Response res2;
-      req2.point_cloud = res1.point_cloud_coordinates;
+      req2.the_cloud = res1.the_lidar_points;
       ransac_srv.call(req2, res2);
+      done = true;
     }
 
     //Apply the convergence icp with the extracted corners of the ransac algorithm

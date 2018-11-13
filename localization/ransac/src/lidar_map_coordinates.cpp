@@ -3,11 +3,17 @@
 #include <Eigen/Geometry>
 #include <math.h>
 #include <ros/ros.h>
+
+//The messages
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Float32.h>
 #include <robo7_msgs/XY_coordinates.h>
 #include <robo7_msgs/cornerList.h>
+#include <robo7_msgs/wallList.h>
+
+
+//The extra libraries
 #include </usr/include/eigen3/Eigen/Dense>
 using Eigen::MatrixXd;
 
