@@ -280,7 +280,7 @@ public:
           // obj_pos_pub.publish(pos);
           object_pub.pos = pos;
           std_msgs::String color;
-          color.data = 'red';
+          color.data = colorVec[response];
           object_pub.color = color;
           object_pub.objClass = 1;
 
