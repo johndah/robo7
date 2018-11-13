@@ -70,6 +70,7 @@ public:
 			//Method consisting in extracting the walls from the lidar cloud
 			//and then discretize the lidar walls (weight of nb inliers)
 			ransac_for_lidar();
+			lidar_map_pub.publish( lidar_walls );
 		}
 		else
 		{
@@ -78,10 +79,14 @@ public:
 			discretized_lidar_map = *lidar_cloud;
 		}
 
-		//Once the different set of points difeined, it is needed to merge the two point
+		//Once the different set of points defined, it is needed to merge the two point
 		//clouds together -> carefull because the inliers won't be sorted so it is
 		//needed to do it when it comes up with the creation of the walls
 		merge_the_point_clouds();
+
+		//Publish some messages for the visualization part
+		former_map_pub.publish(the_map_walls);
+		new_map_pub.publish(updated_map_walls);
 
 		res.success = true;
 		res.updated_map_walls = updated_map_walls;
@@ -102,6 +107,7 @@ private:
 
 	//The lidar point cloud extracted
 	robo7_msgs::wallPoint lidar_cloud;
+	robo7_msgs::wallList lidar_walls;
 
 	//Final ransac msgs
 	robo7_msgs::wallPoint merged_clouds;
@@ -134,11 +140,12 @@ private:
 		robo7_srvs::RansacWall::Response res;
 		req.point_cloud = lidar_cloud;
 		ransac_srv.call(req, res);
+		lidar_walls = res.ransac_walls;
 
 		//Discretize those walls
 		robo7_srvs::discretize_map::Request req1;
 		robo7_srvs::discretize_map::Response res1;
-		req1.walls = res.ransac_walls;
+		req1.walls = lidar_walls;
 		scan_to_coord_srv.call(req1, res1);
 		discretized_lidar_map = res1.discretized_walls;
 	}

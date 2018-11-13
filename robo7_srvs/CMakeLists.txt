@@ -17,6 +17,7 @@ add_service_files(
   objectToRobot.srv
   path_planning.srv
   update_map.srv
+  discretize_map.srv
 )
 
 

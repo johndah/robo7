@@ -61,7 +61,6 @@ public:
 
     min_point = std::max(min_point, 5); //Security loop to avoid inifinity wall detection
 
-		// point_cloud = n.subscribe("/scan_to_coordinates/point_cloud_coordinates", 1, &RansacServer::pointcloud_Callback, this);
 		ransac_service = n.advertiseService("/localization/ransac", &RansacServer::ransacSequence, this);
 
 		//Publishers
@@ -70,30 +69,17 @@ public:
     corner_pub = n.advertise<robo7_msgs::cornerList>("/localization/ransac/corners", 1);
 	}
 
-	// void pointcloud_Callback(const robo7_msgs::XY_coordinates::ConstPtr &msg)
-	// {
-  //   point_cloud_XY_2.length = msg->length;
-  //   point_cloud_XY_2.X_coordinates = msg->X_coordinates;
-  //   point_cloud_XY_2.Y_coordinates = msg->Y_coordinates;
-	// }
-
 	bool ransacSequence(robo7_srvs::RansacWall::Request &req,
          robo7_srvs::RansacWall::Response &res)
 	{
-	  // ROS_INFO("Starting Ransac");
-
-		robo7_msgs::XY_coordinates point_cloud_XY = req.point_cloud;
 		the_cloud = req.the_cloud;
+		ROS_INFO("Number of points : %d, %lf", the_cloud.number, the_cloud.the_points[0].x);
 		robo7_msgs::wallList all_the_walls;
     robo7_msgs::cornerList all_corners;
 
 		wall_full_list.clear();
     the_corners_list.clear();
 
-		//Initialization step
-		//Extract the datas into two vectors that are gonne be modified (iterations)
-		X_wall_coordinates = point_cloud_XY.X_coordinates;
-		Y_wall_coordinates = point_cloud_XY.Y_coordinates;
 
     // initialize PointClouds
 		cloud_init = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -154,6 +140,8 @@ public:
 		wall_list.publish( all_the_walls );
     corner_pub.publish( all_corners );
 
+		res.all_corners = all_corners;
+		res.ransac_walls = all_the_walls;
 		res.success = true;
     return true;
 	}
@@ -161,7 +149,7 @@ public:
 	void updateCloud()
 	{
 		// populate our PointCloud with points
-    cloud->width    = X_wall_coordinates.size();
+    cloud->width    = the_cloud.the_points.size();
     cloud->height   = 1;
     cloud->is_dense = false;
     cloud->points.resize (cloud->width * cloud->height);
@@ -172,12 +160,14 @@ public:
       cloud->points[i].y = the_cloud.the_points[i].y;
       cloud->points[i].z = the_cloud.the_points[i].z;
     }
+
+		ROS_INFO("Number of points : %d, %lf", cloud->width, cloud->points[0].x);
 	}
 
   void clean_the0points()
   {
     inliers.clear();
-    for(int i=static_cast<int>(X_wall_coordinates.size())-1; i>-1; i--)
+    for(int i=static_cast<int>(the_cloud.the_points.size())-1; i>-1; i--)
     {
       if((the_cloud.the_points[i].x == 0)&&(the_cloud.the_points[i].y == 0))
       {
@@ -245,11 +235,13 @@ public:
 
 	void updatePoints() //Looking for another unknown wall in the left data points (aka not inliers)
 	{
+		ROS_INFO("The sizes : %d, %d", static_cast<int>(the_cloud.the_points.size()), static_cast<int>(inliers.size()));
     //Remove all the rest from the cloud
 		for(int i=inliers.size()-1; i>-1; i--)
 		{
 			the_cloud.the_points.erase(the_cloud.the_points.begin() + inliers[i]);
 		}
+		ROS_INFO("The sizes : %d", static_cast<int>(the_cloud.the_points.size()));
 	}
 
   void extractExtremities()
@@ -371,6 +363,7 @@ public:
         single_wall.end_point.z = 0;
         wall_done = true;
         wall_pts_nb++;
+				single_wall.nb_inliers = wall_pts_nb;
         add_wall_to_list();
       }
       else if((dist > maximum_space_between_points)&&(std::abs(inliers[index%tot_inliers] - inliers[(index+1)%tot_inliers]) > gap_threshold))
@@ -380,6 +373,7 @@ public:
         single_wall.end_point.z = 0;
         wall_done = true;
         wall_pts_nb++;
+				single_wall.nb_inliers = wall_pts_nb;
         add_wall_to_list();
       }
       wall_pts_nb++;
@@ -399,7 +393,7 @@ public:
 
 	void add_wall_to_list()
 	{
-		if(((single_wall.init_point.x != single_wall.end_point.x)||(single_wall.init_point.y != single_wall.end_point.y))&&(wall_pts_nb >= min_point))
+		if(((single_wall.init_point.x != single_wall.end_point.x)||(single_wall.init_point.y != single_wall.end_point.y))&&(single_wall.nb_inliers >= min_point))
 		{
 			wall_full_list.push_back(single_wall);
       the_corners_list.push_back(single_wall.init_point);

@@ -17,7 +17,6 @@ add_message_files(
   XY_coordinates.msg
   path.msg
   paths.msg
-  aWall.msg
   wallList.msg
   cornerList.msg
   Matrix4.msg
@@ -35,6 +34,7 @@ add_message_files(
   dead_reck_param.msg
   robotPositionTest.msg
   wallPoint.msg
+  aWall.msg
 )
 
 generate_messages(
