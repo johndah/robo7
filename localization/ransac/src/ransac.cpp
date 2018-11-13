@@ -73,7 +73,7 @@ public:
          robo7_srvs::RansacWall::Response &res)
 	{
 		the_cloud = req.the_cloud;
-		ROS_INFO("Number of points : %d, %lf", the_cloud.number, the_cloud.the_points[0].x);
+		// ROS_INFO("Number of points : %d, %lf", the_cloud.number, the_cloud.the_points[0].x);
 		robo7_msgs::wallList all_the_walls;
     robo7_msgs::cornerList all_corners;
 
@@ -161,7 +161,7 @@ public:
       cloud->points[i].z = the_cloud.the_points[i].z;
     }
 
-		ROS_INFO("Number of points : %d, %lf", cloud->width, cloud->points[0].x);
+		// ROS_INFO("Number of points : %d, %lf", cloud->width, cloud->points[0].x);
 	}
 
   void clean_the0points()
@@ -200,6 +200,8 @@ public:
 		// mod.angular.z = model_param_(5);
 		//
 		// model_pub.publish( mod );
+		ROS_INFO("inliers : %d", static_cast<int>(inliers.size()));
+		printInliers();
 
 		x0 = model_param_(0); y0 = model_param_(1); z0 = model_param_(2);
 		a = model_param_(3); b = model_param_(4); c = model_param_(5);
@@ -235,13 +237,13 @@ public:
 
 	void updatePoints() //Looking for another unknown wall in the left data points (aka not inliers)
 	{
-		ROS_INFO("The sizes : %d, %d", static_cast<int>(the_cloud.the_points.size()), static_cast<int>(inliers.size()));
+		// ROS_INFO("The sizes : %d, %d", static_cast<int>(the_cloud.the_points.size()), static_cast<int>(inliers.size()));
     //Remove all the rest from the cloud
 		for(int i=inliers.size()-1; i>-1; i--)
 		{
 			the_cloud.the_points.erase(the_cloud.the_points.begin() + inliers[i]);
 		}
-		ROS_INFO("The sizes : %d", static_cast<int>(the_cloud.the_points.size()));
+		// ROS_INFO("The sizes : %d", static_cast<int>(the_cloud.the_points.size()));
 	}
 
   void extractExtremities()
@@ -364,6 +366,7 @@ public:
         wall_done = true;
         wall_pts_nb++;
 				single_wall.nb_inliers = wall_pts_nb;
+				ROS_INFO("wall inliers : %d", wall_pts_nb);
         add_wall_to_list();
       }
       else if((dist > maximum_space_between_points)&&(std::abs(inliers[index%tot_inliers] - inliers[(index+1)%tot_inliers]) > gap_threshold))
@@ -374,6 +377,7 @@ public:
         wall_done = true;
         wall_pts_nb++;
 				single_wall.nb_inliers = wall_pts_nb;
+				ROS_INFO("wall inliers : %d", wall_pts_nb);
         add_wall_to_list();
       }
       wall_pts_nb++;

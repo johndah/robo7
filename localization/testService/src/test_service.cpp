@@ -1,20 +1,25 @@
 //Input all the libraries needed
 #include <math.h>
 #include <ros/ros.h>
+
+//The messages
 #include <geometry_msgs/Twist.h>
 #include <phidgets/motor_encoder.h>
 #include <std_msgs/Float32.h>
-#include <Eigen/Geometry>
 #include <robo7_msgs/Matrix3.h>
 #include <robo7_msgs/MeasureRequest.h>
 #include <robo7_msgs/MeasureFeedback.h>
 #include <robo7_msgs/cornerList.h>
+#include <robo7_msgs/former_position.h>
+
+//The services
 #include <robo7_srvs/scanCoord.h>
 #include <robo7_srvs/RansacWall.h>
 #include <robo7_srvs/ICPAlgorithm.h>
 #include <robo7_srvs/callServiceTest.h>
 #include <robo7_srvs/PathFollowerSrv.h>
 #include <robo7_srvs/path_planning.h>
+#include <robo7_srvs/update_map.h>
 
 
 
@@ -33,6 +38,7 @@ public:
   ros::ServiceClient icp_srv;
   ros::ServiceClient path_follower_srv;
   ros::ServiceClient path_planning_srv;
+  ros::ServiceClient mapping_srv;
   ros::ServiceServer to_test_service;
 
   test_server()
@@ -52,6 +58,8 @@ public:
     map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &test_server::maze_map_callBack, this);
 
     path_planning_srv = n.serviceClient<robo7_srvs::path_planning>("/path_planning/path_testing");
+
+    mapping_srv = n.serviceClient<robo7_srvs::update_map>("/localization/mapping/update_map");
   }
 
   void laser_scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
@@ -179,6 +187,21 @@ public:
       done = res1.success;
     }
 
+    //Test service for the mapping
+    else if(req.which_service == 6)
+    {
+      robo7_srvs::update_map::Request req1;
+      robo7_srvs::update_map::Response res1;
+      robo7_msgs::former_position robot_pos;
+      robot_pos.position = robot_position;
+      req1.robot_position = robot_pos;
+      req1.the_lidar_scan = the_lidar_scan;
+      req1.map_walls = map_walls;
+      mapping_srv.call(req1, res1);
+      map_walls = res1.updated_map_walls;
+      done = res1.success;
+    }
+
     res.success = done;
     return true;
   }
@@ -191,6 +214,9 @@ private:
   robo7_msgs::cornerList all_wall_points;
 
   bool done;
+
+  robo7_msgs::wallList map_walls;
+  robo7_msgs::former_position robot_pos;
 
 };
 

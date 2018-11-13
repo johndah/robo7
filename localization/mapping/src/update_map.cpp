@@ -34,7 +34,7 @@ public:
 
 	UpdateMap()
 	{
-		n.param<int>("/mapping/choose_method", method, 0);
+		n.param<int>("/update_map/choose_method", method, 0);
 		// pi = 3.14159265358979323846;
 
 		//ServiceServer
@@ -42,8 +42,8 @@ public:
 
 		//Service Clients
 		ransac_srv = n.serviceClient<robo7_srvs::RansacWall>("/localization/ransac");
-		scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/ransac");
-		discretized_map_srv = n.serviceClient<robo7_srvs::discretize_map>("/maze_map/discretization_map");
+		scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
+		discretized_map_srv = n.serviceClient<robo7_srvs::discretize_map>("/maze_map/map_discretization");
 
 		//Visualization of the updated versions of the walls
 		former_map_pub = n.advertise<robo7_msgs::wallList>("/localization/mapping/former_map", 1);
@@ -61,9 +61,11 @@ public:
 
 		//Discretize the map walls message
 		discretize_world_map();
+		ROS_INFO("World map discretized");
 
 		//Extract the lidar point cloud
 		extract_lidar_cloud();
+		ROS_INFO("Lidar cloud extracted");
 
 		//Two methods
 		if(method == 0)
@@ -72,6 +74,7 @@ public:
 			//and then discretize the lidar walls (weight of nb inliers)
 			ransac_for_lidar();
 			lidar_map_pub.publish( lidar_walls );
+			ROS_INFO("blu");
 		}
 		else
 		{
@@ -84,6 +87,11 @@ public:
 		//clouds together -> carefull because the inliers won't be sorted so it is
 		//needed to do it when it comes up with the creation of the walls
 		merge_the_point_clouds();
+		ROS_INFO("Clouds merged");
+
+		//Recreate the whole final map
+		final_ransac_walls();
+		ROS_INFO("New map updated");
 
 		//Publish some messages for the visualization part
 		former_map_pub.publish(the_map_walls);
@@ -120,38 +128,38 @@ private:
 
 	void discretize_world_map()
 	{
-		robo7_srvs::discretize_map::Request req;
-		robo7_srvs::discretize_map::Response res;
-		req.walls = the_map_walls;
-		scan_to_coord_srv.call(req, res);
-		discretized_world_map = res.discretized_walls;
+		robo7_srvs::discretize_map::Request req1;
+		robo7_srvs::discretize_map::Response res1;
+		req1.walls = the_map_walls;
+		discretized_map_srv.call(req1, res1);
+		discretized_world_map = res1.discretized_walls;
 	}
 
 	void extract_lidar_cloud()
 	{
-		robo7_srvs::scanCoord::Request req;
-		robo7_srvs::scanCoord::Response res;
-		req.robot_position = robot_position.position;
-		req.lidar_scan = the_lidar_scan;
-		scan_to_coord_srv.call(req, res);
-		lidar_cloud = res.the_lidar_points;
+		robo7_srvs::scanCoord::Request req1;
+		robo7_srvs::scanCoord::Response res1;
+		req1.robot_position = robot_position.position;
+		req1.lidar_scan = the_lidar_scan;
+		scan_to_coord_srv.call(req1, res1);
+		lidar_cloud = res1.the_lidar_points;
 	}
 
 	void ransac_for_lidar()
 	{
 		//Find the walls
-		robo7_srvs::RansacWall::Request req;
-		robo7_srvs::RansacWall::Response res;
-		req.the_cloud = lidar_cloud;
-		ransac_srv.call(req, res);
-		lidar_walls = res.ransac_walls;
+		robo7_srvs::RansacWall::Request req1;
+		robo7_srvs::RansacWall::Response res1;
+		req1.the_cloud = lidar_cloud;
+		ransac_srv.call(req1, res1);
+		lidar_walls = res1.ransac_walls;
 
 		//Discretize those walls
-		robo7_srvs::discretize_map::Request req1;
-		robo7_srvs::discretize_map::Response res1;
-		req1.walls = lidar_walls;
-		scan_to_coord_srv.call(req1, res1);
-		discretized_lidar_map = res1.discretized_walls;
+		robo7_srvs::discretize_map::Request req2;
+		robo7_srvs::discretize_map::Response res2;
+		req2.walls = lidar_walls;
+		discretized_map_srv.call(req2, res2);
+		discretized_lidar_map = res2.discretized_walls;
 	}
 
 	void merge_the_point_clouds()
@@ -171,15 +179,17 @@ private:
 			merged_clouds.the_points.push_back(discretized_lidar_map.the_points[i]);
 			merged_clouds.number++;
 		}
+
+		ROS_INFO("Number of points (prev_map, lidar, merged) : (%d, %d, %d)", discretized_world_map.number, discretized_lidar_map.number, merged_clouds.number);
 	}
 
 	void final_ransac_walls()
 	{
-		robo7_srvs::RansacWall::Request req;
-		robo7_srvs::RansacWall::Response res;
-		req.the_cloud = merged_clouds;
-		ransac_srv.call(req, res);
-		updated_map_walls = res.ransac_walls;
+		robo7_srvs::RansacWall::Request req1;
+		robo7_srvs::RansacWall::Response res1;
+		req1.the_cloud = merged_clouds;
+		ransac_srv.call(req1, res1);
+		updated_map_walls = res1.ransac_walls;
 	}
 };
 

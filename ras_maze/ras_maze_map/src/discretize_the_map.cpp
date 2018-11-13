@@ -54,6 +54,8 @@ public:
     wall_discretized.number = 0;
     wall_discretized.the_points.clear();
 
+    ROS_INFO("nb of walls : %d", wall_list.number);
+
     for(int i = 0; i < wall_list.number; i++)
     {
         x1 = wall_list.walls[i].init_point.x;
@@ -62,6 +64,7 @@ public:
         y2 = wall_list.walls[i].end_point.y;
 
         //Discretized map
+        ROS_INFO("nb of inliers : %d", wall_list.walls[i].nb_inliers);
         N_step = wall_list.walls[i].nb_inliers;
         x_step = (x2-x1)/N_step;
         y_step = (y2-y1)/N_step;
