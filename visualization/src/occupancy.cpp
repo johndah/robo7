@@ -10,7 +10,10 @@
 #include "robo7_msgs/grid_matrix.h"
 #include "robo7_msgs/grid_row.h"
 #include <std_msgs/Int8MultiArray.h>
-#include<algorithm>
+#include <algorithm>
+
+float path_height = 0.1;
+
 
 class OccupancyGrid
 {
@@ -23,7 +26,7 @@ class OccupancyGrid
 
     bool occupancy_grid_received, distance_grid_received;
 
-    OccupancyGrid(ros::NodeHandle nh, ros::Publisher occupancy_grid_pub,  ros::Publisher distance_grid_pub)
+    OccupancyGrid(ros::NodeHandle nh, ros::Publisher occupancy_grid_pub, ros::Publisher distance_grid_pub)
     {
         this->occupancy_grid_sub = nh.subscribe("/heuristic_grids_server/occupancy_matrix", 1000, &OccupancyGrid::occupancyCallback, this);
         this->distance_grid_sub = nh.subscribe("/heuristic_grids_server/distance_matrix", 1000, &OccupancyGrid::distanceCallback, this);
@@ -88,6 +91,7 @@ class OccupancyGrid
             occupancy_grid.info.height = occupancy_grid_height;
             occupancy_grid.info.origin.position.x = 0;
             occupancy_grid.info.origin.position.y = 0;
+            occupancy_grid.info.origin.position.z = path_height;
 
             for (int i = 0; i < occupancy_grid_width * occupancy_grid_height; i++)
             {
@@ -98,13 +102,13 @@ class OccupancyGrid
             occupancy_grid_pub.publish(occupancy_grid);
         }
     }
-   
+
     void updateDistanceGrid()
     {
 
         if (this->distance_grid_received)
         {
-
+            int grid_value;
             nav_msgs::OccupancyGrid distance_grid;
 
             distance_grid.header.frame_id = "/map";
@@ -115,11 +119,20 @@ class OccupancyGrid
             distance_grid.info.height = distance_grid_height;
             distance_grid.info.origin.position.x = 0;
             distance_grid.info.origin.position.y = 0;
+            distance_grid.info.origin.position.z = path_height;
 
             float max_distance = *max_element(distance_array.begin(), distance_array.end());
             for (int i = 0; i < distance_grid_width * distance_grid_height; i++)
             {
-                int grid_value = (int)100 * distance_array[i]/max_distance;
+                if (distance_array[i] == 0)
+                {
+                    grid_value = 100;
+                }
+                else
+                    grid_value = (int) 100 * distance_array[i] / max_distance;
+
+
+
                 distance_grid.data.push_back(grid_value);
             }
 

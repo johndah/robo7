@@ -12,7 +12,7 @@
 
 
 typedef std::vector<float> float_vector;
-std::vector<float_vector> paths_x, paths_y, goal_paths_x, goal_paths_y, trajectory_x, trajectory_y;
+std::vector<float_vector> paths_x, paths_y, trajectory_x, trajectory_y;
 float x_target, y_target;
 int number_paths = 0;
 float path_height = 0.1;
@@ -22,20 +22,20 @@ class Paths
 {
 public:
   ros::Subscriber robot_position, paths_sub, target_sub, goal_path_sub, target_paths_sub;
-  ros::Publisher marker_array_pub, marker_pub;
+  ros::Publisher marker_array_pub; //, marker_pub;
 
   //Initialisation
   float x0, y0, theta0;
-  bool paths_received, target_received, goal_path_received, trajectory_received;
+  bool paths_received, target_received, trajectory_received;
 
-  Paths(ros::NodeHandle nh, ros::Publisher marker_array_pub, ros::Publisher marker_pub)
+  Paths(ros::NodeHandle nh, ros::Publisher marker_array_pub)
   {
     this->paths_sub = nh.subscribe("/path_planning/paths_vector", 1000, &Paths::pathsCallback, this);
     this->target_sub = nh.subscribe("/path_planning/target", 1000, &Paths::targetCallback, this);
     this->target_paths_sub = nh.subscribe("/path_planning/target_path", 1000, &Paths::trajectoryCallback, this);
 
     this->marker_array_pub = marker_array_pub;
-    this->marker_pub = marker_pub;
+    // this->marker_pub = marker_pub;
 
     this->paths_received = false;
     this->target_received = false;
@@ -57,6 +57,7 @@ public:
 
   void targetCallback(const geometry_msgs::Point::ConstPtr &target_msg)
   {
+
     x_target = target_msg->x;
     y_target = target_msg->y;
 
@@ -65,6 +66,7 @@ public:
 
   void trajectoryCallback(const robo7_msgs::paths::ConstPtr &target_paths_msg)
   {
+
     trajectory_x.clear();
     trajectory_y.clear();
 
@@ -125,6 +127,9 @@ public:
 
       for (int i = 0; i < trajectory_x.size(); i++)
       {
+
+        // target_paths_msg.markers[i].points.clear();
+
         target_paths_msg.markers[i].header.frame_id = "/map";
         target_paths_msg.markers[i].header.stamp = ros::Time::now();
         target_paths_msg.markers[i].action = visualization_msgs::Marker::ADD;
@@ -162,12 +167,18 @@ public:
           p.y = trajectory_y[i][j];
           p.z = path_height;
           target_paths_msg.markers[i].points.push_back(p);
+          // target_paths_msg.markers[i].pose.position.x = trajectory_x[i][j];
+          // target_paths_msg.markers[i].pose.position.y = trajectory_y[i][j];
+          // target_paths_msg.markers[i].pose.position.z = path_height;
         }
         if (trajectory_x[i].size() > 0)
         {
           target_points_msg.markers[i].pose.position.x = p.x;
           target_points_msg.markers[i].pose.position.y = p.y;
           target_points_msg.markers[i].pose.position.z = path_height;
+          // target_points_msg.markers[i].pose.position.x = trajectory_x[i][trajectory_x[i].size()-1];
+          // target_points_msg.markers[i].pose.position.y = trajectory_y[i][trajectory_x[i].size()-1];
+          // target_points_msg.markers[i].pose.position.z = path_height;
         }
       }
     }
@@ -210,10 +221,10 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
 
   ros::Publisher marker_array_pub = nh.advertise<visualization_msgs::MarkerArray>("Paths", 10);
-  ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("Nodes", 10);
+  //ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("Nodes", 10);
 
   ROS_INFO("Init paths");
-  Paths paths = Paths(nh, marker_array_pub, marker_pub);
+  Paths paths = Paths(nh, marker_array_pub);
 
   ros::Rate loop_rate(100);
 

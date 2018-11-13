@@ -302,7 +302,9 @@ class HeuristicGridsServer
 	{
 
 		if (distance_grid_init)
+		{
 			return distance_grid.at<int>(sq(x_from), sq(y_from));
+		}
 		else
 		{
 			distance_grid = cv::Mat::zeros(num_grid_squares_x, num_grid_squares_y, CV_32SC1);
