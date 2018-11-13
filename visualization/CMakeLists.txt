@@ -61,3 +61,7 @@ add_dependencies(plot_lidar_corners ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_E
 add_executable(plot_path_discretized src/plot_path_discretized.cpp)
 target_link_libraries(plot_path_discretized ${catkin_LIBRARIES})
 add_dependencies(plot_path_discretized ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(the_map_update_plot src/the_map_update_plot.cpp)
+target_link_libraries(the_map_update_plot ${catkin_LIBRARIES})
+add_dependencies(the_map_update_plot ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

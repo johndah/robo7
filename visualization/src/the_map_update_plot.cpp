@@ -61,16 +61,20 @@ public:
 
   void updateWalls()
   {
+    update_former_wall_marker();
+    update_lidar_wall_marker();
+    update_new_wall_marker();
 
-
-
-
-
-      wall_pub.publish( all_markers );
+    former_wall_pub.publish( former_wall_marker_array );
+    lidar_wall_pub.publish( lidar_wall_marker_array );
+    new_wall_pub.publish( new_wall_marker_array );
   }
 
 private:
-  std::vector<robo7_msgs::aWall> extract_walls;
+  //The subscriber variables
+  robo7_msgs::wallList former_walls;
+  robo7_msgs::wallList lidar_walls;
+  robo7_msgs::wallList new_walls;
 
   int wall_id;
 
@@ -108,13 +112,13 @@ private:
     former_wall_marker.pose.position.z = 0.2;
 
     //The lidar_wall markers
-    lidar_wall_marker = *former_wall_marker;
+    lidar_wall_marker = former_wall_marker;
     lidar_wall_marker.color.r = (255.0/255.0);
     lidar_wall_marker.color.g = (0.0/255.0);
     lidar_wall_marker.color.b = (0.0/255.0);
 
     //The new_wall markers
-    new_wall_marker = *former_wall_marker;
+    new_wall_marker = former_wall_marker;
     new_wall_marker.color.r = (0.0/255.0);
     new_wall_marker.color.g = (255.0/255.0);
     new_wall_marker.color.b = (0.0/255.0);
@@ -217,13 +221,13 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "wall_lidar_plot");
 
-    wall_lidar_plot wall_plot_;
+    wall_plots wall_plots_;
 
     ros::Rate loop_rate(control_frequency);
 
-    while(wall_plot_.n.ok())
+    while(wall_plots_.n.ok())
     {
-        wall_plot_.updateWalls();
+        wall_plots_.updateWalls();
         ros::spinOnce();
         loop_rate.sleep();
     }

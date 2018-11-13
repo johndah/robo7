@@ -101,6 +101,10 @@
      <param name="minimum_point_for_a_gap" type="int" value="0"/>
    </node>
 
+   <node pkg="mapping" type="update_map" name="update_map" output="screen">
+     <param name="choose_method" type="int" value="0"/>
+   </node>
+
 
 <!-- The testing services node -->
    <node pkg="test_service" type="test_service" name="test_service" output="screen"/>

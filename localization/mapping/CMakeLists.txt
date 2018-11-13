@@ -20,3 +20,7 @@ catkin_package(
 include_directories(
  ${catkin_INCLUDE_DIRS}
 )
+
+add_executable(update_map src/update_map.cpp)
+target_link_libraries(update_map ${catkin_LIBRARIES})
+add_dependencies(update_map ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

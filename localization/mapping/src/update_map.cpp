@@ -12,6 +12,7 @@
 #include <robo7_srvs/RansacWall.h>
 #include <robo7_srvs/update_map.h>
 #include <robo7_srvs/scanCoord.h>
+#include <robo7_srvs/discretize_map.h>
 
 #include <stdlib.h>
 
@@ -33,7 +34,7 @@ public:
 
 	UpdateMap()
 	{
-		// n.param<float>("/ransac/threshold", ransac_threshold, 0.01);
+		n.param<int>("/mapping/choose_method", method, 0);
 		// pi = 3.14159265358979323846;
 
 		//ServiceServer
@@ -42,7 +43,7 @@ public:
 		//Service Clients
 		ransac_srv = n.serviceClient<robo7_srvs::RansacWall>("/localization/ransac");
 		scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/ransac");
-		discretized_map_srv = n.serviceClient<robo7_srvs::discretized_map>("/maze_map/discretization_map");
+		discretized_map_srv = n.serviceClient<robo7_srvs::discretize_map>("/maze_map/discretization_map");
 
 		//Visualization of the updated versions of the walls
 		former_map_pub = n.advertise<robo7_msgs::wallList>("/localization/mapping/former_map", 1);
@@ -54,7 +55,7 @@ public:
          robo7_srvs::update_map::Response &res)
 	{
 		// former_point = req.current_position;
-		the_lidar_scan = req.the_lidar_point_cloud;
+		the_lidar_scan = req.the_lidar_scan;
 		the_map_walls = req.map_walls;
 		robot_position = req.robot_position;
 
@@ -76,7 +77,7 @@ public:
 		{
 			//Method consisting in directly use the lidar scan and merge it with the
 			//discretize map walls (weight given by one point -> weight one)
-			discretized_lidar_map = *lidar_cloud;
+			discretized_lidar_map = lidar_cloud;
 		}
 
 		//Once the different set of points defined, it is needed to merge the two point
@@ -112,6 +113,9 @@ private:
 	//Final ransac msgs
 	robo7_msgs::wallPoint merged_clouds;
 
+	//Choose method
+	int method;
+
 
 
 	void discretize_world_map()
@@ -127,7 +131,7 @@ private:
 	{
 		robo7_srvs::scanCoord::Request req;
 		robo7_srvs::scanCoord::Response res;
-		req.robot_position = robot_position;
+		req.robot_position = robot_position.position;
 		req.lidar_scan = the_lidar_scan;
 		scan_to_coord_srv.call(req, res);
 		lidar_cloud = res.the_lidar_points;
@@ -138,7 +142,7 @@ private:
 		//Find the walls
 		robo7_srvs::RansacWall::Request req;
 		robo7_srvs::RansacWall::Response res;
-		req.point_cloud = lidar_cloud;
+		req.the_cloud = lidar_cloud;
 		ransac_srv.call(req, res);
 		lidar_walls = res.ransac_walls;
 
@@ -173,7 +177,7 @@ private:
 	{
 		robo7_srvs::RansacWall::Request req;
 		robo7_srvs::RansacWall::Response res;
-		req.point_cloud = merged_clouds;
+		req.the_cloud = merged_clouds;
 		ransac_srv.call(req, res);
 		updated_map_walls = res.ransac_walls;
 	}
@@ -185,7 +189,7 @@ int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "Mapping service");
 
-	ICPServer icp_;
+	UpdateMap UpdateMap_;
 
 	ros::Rate loop_rate(100);
 
