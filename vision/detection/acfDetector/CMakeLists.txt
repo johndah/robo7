@@ -63,3 +63,13 @@ ${OpenCV_LIBRARIES}
 /home/ras17/acf/_install/gcc-5-pic-hid-sections-lto/lib/libacf.so)
 
 add_dependencies(multi_acf_detector ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
+add_executable(trainSVM src/trainSVM.cpp)
+
+target_link_libraries(trainSVM
+${catkin_LIBRARIES}
+${OpenCV_LIBRARIES}
+)
+
+add_dependencies(trainSVM ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

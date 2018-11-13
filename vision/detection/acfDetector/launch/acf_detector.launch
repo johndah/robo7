@@ -3,7 +3,8 @@
   <include file="$(find realsense_camera)/launch/sr300_nodelet_rgbd.launch"/>
 
   <node pkg="acfDetector" type="acf_detector" name="acf_detector">
-    <param name="sModel" type="string" value="/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb"/>
+    <param name="acfModel" type="string" value="/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb"/>
+    <param name="svmModel" type="string" value="/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/SVMmodel.yml."/>
 
   <!--node pkg="acfDetector" type="multi_acf_detector" name="multi_acf_detector">
     <param name="y_Model" type="string" value="/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/y_model.cpb"/>
