@@ -18,6 +18,7 @@ add_service_files(
   path_planning.srv
   update_map.srv
   discretize_map.srv
+  door_opener.srv
 )
 
 

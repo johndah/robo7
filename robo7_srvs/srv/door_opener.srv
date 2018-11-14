@@ -1,0 +1,4 @@
+# request
+bool open_door  # do you want the door to be open 
+---
+bool success  # True if the pickup sequence was sucsessful
