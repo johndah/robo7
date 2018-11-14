@@ -32,8 +32,8 @@
 
    <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
 
-     <param name="initial_x_pos" type="double" value="1.65"/>
-     <param name="initial_y_pos" type="double" value="0.90"/>
+     <param name="initial_x_pos" type="double" value="0.20"/>
+     <param name="initial_y_pos" type="double" value="0.215"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
 
      <param name="linear_adjustment" type="double" value="0.0481"/>
@@ -72,19 +72,19 @@
 
 <!-- The path_follower nodes -->
    <node pkg="path_follower" type="destination_point" name="destination_point" output="screen">
-     <param name="x_destination" type="double" value="1.65"/>
-     <param name="y_destination" type="double" value="0.90"/>
+     <param name="x_destination" type="double" value="0.20"/>
+     <param name="y_destination" type="double" value="0.215"/>
    </node>
 
-   <!-- <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
+   <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
      <param name="angle_P" type="double" value="3"/>
      <param name="angle_I" type="double" value="2"/>
      <param name="angle_D" type="double" value="0"/>
      <param name="error_sat" type="double" value="0.3"/>
      <param name="angular_velocity_saturation_threshold" type="double" value="3"/>
      <param name="linear_speed" type="double" value="0.15"/>
-     <param name="drive_backward" type="bool" value="true"/>
-   </node> -->
+     <param name="drive_backward" type="bool" value="false"/>
+   </node>
 
    <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
      <param name="distance_to_destination_threshold" type="double" value="0.05"/>
