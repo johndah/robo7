@@ -49,11 +49,9 @@ public:
 
     //The errors values
     n.param<float>("/kalman_filter/sigma_x", sigma_x, 0.05);
-    n.param<float>("/kalman_filter/sigma_y", sigma_y, 0.05);
     n.param<float>("/kalman_filter/sigma_angle", sigma_a, 0.1);
 
     n.param<float>("/kalman_filter/sigma_x_lidar", sigma_x_lidar, 0.05);
-    n.param<float>("/kalman_filter/sigma_y_lidar", sigma_y_lidar, 0.05);
     n.param<float>("/kalman_filter/sigma_angle_lidar", sigma_a_lidar, 0.1);
 
     //Two different methods to test
@@ -81,15 +79,12 @@ public:
 
     //Measure Request/Response initialisations
     request_id = 0;
-    previous_measure_received = true;
-    new_measure_received = false;
 
     //Initialize the different matrices
     initialize_matrices();
 
     encoder_Left = n.subscribe("/l_motor/encoder", 1, &kalmanFilter::encoder_L_callBack, this);
     encoder_Right = n.subscribe("/r_motor/encoder", 1, &kalmanFilter::encoder_R_callBack, this);
-    measure_sub = n.subscribe("/localization/meas_update/measure_response", 1, &kalmanFilter::measureFeedback_callBack, this);
     scan_sub = n.subscribe("/scan", 1, &kalmanFilter::scan_callBack, this);
     map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &kalmanFilter::maze_map_callBack, this);
 
@@ -106,12 +101,12 @@ public:
 
   void encoder_L_callBack(const phidgets::motor_encoder::ConstPtr &msg)
   {
-      count_L = msg->count;
+    left_encoder_msg = *msg;
   }
 
   void encoder_R_callBack(const phidgets::motor_encoder::ConstPtr &msg)
   {
-      count_R = msg->count;
+    right_encoder_msg = *msg;
   }
 
   void scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
