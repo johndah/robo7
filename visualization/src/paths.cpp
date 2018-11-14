@@ -15,8 +15,8 @@ typedef std::vector<float> float_vector;
 std::vector<float_vector> paths_x, paths_y, trajectory_x, trajectory_y;
 float x_target, y_target;
 int number_paths = 0;
-float path_height = 0.1;
-float marker_height = 0.15;
+float path_height = 0; // 0.1;
+float marker_height = 0.05; // 0.15;
 
 class Paths
 {

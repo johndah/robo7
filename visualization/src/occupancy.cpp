@@ -12,7 +12,7 @@
 #include <std_msgs/Int8MultiArray.h>
 #include <algorithm>
 
-float path_height = 0.1;
+float path_height = 0.0;
 
 
 class OccupancyGrid
