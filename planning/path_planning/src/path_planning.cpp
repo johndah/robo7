@@ -51,11 +51,11 @@ class Node
 		this->path_cost = path_cost;
 		this->cost_to_come = cost_to_come;
 
-		this->path_length = 0.3;
-		this->steering_angle_max = 2 * pi;
-		this->angular_velocity_resolution = pi;
-
 		this->dt = 0.05;
+
+		this->path_length = 0.3;
+		this->steering_angle_max = pi / (8 *this->dt);
+		this->angular_velocity_resolution = pi/2;
 
 		this->tolerance_radius = 3e-2;
 		this->tolerance_angle = pi / 8;
@@ -165,7 +165,7 @@ class PathPlanning
 		this->occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
 		this->distance_client = nh.serviceClient<robo7_srvs::distanceTo>("/distance_grid/distance");
 
-		goal_radius_tolerance = .05;
+		goal_radius_tolerance = .02;
 		node_id = 1;
 	}
 
@@ -206,24 +206,24 @@ class PathPlanning
 
 			if (std::abs(angular_velocity) < 1e-1)
 			{
-				penalty_factor = 0.2;
+				penalty_factor = 0.3;
 				node->path_length = 0.4;
-				node->steering_angle_max = pi;
-				node->angular_velocity_resolution = pi/2;
+				//node->steering_angle_max = pi;
+				//node->angular_velocity_resolution = pi/2;
 			}
-			else if (std::abs(angular_velocity - node->angular_velocity_resolution) < 1e-1)
+			else if (std::abs(angular_velocity) - node->angular_velocity_resolution < 1e-1 || std::abs(angular_velocity) - 2*node->angular_velocity_resolution < 1e-1)
 			{
-				penalty_factor = .8;
+				penalty_factor = .7;
 				node->path_length = 0.3;
-				node->steering_angle_max = 2*pi;
-				node->angular_velocity_resolution = pi/2;
+				//node->steering_angle_max = 2*pi;
+				//node->angular_velocity_resolution = pi;
 			}
 			else
 			{
 				penalty_factor = 1.0; 
-				node->path_length = 0.2;
-				node->steering_angle_max = 3 * pi;
-				node->angular_velocity_resolution = pi/2;
+				node->path_length = 0.25;
+				//node->steering_angle_max = pi/;
+				//node->angular_velocity_resolution = pi;
 			}
 
 			t = 0.0;
