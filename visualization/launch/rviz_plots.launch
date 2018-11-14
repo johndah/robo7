@@ -5,7 +5,7 @@
   <!--
   -->
 
-  <node pkg="visualization" type="visualization" name="visualization">
+  <node pkg="visualization" type="visualization" name="visualization" output="screen">
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
 

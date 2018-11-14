@@ -52,9 +52,9 @@ public:
     n.param<float>("/kalman_filter/angular_adjustment", angular_adjustment, 0);
 
     //The errors values
-    n.param<float>("/kalman_filter/sigma_x", sigma_d, 0.05);
+    n.param<float>("/kalman_filter/sigma_distance", sigma_d, 0.05);
     n.param<float>("/kalman_filter/sigma_angle", sigma_a, 0.1);
-    n.param<float>("/kalman_filter/sigma_x_lidar", sigma_d_lidar, 0.05);
+    n.param<float>("/kalman_filter/sigma_distance_lidar", sigma_d_lidar, 0.05);
     n.param<float>("/kalman_filter/sigma_angle_lidar", sigma_a_lidar, 0.1);
 
     //Decide if we only go for dead_reckoning or EKF
@@ -63,6 +63,7 @@ public:
     //Initialize the different matrices
     initialize_variables();
     encoder_saver_initialization();
+    time_start = ros::Time::now();
 
     encoder_Left = n.subscribe("/l_motor/encoder", 1, &kalmanFilter::encoder_L_callBack, this);
     encoder_Right = n.subscribe("/r_motor/encoder", 1, &kalmanFilter::encoder_R_callBack, this);
@@ -98,12 +99,10 @@ public:
 
   void scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
   {
-    ROS_INFO("New messages : %d, %d", msg->header.seq, the_lidar_scan.header.seq);
     if(msg->header.seq != the_lidar_scan.header.seq)
     {
       the_lidar_scan = *msg;
       new_lidar_scan = true;
-      ROS_INFO("New messages : %d, %d", msg->header.seq, the_lidar_scan.header.seq);
     }
 
   }
@@ -117,7 +116,7 @@ public:
   {
     robo7_msgs::robotPositionTest test;
 
-    if(new_lidar_scan)
+    if((new_lidar_scan)&&(ros::Time::now().toSec() - time_start.toSec() > 3))
     {
       //First, find the corresponding times for the lidar scan and encoders
       find_the_corresponding_times();
@@ -134,23 +133,14 @@ public:
       //Update the header of the newly computed robot_position
       the_robot_position.header.seq++;
       the_robot_position.header.stamp = the_lidar_scan.header.stamp;
+      the_robot_position.header.stamp = ros::Time::now();
 
       //Wait for a new lidar scan before the next update
       new_lidar_scan = false;
-
-      // ROS_INFO("__");
-      // ROS_INFO("New set :");
-      // print_encoder_times();
-      // ROS_INFO("Lidar time : %d, %lf", the_lidar_scan.header.seq, the_lidar_scan.header.stamp.toSec());
-
-      // ROS_INFO("Correspondances : ");
-      // ROS_INFO("Left : %d, %d, %lf", left_encoder_saver[left_encoder_corresp_index].header.seq, left_encoder_corresp.header.seq, left_encoder_corresp.header.stamp.toSec());
-      // ROS_INFO("Right : %d, %d, %lf", right_encoder_saver[right_encoder_corresp_index].header.seq, right_encoder_corresp.header.seq, right_encoder_corresp.header.stamp.toSec());
-
-      //Publish the messages out of the EKF
-      robot_position.publish( the_robot_position.position );
-      robot_position_pub.publish( the_robot_position );
     }
+
+    robot_position.publish( the_robot_position.position );
+    robot_position_pub.publish( the_robot_position );
   }
 
 
@@ -492,6 +482,9 @@ private:
   std::vector<phidgets::motor_encoder> left_encoder_saver, right_encoder_saver;
   phidgets::motor_encoder left_encoder_corresp, right_encoder_corresp;
   int left_encoder_corresp_index, right_encoder_corresp_index;
+
+  //Initial time that leave the robot the time to start everything before the computations
+  ros::Time time_start;
 
   //Other useful function
   int sgn(int v)

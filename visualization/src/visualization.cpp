@@ -6,6 +6,7 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Quaternion.h>
 #include <robo7_msgs/former_position.h>
+#include <robo7_msgs/the_robot_position.h>
 #include <visualization_msgs/Marker.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
@@ -47,7 +48,7 @@ public:
     marker_parameters2 = n.advertise<visualization_msgs::Marker>("robotMarker2", 1);
   }
 
-  void deadReckoning_callBack(const robo7_msgs::former_position::ConstPtr &msg)
+  void deadReckoning_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
   {
       robot_position = *msg;
       x_pos = robot_position.position.linear.x;
@@ -68,6 +69,7 @@ public:
     visualization_msgs::Marker marker;
 
     t = robot_position.header.stamp;
+    ROS_INFO("time, pose : %lf, %lf, %lf, %lf", t.toSec(), x_pos, y_pos, z_angle);
 
     // marker.header.frame_id = "robot";
     // marker.header.stamp = t;
@@ -151,7 +153,7 @@ private:
   float y2_angle;
   float z2_angle;
 
-  robo7_msgs::former_position robot_position;
+  robo7_msgs::the_robot_position robot_position;
 
   //Time constant
   ros::Time t;
