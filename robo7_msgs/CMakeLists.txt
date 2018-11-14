@@ -35,6 +35,7 @@ add_message_files(
   robotPositionTest.msg
   wallPoint.msg
   aWall.msg
+  the_robot_position.msg
 )
 
 generate_messages(
