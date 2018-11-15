@@ -126,15 +126,23 @@ public:
 
       //Do the time update with the encoders found -> dead_reckoning
       // ROS_INFO("Start time update");
-      time_Update();
+      if(use_dead_reckoning)
+      {
+        time_Update();
+      }
       // ROS_INFO("Time update done");
 
       //Then we need to do the Measurement Update
       if(use_measure)
       {
-        ROS_INFO("Start meausrement update");
+        ROS_INFO("Start measurement update");
         measurement_update();
         ROS_INFO("Measurement update done");
+      }
+
+      if(!use_dead_reckoning)
+      {
+        the_robot_position.position = lidar_position;
       }
 
       //Update the header of the newly computed robot_position
