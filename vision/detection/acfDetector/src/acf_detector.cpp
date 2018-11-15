@@ -54,22 +54,21 @@ public:
       // obj_img_pub = it_.advertise("/vision/object/img", 1);
 
   		namedWindow("Detected image");
-      namedWindow("bbx");
+      // namedWindow("bbx");
       // namedWindow("Cropped object image");
 
       depth_points_sub = n.subscribe("/camera/depth_registered/points", 1, &ACFdetector::depthCallBack, this);
-      // obj_pos_pub = n.advertise<geometry_msgs::Point>("/vision/object/pos", 5);
       obj_detected_pub = n.advertise<acfDetector::detectedObj>("/vision/object", 1);
 
       std::string acfModel;
       n.param<string>("/acf_detector/acfModel", acfModel, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb");
-
-      // std::string sModel = "/home/jtao/CLionProjects/lab1/model_color_mag.cpb";
       detector = std::make_shared<acf::Detector>(acfModel);
 
       if (detector.get() && detector->good()) {
         detector->setDoNonMaximaSuppression(true);
       }
+
+      n.param<int>("/acf_detector/scoreThre", scoreThre, 50);
     }
 
   	~ACFdetector()
@@ -199,12 +198,21 @@ public:
       string color[6] = {"yellow", "green", "orange", "red", "blue", "purple"};
       std::vector<string> colorVec(color, color+6);
 
-      (*detector)(origImg, objects, &scores);
+      cv::Mat imageRGB;
+      cv::cvtColor(origImg, imageRGB, cv::COLOR_BGR2RGB);
+      (*detector)(imageRGB, objects, &scores);
 
       int ind = 0;
       std::stringstream ss;
       for (const auto& o : objects)
       {
+        // Threshold of scores
+        if (scores[ind] < scoreThre){
+          ROS_INFO("skip the bbx with %f", scores[ind]);
+          ind++;
+          continue;
+        }
+
         acfDetector::detectedObj object_pub;
 
         // make sure the bbx don't out of the image
@@ -240,7 +248,6 @@ public:
 
           sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", obj_img).toImageMsg();
 
-          // obj_img_pub.publish(img_msg);
           object_pub.img = *img_msg;
 
           // get the pos of the object
@@ -277,7 +284,7 @@ public:
             // ROS_INFO("final_z: %f", pos.z);
           }
 
-          // obj_pos_pub.publish(pos);
+          // Publish msg
           object_pub.pos = pos;
           std_msgs::String color;
           color.data = colorVec[response];
@@ -314,9 +321,9 @@ private:
   sensor_msgs::PointCloud2 pCloud_cam;
 
   AcfPtr detector;
-  // Ptr<SVM> svm;
 
   cv::Mat resultImg;
+  int scoreThre;
 
 };
 

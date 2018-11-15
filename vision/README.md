@@ -128,11 +128,14 @@ v: 0~255
 
 ## Log
 
-| Time       | Done                                     | To do                                   |
-| ---------- | ---------------------------------------- | --------------------------------------- |
-| 2018-11-13 | Integrated SVM color classifier into ros | 1. Select the best bbx                  |
-|            |                                          | 2. Purple and red objects detection bad |
-|            |                                          | 3. Rosbag or save as a video            |
-|            |                                          |                                         |
-|            |                                          |                                         |
+| Time       | Done                                                         | To do                                         |
+| ---------- | ------------------------------------------------------------ | --------------------------------------------- |
+| 2018-11-13 | Integrated SVM color classifier into ros                     | 1. Select the best bbx                        |
+|            |                                                              | 2. Purple and red objects detection bad       |
+|            |                                                              | 3. Rosbag or save as a video                  |
+| 2018-11-14 | Fix the problem why red and purple objects can not be detected. (BGR to RGB) | 1. Detect a image blurry or not               |
+|            | Generate classify dataset                                    | 2. Extract the training dataset               |
+|            |                                                              | 3. Split with training and validation dataset |
+|            |                                                              |                                               |
+|            |                                                              |                                               |
 
