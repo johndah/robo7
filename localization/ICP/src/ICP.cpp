@@ -102,7 +102,7 @@ public:
 		icp.setRANSACOutlierRejectionThreshold(0.5);
     //icp.setRANSACIterations(100);
     // Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-    icp.setMaxCorrespondenceDistance (1);
+    icp.setMaxCorrespondenceDistance (0.1);
     // Set the maximum number of iterations (criterion 1)
     icp.setMaximumIterations (10000);
 
