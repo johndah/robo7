@@ -352,10 +352,10 @@ private:
 
   void compute_the_estimate()
   {
-    // ROS_INFO("Curent position (x,y,thet) : (%lf, %lf, %lf)", the_x_minus_vector(0), the_x_minus_vector(1), the_x_minus_vector(2));
-    // ROS_INFO("Lidar Corrected position (x,y,thet) : (%lf, %lf, %lf)", the_z_vector(0), the_z_vector(1), the_z_vector(2));
+    ROS_INFO("Curent position (x,y,thet) : (%lf, %lf, %lf)", the_x_minus_vector(0), the_x_minus_vector(1), the_x_minus_vector(2));
+    ROS_INFO("Lidar Corrected position (x,y,thet) : (%lf, %lf, %lf)", the_z_vector(0), the_z_vector(1), the_z_vector(2));
     the_x_vector = the_x_minus_vector + the_K_matrix * ( the_z_vector - the_x_minus_vector );
-    // ROS_INFO("Position error (x,y,thet) : (%lf, %lf, %lf)", the_x_vector(0), the_x_vector(1), the_x_vector(2));
+    ROS_INFO("Position error (x,y,thet) : (%lf, %lf, %lf)", the_x_vector(0), the_x_vector(1), the_x_vector(2));
   }
 
   void change_vector_to_pose()
