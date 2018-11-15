@@ -10,6 +10,7 @@
 #include <visualization_msgs/Marker.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
+#include <sensor_msgs/LaserScan.h>
 
 // Control @ 10 Hz
 double control_frequency = 30.0;
@@ -20,10 +21,13 @@ class markerRviz
 public:
   ros::NodeHandle n;
   ros::NodeHandle nh;
+  //Subscribers
   ros::Subscriber robot_position1;
   ros::Subscriber robot_position2;
+  //Publishers
   ros::Publisher marker_parameters1;
   ros::Publisher marker_parameters2;
+  ros::Publisher lidar_pub;
   tf::TransformBroadcaster br;
   tf::Transform transform;
   tf::TransformBroadcaster br2;
@@ -46,6 +50,7 @@ public:
 
     marker_parameters1 = n.advertise<visualization_msgs::Marker>("robotMarker", 1);
     marker_parameters2 = n.advertise<visualization_msgs::Marker>("robotMarker2", 1);
+    marker_parameters2 = n.advertise<sensor_msgs::LaserScan>("/visualization/lidar_scan", 1);
   }
 
   void deadReckoning_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
@@ -115,6 +120,10 @@ public:
     marker.color.g = 0.0;
     marker.color.b = 0.0;
 
+    //Extract the corresponding laser scan
+    lidar_scan = the_robot_position.the_lidar_scan;
+    lidar_scan.header.stamp = t;
+
     //Set the frame centered on the robot
     transform.setOrigin( tf::Vector3(x_pos, y_pos, z_pos) );
     tf::Quaternion q;
@@ -130,6 +139,7 @@ public:
     br2.sendTransform(tf::StampedTransform(transform2, t, "map", "robot_corrected"));
 
     marker_parameters1.publish( marker );
+    lidar_pub.publish( lidar_scan );
 
     marker.header.frame_id = "robot_corrected";
     marker.color.g = 1.0;
@@ -154,6 +164,7 @@ private:
   float z2_angle;
 
   robo7_msgs::the_robot_position robot_position;
+  sensor_msgs::LaserScan lidar_scan;
 
   //Time constant
   ros::Time t;
