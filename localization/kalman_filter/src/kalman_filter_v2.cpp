@@ -115,15 +115,17 @@ public:
 
   void updatePosition()
   {
-    // ROS_INFO("Start updating position");
     robo7_msgs::robotPositionTest test;
 
     if((new_lidar_scan)&&(ros::Time::now().toSec() - time_start.toSec() > 5))
     {
+      ROS_INFO("Start updating position");
       //First, find the corresponding times for the lidar scan and encoders
       // ROS_INFO("Looking for the corresponding encoders times");
       find_the_corresponding_times();
       // ROS_INFO("Done");
+
+      print_robot_position();
 
       //Do the time update with the encoders found -> dead_reckoning
       // ROS_INFO("Start time update");
@@ -132,6 +134,8 @@ public:
         time_Update();
       }
       // ROS_INFO("Time update done");
+
+      print_robot_position();
 
       //Then we need to do the Measurement Update
       if(use_measure)
@@ -145,6 +149,8 @@ public:
       {
         the_robot_position.position = lidar_position;
       }
+
+      print_robot_position();
 
       //Update the header of the newly computed robot_position
       // ROS_INFO("Update robot position header");
@@ -525,6 +531,11 @@ private:
   {
     float twoPi = 2.0 * pi;
     return angle - twoPi * floor( angle / twoPi );
+  }
+
+  void print_robot_position()
+  {
+    ROS_INFO("(x,y,theta) = (%lf, %lf, %lf)", the_robot_position.position.linear.x, the_robot_position.position.linear.y, the_robot_position.position.angular.z);
   }
 };
 
