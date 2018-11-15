@@ -120,14 +120,14 @@ public:
     if((new_lidar_scan)&&(ros::Time::now().toSec() - time_start.toSec() > 5))
     {
       //First, find the corresponding times for the lidar scan and encoders
-      ROS_INFO("Looking for the corresponding encoders times");
+      // ROS_INFO("Looking for the corresponding encoders times");
       find_the_corresponding_times();
-      ROS_INFO("Done");
+      // ROS_INFO("Done");
 
       //Do the time update with the encoders found -> dead_reckoning
-      ROS_INFO("Start time update");
+      // ROS_INFO("Start time update");
       time_Update();
-      ROS_INFO("Time update done");
+      // ROS_INFO("Time update done");
 
       //Then we need to do the Measurement Update
       if(use_measure)
@@ -138,7 +138,7 @@ public:
       }
 
       //Update the header of the newly computed robot_position
-      ROS_INFO("Update robot position header");
+      // ROS_INFO("Update robot position header");
       the_robot_position.header.seq++;
       the_robot_position.header.stamp = the_lidar_scan.header.stamp;
       the_robot_position.header.stamp = ros::Time::now();
