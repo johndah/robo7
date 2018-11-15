@@ -236,7 +236,7 @@ int main(int argc, char **argv)
         desire_vel.angular.z = 0;
     }
 
-    ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
+    // ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
     if((!arrived)&&(!problem)&&(robot_position.header.seq != previous_robot_position.header.seq))
     {
       ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
