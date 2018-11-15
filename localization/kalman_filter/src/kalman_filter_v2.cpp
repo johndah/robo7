@@ -117,10 +117,7 @@ public:
   {
     robo7_msgs::robotPositionTest test;
 
-    if((use_dead_reckoning)&&(ros::Time::now().toSec() - time_start.toSec() > 5))
-    {
-      dead_reckoning_position();
-    }
+
 
     if((new_lidar_scan)&&(ros::Time::now().toSec() - time_start.toSec() > 5))
     {
@@ -154,6 +151,10 @@ public:
 
       //Wait for a new lidar scan before the next update
       new_lidar_scan = false;
+    }
+    else if((use_dead_reckoning)&&(ros::Time::now().toSec() - time_start.toSec() > 5))
+    {
+      dead_reckoning_position();
     }
 
     robot_position_pub.publish( estimated_robot_position );
@@ -441,6 +442,7 @@ private:
 
   void dead_reckoning_position()
   {
+    ROS_INFO("find encoders");
     //Pick up the next encoder values that shows up
     left_encoder_corresp_blind = left_encoder_saver[left_encoder_corresp_index];
     right_encoder_corresp_blind = right_encoder_saver[right_encoder_corresp_index];
