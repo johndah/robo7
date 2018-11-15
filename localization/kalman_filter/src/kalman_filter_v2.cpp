@@ -113,7 +113,7 @@ public:
 
   void updatePosition()
   {
-    ROS_INFO("Start updating position");
+    // ROS_INFO("Start updating position");
     robo7_msgs::robotPositionTest test;
 
     if((new_lidar_scan)&&(ros::Time::now().toSec() - time_start.toSec() > 3))
@@ -148,7 +148,7 @@ public:
 
     robot_position.publish( the_robot_position.position );
     robot_position_pub.publish( the_robot_position );
-    ROS_INFO("Positions published");
+    // ROS_INFO("Positions published");
   }
 
 
