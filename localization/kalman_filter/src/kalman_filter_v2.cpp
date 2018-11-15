@@ -442,12 +442,12 @@ private:
 
   void dead_reckoning_position()
   {
-    ROS_INFO("find encoders");
+    // ROS_INFO("find encoders");
     //Pick up the next encoder values that shows up
     left_encoder_corresp_blind = left_encoder_saver[left_encoder_corresp_index];
     right_encoder_corresp_blind = right_encoder_saver[right_encoder_corresp_index];
 
-    ROS_INFO("Compute the position");
+    // ROS_INFO("Compute the position");
     //Use the extracted encoders value to update the counts
     count_L_blind = left_encoder_corresp_blind.count;
     count_R_blind = right_encoder_corresp_blind.count;
@@ -472,7 +472,7 @@ private:
     estimated_robot_position.position.linear.y += (lin_dis_blind * sin(estimated_robot_position.position.angular.z)) * (1 + linear_adjustment);
     estimated_robot_position.position.angular.z += ang_dis_blind * (1 + angular_adjustment);
     estimated_robot_position.position.angular.z = wrapAngle(estimated_robot_position.position.angular.z);
-    ROS_INFO("Postion updated");
+    // ROS_INFO("Postion updated");
   }
 
   //The variables
