@@ -131,6 +131,7 @@ public:
       // ROS_INFO("Start time update");
       if(use_dead_reckoning)
       {
+        ROS_INFO("Dead_reckoning update");
         time_Update();
       }
       // ROS_INFO("Time update done");
