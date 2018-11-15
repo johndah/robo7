@@ -121,7 +121,7 @@ public:
     marker.color.b = 0.0;
 
     //Extract the corresponding laser scan
-    lidar_scan = the_robot_position.the_lidar_scan;
+    lidar_scan = robot_position.the_lidar_scan;
     lidar_scan.header.stamp = t;
 
     //Set the frame centered on the robot
