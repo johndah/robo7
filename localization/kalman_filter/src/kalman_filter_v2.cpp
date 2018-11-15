@@ -104,7 +104,6 @@ public:
       the_lidar_scan = *msg;
       new_lidar_scan = true;
     }
-
   }
 
   void maze_map_callBack(const robo7_msgs::cornerList::ConstPtr &msg)
@@ -247,10 +246,6 @@ private:
     ang_dis = angular_distance_linearised(om_L, -om_R);
     lin_dis = linear_distance_linearised(om_L, -om_R);
 
-    //Update of the total distances that the robot moved
-    tot_dist += lin_dis;
-    tot_angle += ang_dis;
-
     //Compute the linear distances and angles of the robot
     the_robot_position.position.linear.x += (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
     the_robot_position.position.linear.y += (lin_dis * sin(z_angle)) * (1 + linear_adjustment);
@@ -319,9 +314,6 @@ private:
 
     //Then change it back into the normal position msg
     change_vector_to_pose();
-
-    //Finsih with the updating of the error covariance
-    compute_P_matrix();
   }
 
   void change_pose_to_vector()
