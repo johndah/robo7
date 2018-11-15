@@ -173,6 +173,19 @@ void PID_AWU_update()
   desire_angular_vel = desire_angular_sat;
 }
 
+void P_update()
+{
+  error = diff_angle;
+
+  desire_angular_vel = (a_P * error);
+  desire_angular_sat = desire_angular_vel;
+
+  if(desire_angular_sat > desire_vel_threshold) { desire_angular_sat = desire_vel_threshold; }
+  else if(desire_angular_sat < -desire_vel_threshold) { desire_angular_sat = -desire_vel_threshold; }
+
+  desire_angular_vel = desire_angular_sat;
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "point_follower");
@@ -243,13 +256,15 @@ int main(int argc, char **argv)
       if(sgn(diff_angle)*diff_angle > angle_ref_max)
       {
         desire_vel.linear.x = 0;
-        PID_AWU_update();
+        P_update();
+        // PID_AWU_update();
         desire_vel.angular.z = desire_angular_vel;
       }
       else
       {
         desire_vel.linear.x = velocity_sign * aver_lin_vel;
-        PID_AWU_update();
+        P_update();
+        // PID_AWU_update();
         desire_vel.angular.z = desire_angular_vel;
       }
       ROS_INFO("(lin, ang) : (%lf, %lf)", desire_vel.linear.x, desire_vel.angular.z = desire_angular_vel);
