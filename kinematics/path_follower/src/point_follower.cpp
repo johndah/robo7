@@ -253,6 +253,7 @@ int main(int argc, char **argv)
         PID_AWU_update();
         desire_vel.angular.z = desire_angular_vel;
       }
+      ROS_INFO("(lin, ang) : (%lf, %lf)", desire_vel.linear.x, desire_vel.angular.z = desire_angular_vel);
       integ_err.data = int_error;
       integ.publish( integ_err );
       previous_robot_position = robot_position;
