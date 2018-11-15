@@ -236,12 +236,11 @@ int main(int argc, char **argv)
         desire_vel.angular.z = 0;
     }
 
-    // ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
+    ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
     if((!arrived)&&(!problem)&&(robot_position.header.seq != previous_robot_position.header.seq))
     {
       ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
       dt = robot_position.header.stamp.toSec() - previous_robot_position.header.stamp.toSec();
-      dt = 1/freq;
       if(sgn(diff_angle)*diff_angle > angle_ref_max)
       {
         desire_vel.linear.x = 0;
