@@ -89,6 +89,7 @@ void position_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
 {
   if((msg->header.seq != robot_position.header.seq)&&(msg->header.seq > 1))
   {
+    ROS_INFO("new_measure");
     robot_position = *msg;
     robot_x = robot_position.position.linear.x;
     robot_y = robot_position.position.linear.y;
