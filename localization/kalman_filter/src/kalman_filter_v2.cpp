@@ -257,6 +257,10 @@ private:
 
   void dead_reckoning_update()
   {
+    //Use the extracted encoders value to update the counts
+    count_L = left_encoder_corresp.counts;
+    count_R = right_encoder_corresp.counts;
+
     //Update the differents count changes
     encoder_L = count_L - prev_count_L;
     encoder_R = count_R - prev_count_R;
