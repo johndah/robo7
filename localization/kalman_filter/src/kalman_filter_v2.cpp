@@ -154,10 +154,11 @@ public:
 
       //Wait for a new lidar scan before the next update
       new_lidar_scan = false;
+
+      robot_position_pub.publish( the_robot_position );
     }
 
     robot_position.publish( the_robot_position.position );
-    robot_position_pub.publish( the_robot_position );
     // ROS_INFO("Positions published");
   }
 
