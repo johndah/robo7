@@ -57,6 +57,7 @@ public:
     n.param<float>("/kalman_filter/sigma_distance_lidar", sigma_d_lidar, 0.05);
     n.param<float>("/kalman_filter/sigma_angle_lidar", sigma_a_lidar, 0.1);
 
+    ROS_INFO("Sigmas : %f, %f ,%f, %f", sigma_d, sigma_a, sigma_d_lidar, sigma_a_lidar);
     //Decide if we only go for dead_reckoning or EKF
     n.param<bool>("/kalman_filter/use_measure", use_measure, false);
 
