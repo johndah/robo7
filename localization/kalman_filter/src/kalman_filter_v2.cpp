@@ -534,7 +534,7 @@ private:
   phidgets::motor_encoder left_encoder_msg, right_encoder_msg;
   int number_of_instance_saved;
   std::vector<phidgets::motor_encoder> left_encoder_saver, right_encoder_saver;
-  phidgets::motor_encoder left_encoder_corresp, right_encoder_corresp;
+  phidgets::motor_encoder left_encoder_corresp, right_encoder_corresp, left_encoder_corresp_blind, right_encoder_corresp_blind;
   int left_encoder_corresp_index, right_encoder_corresp_index;
 
   //Initial time that leave the robot the time to start everything before the computations
