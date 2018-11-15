@@ -68,7 +68,7 @@ public:
     //Generate the future published twist msg
     visualization_msgs::Marker marker;
 
-    t = robot_position.header.stamp;
+    t = ros::Time::now();
     // ROS_INFO("time, pose : %lf, %lf, %lf, %lf", t.toSec(), x_pos, y_pos, z_angle);
 
     // marker.header.frame_id = "robot";

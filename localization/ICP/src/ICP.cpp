@@ -142,6 +142,7 @@ public:
 		inverseTransform();
 
 
+		corrected_pos_pub.publish( new_point );
 
 		res.success = converged;
 		res.error = error;
@@ -153,8 +154,6 @@ public:
 			res.transformation.line2.push_back(transformation_(2,i));
 			res.transformation.line3.push_back(transformation_(3,i));
 		}
-
-		corrected_pos_pub.publish( new_point );
 
 		return true;
 	}
