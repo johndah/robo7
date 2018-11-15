@@ -119,7 +119,7 @@ public:
 
     if((new_lidar_scan)&&(ros::Time::now().toSec() - time_start.toSec() > 5))
     {
-      ROS_INFO("");
+      ROS_INFO("_");
       //First, find the corresponding times for the lidar scan and encoders
       // ROS_INFO("Looking for the corresponding encoders times");
       find_the_corresponding_times();
@@ -412,8 +412,6 @@ private:
     the_P_minus_matrix = Eigen::Matrix3f::Zero(3,3);
     the_A_matrix = Eigen::Matrix3f::Identity(3,3);
     the_W_matrix = Eigen::MatrixXf::Zero(3,2);
-    the_W_matrix(0,0) = 1;
-    the_W_matrix(1,0) = 1;
     the_W_matrix(2,1) = 1;
     the_Q_matrix = Eigen::Matrix2f::Zero(2,2);
     the_Q_matrix(0,0) = sigma_d;
