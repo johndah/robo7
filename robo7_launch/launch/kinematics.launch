@@ -63,8 +63,8 @@
      <param name="use_dead_reckoning" type="bool" value="true"/>
      <param name="use_measure" type="bool" value="true"/>
 
-     <param name="sigma_distance" type="double" value="1.0"/>
-     <param name="sigma_angle" type="double" value="1.0"/>
+     <param name="sigma_distance" type="double" value="10.0"/>
+     <param name="sigma_angle" type="double" value="10.0"/>
      <param name="sigma_distance_lidar" type="double" value="0.05"/>
      <param name="sigma_angle_lidar" type="double" value="0.1"/>
    </node>
