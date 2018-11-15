@@ -119,6 +119,7 @@ public:
 
     if((new_lidar_scan)&&(ros::Time::now().toSec() - time_start.toSec() > 5))
     {
+      ROS_INFO("");
       //First, find the corresponding times for the lidar scan and encoders
       // ROS_INFO("Looking for the corresponding encoders times");
       find_the_corresponding_times();
