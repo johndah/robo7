@@ -13,7 +13,7 @@ robo7_msgs::the_robot_position robot_position, previous_robot_position;
 geometry_msgs::Twist desire_vel;
 
 float freq = 100;
-float dt = 1/freq;
+double dt = 1/freq;
 float pi = 3.14159;
 int break_scalar = 5;
 
@@ -239,6 +239,7 @@ int main(int argc, char **argv)
 
     if((!arrived)&&(!problem)&&(new_measure))
     {
+      ROS_INFO("new measure");
       dt = previous_robot_position.header.stamp.toSec() - robot_position.header.stamp.toSec();
       if(sgn(diff_angle)*diff_angle > angle_ref_max)
       {
