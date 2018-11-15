@@ -117,7 +117,7 @@ public:
   {
     robo7_msgs::robotPositionTest test;
 
-    if(use_dead_reckoning)
+    if((use_dead_reckoning)&&(ros::Time::now().toSec() - time_start.toSec() > 5))
     {
       dead_reckoning_position();
     }
