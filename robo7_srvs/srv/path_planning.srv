@@ -1,0 +1,6 @@
+# request
+geometry_msgs/Twist robot_position
+geometry_msgs/Point destination_position
+---
+robo7_msgs/trajectory path_planned
+bool success  # True if the sequence was successful
