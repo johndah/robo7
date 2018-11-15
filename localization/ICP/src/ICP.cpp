@@ -147,7 +147,7 @@ public:
 			res.transformation.line2.push_back(transformation_(2,i));
 			res.transformation.line3.push_back(transformation_(3,i));
 		}
-
+		ROS_INFO("Done");
 		return true;
 	}
 
