@@ -81,7 +81,7 @@ public:
 
   void encoder_L_callBack(const phidgets::motor_encoder::ConstPtr &msg)
   {
-    if(msg->header.seq != left_encoder_msg.header.seq)
+    if((msg->header.seq != left_encoder_msg.header.seq)&&(msg->header.seq >= 1))
     {
       left_encoder_msg = *msg;
       update_left_encoder_saver();
