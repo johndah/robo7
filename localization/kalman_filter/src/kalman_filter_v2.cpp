@@ -150,7 +150,7 @@ public:
       // ROS_INFO("Update robot position header");
       the_robot_position.header.seq++;
       the_robot_position.header.stamp = the_lidar_scan.header.stamp;
-      the_robot_position.header.stamp = ros::Time::now();
+      the_robot_position.the_lidar_scan = the_lidar_scan;
 
       //Wait for a new lidar scan before the next update
       new_lidar_scan = false;
