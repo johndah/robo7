@@ -161,8 +161,6 @@ void PID_AWU_update()
 
   int_error = int_error + ( error + anti_windup ) * dt;
 
-
-
   desire_angular_vel = (a_P * error + a_I * int_error + a_D * dif_error / dt);
   desire_angular_sat = desire_angular_vel;
 
