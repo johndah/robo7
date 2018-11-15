@@ -117,7 +117,7 @@ public:
     // ROS_INFO("Start updating position");
     robo7_msgs::robotPositionTest test;
 
-    if((new_lidar_scan)&&(ros::Time::now().toSec() - time_start.toSec() > 3))
+    if((new_lidar_scan)&&(ros::Time::now().toSec() - time_start.toSec() > 5))
     {
       //First, find the corresponding times for the lidar scan and encoders
       ROS_INFO("Looking for the corresponding encoders times");
@@ -133,6 +133,7 @@ public:
       if(use_measure)
       {
         ROS_INFO("Start meausrement update");
+        ROS_INFO("");
         measurement_update();
         ROS_INFO("Measurement update done");
       }
