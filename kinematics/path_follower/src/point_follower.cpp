@@ -8,7 +8,7 @@
 #include "std_msgs/Float32.h"
 
 robo7_msgs::destination_point dest_twist;
-geometry_msgs::Twist pos_twist;
+robo7_msgs::the_robot_position robot_position;
 geometry_msgs::Twist desire_vel;
 
 float freq = 100;
@@ -63,9 +63,8 @@ float desire_vel_threshold = 0;
 
 bool arrived;
 bool problem = false;
+bool new_measure;
 
-
-std::clock_t last_msg;
 double duration;
 
 
@@ -83,17 +82,18 @@ void destination_callback(const robo7_msgs::destination_point::ConstPtr &msg)
   // }
   x_point = dest_twist.destination.linear.x;
   y_point = dest_twist.destination.linear.y;
-  last_msg = std::clock();
-
 }
 
-void position_callBack(const geometry_msgs::Twist::ConstPtr &msg)
+void position_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
 {
-  pos_twist = *msg;
-  robot_x = pos_twist.linear.x;
-  robot_y = pos_twist.linear.y;
-  robot_theta = pos_twist.angular.z;
-  last_msg = std::clock();
+  if((msg->header.seq != robot_position.header.seq)&&(msg->header.seq > 1))
+  {
+    robot_position = *msg;
+    robot_x = robot_position.position.linear.x;
+    robot_y = robot_position.position.linear.y;
+    robot_theta = robot_position.position.angular.z;
+    new_measure = true;
+  }
 }
 
 void break_callBack(const std_msgs::Bool::ConstPtr &msg)
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
     }
 
 
-    if((!arrived)&&(!problem))
+    if((!arrived)&&(!problem)&&(new_measure))
     {
       if(sgn(diff_angle)*diff_angle > angle_ref_max)
       {
@@ -252,6 +252,7 @@ int main(int argc, char **argv)
       }
       integ_err.data = int_error;
       integ.publish( integ_err );
+      new_measure = false;
     }
     else if(problem)
     {
