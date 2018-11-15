@@ -422,6 +422,7 @@ private:
     the_Q_matrix(1,1) = sigma_a;
 
     //The measurements update matrices
+    the_P_matrix = Eigen::Matrix3f::Zero(3,3);
     identity = Eigen::Matrix3f::Identity(3,3);
     the_H_matrix = Eigen::Matrix3f::Identity(3,3);
     the_R_matrix = Eigen::Matrix2f::Zero(2,2);
