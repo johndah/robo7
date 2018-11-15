@@ -241,6 +241,7 @@ int main(int argc, char **argv)
     {
       ROS_INFO("new measure");
       dt = previous_robot_position.header.stamp.toSec() - robot_position.header.stamp.toSec();
+      ROS_INFO("Dt : %lf", dt);
       if(sgn(diff_angle)*diff_angle > angle_ref_max)
       {
         desire_vel.linear.x = 0;
