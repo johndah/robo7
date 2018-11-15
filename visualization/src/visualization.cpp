@@ -50,7 +50,7 @@ public:
 
     marker_parameters1 = n.advertise<visualization_msgs::Marker>("robotMarker", 1);
     marker_parameters2 = n.advertise<visualization_msgs::Marker>("robotMarker2", 1);
-    marker_parameters2 = n.advertise<sensor_msgs::LaserScan>("/visualization/lidar_scan", 1);
+    lidar_pub = n.advertise<sensor_msgs::LaserScan>("/visualization/lidar_scan", 1);
   }
 
   void deadReckoning_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
