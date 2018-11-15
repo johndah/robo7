@@ -239,7 +239,7 @@ int main(int argc, char **argv)
 
     if((!arrived)&&(!problem)&&(new_measure))
     {
-      dt = previous_robot_position.header.stamp.toSec() - the_robot_position.header.stamp.toSec();
+      dt = previous_robot_position.header.stamp.toSec() - robot_position.header.stamp.toSec();
       if(sgn(diff_angle)*diff_angle > angle_ref_max)
       {
         desire_vel.linear.x = 0;
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
       }
       integ_err.data = int_error;
       integ.publish( integ_err );
-      previous_robot_position = the_robot_position;
+      previous_robot_position = robot_position;
       new_measure = false;
     }
     else if(problem)
