@@ -54,11 +54,11 @@ class Node
 		this->dt = 0.05;
 
 		this->path_length = 0.3;
-		this->steering_angle_max = pi / (8 *this->dt);
+		this->steering_angle_max = pi / (10.0 * this->dt);
 		this->angular_velocity_resolution = pi/2;
 
 		this->tolerance_radius = 3e-2;
-		this->tolerance_angle = pi / 8;
+		this->tolerance_angle = pi / 8.0;
 
 		this->occupancy_client = occupancy_client;
 		this->distance_client = distance_client;
@@ -68,7 +68,7 @@ class Node
 
 	float getCost()
 	{
-		ROS_INFO("crC: %f, ctG: %f", cost_to_come, cost_to_go/20);
+		// ROS_INFO("crC: %f, ctG: %f", cost_to_come, cost_to_go/20);
 		//ROS_INFO("crC: %f, ctG: %f", cost_to_come, 7*getHeuristicCost());
 		//return cost_to_come + 7* sqrt(pow(x - x_target, 2.0) + pow(y - y_target, 2.0));//cost_to_go;
 
@@ -241,6 +241,8 @@ class PathPlanning
 				x += cos(theta) * dt;
 				y += sin(theta) * dt;
 				theta += angular_velocity * dt;
+				//if (std::abs(angular_velocity - node->steering_angle_max) < 1e-1)
+				//ROS_INFO("Theta: %f, meh %f sterMax: %f", theta, (float)angular_velocity*node->path_length, (float)node->steering_angle_max);
 
 				t += dt;
 				path_x.push_back(x);
@@ -457,7 +459,7 @@ class PathPlanning
 		robo7_msgs::trajectory trajectory_msg;
 		bool search_done = false;
 
-		ROS_INFO("Goal reached");
+		ROS_INFO("Path found!");
 		search_done = true;
 
 		target_nodes.push_back(node_current);
@@ -465,7 +467,7 @@ class PathPlanning
 		while (node_current->parent != NULL)
 		{
 
-			int partitions = 2;
+			int partitions = 1;
 
 			// int partitions = (int) std::abs(node_current->angular_velocity / node_current->angular_velocity_resolution);
 			//node_current->path_length / 0.1 +  (int)std::abs(node_current->angular_velocity / node_current->angular_velocity_resolution);
