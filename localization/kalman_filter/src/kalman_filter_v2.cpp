@@ -117,28 +117,26 @@ public:
   {
     robo7_msgs::robotPositionTest test;
 
+    if(use_dead_reckoning)
+    {
+      dead_reckoning_position();
+    }
+
     if((new_lidar_scan)&&(ros::Time::now().toSec() - time_start.toSec() > 5))
     {
-      // ROS_INFO("_");
       //First, find the corresponding times for the lidar scan and encoders
-      // ROS_INFO("Looking for the corresponding encoders times");
       find_the_corresponding_times();
-      // ROS_INFO("Done");
 
       //Do the time update with the encoders found -> dead_reckoning
-      // ROS_INFO("Start time update");
       if(use_dead_reckoning)
       {
         time_Update();
       }
-      // ROS_INFO("Time update done");
 
       //Then we need to do the Measurement Update
       if(use_measure)
       {
-        // ROS_INFO("Start measurement update");
         measurement_update();
-        // ROS_INFO("Measurement update done");
       }
 
       if(!use_dead_reckoning)
@@ -147,19 +145,19 @@ public:
       }
 
       //Update the header of the newly computed robot_position
-      // ROS_INFO("Update robot position header");
       the_robot_position.header.seq++;
       the_robot_position.header.stamp = the_lidar_scan.header.stamp;
       the_robot_position.the_lidar_scan = the_lidar_scan;
 
+      //Update the robot position
+      estimated_robot_position = the_robot_position;
+
       //Wait for a new lidar scan before the next update
       new_lidar_scan = false;
-
-      robot_position_pub.publish( the_robot_position );
     }
 
+    robot_position_pub.publish( estimated_robot_position );
     robot_position.publish( the_robot_position.position );
-    // ROS_INFO("Positions published");
   }
 
 
@@ -395,6 +393,14 @@ private:
     prev_count_L = 0;
     prev_count_R = 0;
 
+    //Initialisation of the dead_reckoning algorithm
+    encoder_R_blind = 0;
+    encoder_L_blind = 0;
+    count_L_blind = 0;
+    count_R_blind = 0;
+    prev_count_L_blind = 0;
+    prev_count_R_blind = 0;
+
     //Initialize the position of the robot -> time will come afterward
     the_robot_position.position.linear.x = x_pos;
     the_robot_position.position.linear.y = y_pos;
@@ -402,6 +408,8 @@ private:
     the_robot_position.position.angular.x = 0;
     the_robot_position.position.angular.y = 0;
     the_robot_position.position.angular.z = z_angle;
+
+    estimated_robot_position = the_robot_position;
 
     //Initialize the matrices for EKF
     initialize_matrices();
@@ -431,6 +439,38 @@ private:
     the_V_matrix(2,1) = 1;
   }
 
+  void dead_reckoning_position()
+  {
+    //Pick up the next encoder values that shows up
+    left_encoder_corresp_blind = left_encoder_saver[left_encoder_corresp_index];
+    right_encoder_corresp_blind = right_encoder_saver[right_encoder_corresp_index];
+
+    //Use the extracted encoders value to update the counts
+    count_L_blind = left_encoder_corresp_blind.count;
+    count_R_blind = right_encoder_corresp_blind.count;
+
+    //Update the differents count changes
+    encoder_L_blind = count_L_blind - prev_count_L_blind;
+    encoder_R_blind = count_R_blind - prev_count_R_blind;
+
+    prev_count_L_blind = count_L_blind;
+    prev_count_R_blind = count_R_blind;
+
+    //Guess the values of both wheel's angular speeds with signs
+    om_L_blind = angular_motor_distance(encoder_L_blind);
+    om_R_blind = angular_motor_distance(encoder_R_blind);
+
+    // Compute the linear and angular velocities
+    ang_dis_blind = angular_distance_linearised(om_L_blind, -om_R_blind);
+    lin_dis_blind = linear_distance_linearised(om_L_blind, -om_R_blind);
+
+    //Compute the linear distances and angles of the robot
+    estimated_robot_position.position.linear.x += (lin_dis_blind * cos(estimated_robot_position.position.angular.z)) * (1 + linear_adjustment);
+    estimated_robot_position.position.linear.y += (lin_dis_blind * sin(estimated_robot_position.position.angular.z)) * (1 + linear_adjustment);
+    estimated_robot_position.position.angular.z += ang_dis_blind * (1 + angular_adjustment);
+    estimated_robot_position.position.angular.z = wrapAngle(estimated_robot_position.position.angular.z);
+  }
+
   //The variables
   //Position update
   float x_pos, y_pos, z_angle, previous_angle;
@@ -442,18 +482,18 @@ private:
   float linear_adjustment, angular_adjustment;
 
   //The output of EKF
-  robo7_msgs::the_robot_position the_robot_position;
+  robo7_msgs::the_robot_position the_robot_position, estimated_robot_position;
 
   //encoders values
-  int encoder_L, encoder_R;
+  int encoder_L, encoder_R, encoder_L_blind, encoder_R_blind;
   //Counts
-  int count_L, count_R;
+  int count_L, count_R, count_L_blind, count_R_blind;
   //Prev counts
-  int prev_count_L, prev_count_R;
+  int prev_count_L, prev_count_R, prev_count_L_blind, prev_count_R_blind;
   //Guess the values of both wheel's angular speeds with signs
-  float om_L, om_R;
+  float om_L, om_R, om_L_blind, om_R_blind;
   //Compute the linear and angular velocities
-  float ang_dis, lin_dis;
+  float ang_dis, lin_dis, ang_dis_blind, lin_dis_blind;
 
   //Boolean telling if we want to use the measures or not
   bool use_measure;
@@ -484,9 +524,6 @@ private:
   //Variance on both angle and distance of dead_reckoning
   float sigma_d, sigma_a;
   float sigma_d_lidar, sigma_a_lidar;
-
-  //Compute the total distance and angle that changed over dead_reckoning
-  float tot_dist, tot_angle;
 
   //the scan sensor_msgs
   sensor_msgs::LaserScan the_lidar_scan;
