@@ -305,7 +305,7 @@ private:
     ROS_INFO("matrix H : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_H_matrix(0,0), the_H_matrix(0,1), the_H_matrix(0,2), the_H_matrix(1,0), the_H_matrix(1,1), the_H_matrix(1,2), the_H_matrix(2,0), the_H_matrix(2,1), the_H_matrix(2,2));
     ROS_INFO("matrix V : %f, %f, %f, %f, %f, %f", the_V_matrix(0,0), the_V_matrix(0,1), the_V_matrix(1,0), the_V_matrix(1,1), the_V_matrix(2,0), the_V_matrix(2,1));
     ROS_INFO("matrix R : %f, %f, %f, %f", the_R_matrix(0,0), the_R_matrix(0,1), the_R_matrix(1,0), the_R_matrix(1,1));
-    the_K_matrix = the_P_minus_matrix * the_H_matrix * ( the_H_matrix * the_P_minus_matrix * the_H_matrix.transpose() + the_V_matrix * the_R_matrix * the_V_matrix.transpose()).inverse();
+    the_K_matrix = the_P_minus_matrix * the_H_matrix.transpose() * ( the_H_matrix * the_P_minus_matrix * the_H_matrix.transpose() + the_V_matrix * the_R_matrix * the_V_matrix.transpose()).inverse();
     ROS_INFO("matrix K : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_K_matrix(0,0), the_K_matrix(0,1), the_K_matrix(0,2), the_K_matrix(1,0), the_K_matrix(1,1), the_K_matrix(1,2), the_K_matrix(2,0), the_K_matrix(2,1), the_K_matrix(2,2));
   }
 
@@ -355,7 +355,7 @@ private:
   {
     ROS_INFO("Curent position (x,y,thet) : (%lf, %lf, %lf)", the_x_minus_vector(0), the_x_minus_vector(1), the_x_minus_vector(2));
     ROS_INFO("Lidar Corrected position (x,y,thet) : (%lf, %lf, %lf)", the_z_vector(0), the_z_vector(1), the_z_vector(2));
-    the_x_vector = the_x_minus_vector + ( the_z_vector - the_x_minus_vector );
+    the_x_vector = the_x_minus_vector + the_K_matrix * ( the_z_vector - the_x_minus_vector );
     ROS_INFO("Position error (x,y,thet) : (%lf, %lf, %lf)", the_x_vector(0), the_x_vector(1), the_x_vector(2));
   }
 
