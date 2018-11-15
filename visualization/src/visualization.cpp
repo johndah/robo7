@@ -69,7 +69,7 @@ public:
     visualization_msgs::Marker marker;
 
     t = robot_position.header.stamp;
-    ROS_INFO("time, pose : %lf, %lf, %lf, %lf", t.toSec(), x_pos, y_pos, z_angle);
+    // ROS_INFO("time, pose : %lf, %lf, %lf, %lf", t.toSec(), x_pos, y_pos, z_angle);
 
     // marker.header.frame_id = "robot";
     // marker.header.stamp = t;
