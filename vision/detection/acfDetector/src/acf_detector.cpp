@@ -28,7 +28,7 @@ using RectVec = std::vector<cv::Rect>;
 
 // Load the svm color classifier
 int width = 80, height = 80;
-std::string svmModel = "/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/SVMmodel.xml";
+std::string svmModel = "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/SVMmodel.xml";
 Ptr<SVM>svm = ml::SVM::load(svmModel);
 
 class ACFdetector
@@ -62,7 +62,7 @@ public:
       obj_detected_pub = n.advertise<acfDetector::detectedObj>("/vision/object", 1);
 
       std::string acfModel;
-      n.param<string>("/acf_detector/acfModel", acfModel, "/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb");
+      n.param<string>("/acf_detector/acfModel", acfModel, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb");
 
       // std::string sModel = "/home/jtao/CLionProjects/lab1/model_color_mag.cpb";
       detector = std::make_shared<acf::Detector>(acfModel);
