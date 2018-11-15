@@ -60,6 +60,7 @@ public:
     ROS_INFO("Sigmas : %f, %f ,%f, %f", sigma_d, sigma_a, sigma_d_lidar, sigma_a_lidar);
     //Decide if we only go for dead_reckoning or EKF
     n.param<bool>("/kalman_filter/use_measure", use_measure, false);
+    n.param<bool>("/kalman_filter/use_dead_reckoning", use_dead_reckoning, false);
 
     //Initialize the different matrices
     initialize_variables();
@@ -453,6 +454,7 @@ private:
 
   //Boolean telling if we want to use the measures or not
   bool use_measure;
+  bool use_dead_reckoning;
 
   //Boolean for sending and receiving measures
   bool new_lidar_scan;
