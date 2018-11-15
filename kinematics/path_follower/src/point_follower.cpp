@@ -237,7 +237,7 @@ int main(int argc, char **argv)
     }
 
     ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
-    if((!arrived)&&(!problem)&&(new_measure))
+    if((!arrived)&&(!problem)&&(robot_position.header.seq != previous_robot_position.header.seq))
     {
       ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
       dt = robot_position.header.stamp.toSec() - previous_robot_position.header.stamp.toSec();
