@@ -89,7 +89,6 @@ void position_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
 {
   if((msg->header.seq != robot_position.header.seq)&&(msg->header.seq > 1))
   {
-    ROS_INFO("new_measure");
     robot_position = *msg;
     robot_x = robot_position.position.linear.x;
     robot_y = robot_position.position.linear.y;
@@ -237,7 +236,7 @@ int main(int argc, char **argv)
         desire_vel.angular.z = 0;
     }
 
-
+    ROS_INFO("New test");
     if((!arrived)&&(!problem)&&(new_measure))
     {
       ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
