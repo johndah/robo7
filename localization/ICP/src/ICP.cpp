@@ -51,27 +51,14 @@ public:
 		// n.param<float>("/ransac/threshold", ransac_threshold, 0.01);
 		pi = 3.14159265358979323846;
 
-		corner_map_sub = n.subscribe("/own_map/map_corners", 1, &ICPServer::map_corners_Callback, this);
-		corner_lidar_sub = n.subscribe("/localization/ransac/corners", 1, &ICPServer::lidar_corners_Callback, this);
 		ICP_service = n.advertiseService("/localization/icp", &ICPServer::ICPSequence, this);
     corrected_pos_pub = n.advertise<geometry_msgs::Twist>("/localization/icp/position", 1);
-	}
-
-	void map_corners_Callback(const robo7_msgs::cornerList::ConstPtr &msg)
-	{
-    map_corner_list.number = msg->number;
-		map_corner_list.corners = msg->corners;
-	}
-
-	void lidar_corners_Callback(const robo7_msgs::cornerList::ConstPtr &msg)
-	{
-		lidar_corner_list.number = msg->number;
-		lidar_corner_list.corners = msg->corners;
 	}
 
 	bool ICPSequence(robo7_srvs::ICPAlgorithm::Request &req,
          robo7_srvs::ICPAlgorithm::Response &res)
 	{
+		ROS_INFO("Extracting ICP datas ");
 		former_point = req.current_position;
 		map_corner_list = req.the_wall_corners;
 		lidar_corner_list = req.the_lidar_corners;
@@ -79,6 +66,7 @@ public:
 		cloud_lidar = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
     cloud_map = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
 
+		ROS_INFO("Creating cloud");
 		//Definition of the parameters of the cloud
 		cloud_lidar->width    = lidar_corner_list.number;
 		cloud_lidar->height   = 1;
@@ -90,7 +78,7 @@ public:
 		cloud_map->is_dense = false;
 		cloud_map->points.resize (cloud_map->width * cloud_map->height);
 
-
+		ROS_INFO("Filling up the clouds with the datas");
 		//Assesment of the corresponding variables
 		for (size_t i = 0; i < cloud_lidar->points.size(); ++i)
 	  {
@@ -109,6 +97,7 @@ public:
 		//Solve ICP
 		pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
 
+		ROS_INFO("Setting up the icp parameters");
 		//icp.setRANSACOutlierRejectionThreshold(5);
 		icp.setRANSACOutlierRejectionThreshold(0.5);
     //icp.setRANSACIterations(100);
@@ -127,11 +116,14 @@ public:
 
 	  icp.setInputSource(cloud_lidar);
 	  icp.setInputTarget(cloud_map);
+		ROS_INFO("Solving ICP");
 	  icp.align(Final);
+		ROS_INFO("Extract the ICP results");
 		converged = icp.hasConverged();
 		error = icp.getFitnessScore();
 		transformation_ = icp.getFinalTransformation();
 
+		ROS_INFO("Do the transfrom to get the new pose of the robot");
 		//Extract the robot position in the Vector4
 		forwardTransform();
 
@@ -141,9 +133,10 @@ public:
 		//Update the pose of the robot
 		inverseTransform();
 
-
+		ROS_INFO("Publish");
 		corrected_pos_pub.publish( new_point );
 
+		ROS_INFO("Send the results");
 		res.success = converged;
 		res.error = error;
 		res.new_position = new_point;
