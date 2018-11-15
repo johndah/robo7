@@ -306,7 +306,7 @@ private:
     ROS_INFO("matrix V : %f, %f, %f, %f, %f, %f", the_V_matrix(0,0), the_V_matrix(0,1), the_V_matrix(1,0), the_V_matrix(1,1), the_V_matrix(2,0), the_V_matrix(2,1));
     ROS_INFO("matrix R : %f, %f, %f, %f", the_R_matrix(0,0), the_R_matrix(0,1), the_R_matrix(1,0), the_R_matrix(1,1));
     the_K_matrix = the_P_minus_matrix * the_H_matrix * ( the_H_matrix * the_P_minus_matrix * the_H_matrix.transpose() + the_V_matrix * the_R_matrix * the_V_matrix.transpose()).inverse();
-    ROS_INFO("matrx K : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_K_matrix(0,0), the_K_matrix(0,1), the_K_matrix(0,2), the_K_matrix(1,0), the_K_matrix(1,1), the_K_matrix(1,2), the_K_matrix(2,0), the_K_matrix(2,1), the_K_matrix(2,2));
+    ROS_INFO("matrix K : %f, %f, %f, %f, %f, %f, %f, %f, %f", the_K_matrix(0,0), the_K_matrix(0,1), the_K_matrix(0,2), the_K_matrix(1,0), the_K_matrix(1,1), the_K_matrix(1,2), the_K_matrix(2,0), the_K_matrix(2,1), the_K_matrix(2,2));
   }
 
   void update_estimate()
