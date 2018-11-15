@@ -133,7 +133,6 @@ public:
       if(use_measure)
       {
         ROS_INFO("Start meausrement update");
-        ROS_INFO("");
         measurement_update();
         ROS_INFO("Measurement update done");
       }
