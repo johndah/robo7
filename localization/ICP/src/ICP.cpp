@@ -118,12 +118,12 @@ public:
     icp.setMaximumIterations (10000);
 
     // Set the transformation epsilon (criterion 2)
-    icp.setTransformationEpsilon (0.0001);
+    icp.setTransformationEpsilon (0.001);
 		// icp.setTransformationRotationEpsilon(0.05);
     //std::cout << " getTransformationEpsilon epsilon: "<<icp.getTransformationEpsilon() << std::endl;
     //std::cout << " getEuclideanFitnessEpsilon epsilon: "<<icp.getEuclideanFitnessEpsilon() << std::endl;
     // Set the euclidean distance difference epsilon (criterion 3)
-    icp.setEuclideanFitnessEpsilon (0.001);
+    icp.setEuclideanFitnessEpsilon (0.01);
 
 	  icp.setInputSource(cloud_lidar);
 	  icp.setInputTarget(cloud_map);
