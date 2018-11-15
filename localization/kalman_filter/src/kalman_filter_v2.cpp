@@ -411,7 +411,7 @@ private:
     //The time update matrices
     the_P_minus_matrix = Eigen::Matrix3f::Zero(3,3);
     the_A_matrix = Eigen::Matrix3f::Identity(3,3);
-    the_W_matrix.resize(3,2);
+    the_W_matrix = Eigen::MatrixXf::Zero(3,2);
     the_W_matrix(0,0) = 1;
     the_W_matrix(1,0) = 1;
     the_W_matrix(2,1) = 1;
@@ -426,7 +426,7 @@ private:
     the_R_matrix = Eigen::Matrix2f::Zero(2,2);
     the_R_matrix(0,0) = sigma_d_lidar;
     the_R_matrix(1,1) = sigma_a_lidar;
-    the_V_matrix.resize(3,2);
+    the_V_matrix = Eigen::MatrixXf::Zero(3,2);
     the_V_matrix(0,0) = 1;
     the_V_matrix(1,0) = 1;
     the_V_matrix(2,1) = 1;
