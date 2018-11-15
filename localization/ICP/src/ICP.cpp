@@ -58,7 +58,7 @@ public:
 	bool ICPSequence(robo7_srvs::ICPAlgorithm::Request &req,
          robo7_srvs::ICPAlgorithm::Response &res)
 	{
-		ROS_INFO("Extracting ICP datas ");
+		// ROS_INFO("Extracting ICP datas ");
 		former_point = req.current_position;
 		map_corner_list = req.the_wall_corners;
 		lidar_corner_list = req.the_lidar_corners;
@@ -66,7 +66,7 @@ public:
 		cloud_lidar = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
     cloud_map = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
 
-		ROS_INFO("Creating cloud");
+		// ROS_INFO("Creating cloud");
 		//Definition of the parameters of the cloud
 		cloud_lidar->width    = lidar_corner_list.number;
 		cloud_lidar->height   = 1;
@@ -78,7 +78,7 @@ public:
 		cloud_map->is_dense = false;
 		cloud_map->points.resize (cloud_map->width * cloud_map->height);
 
-		ROS_INFO("Filling up the clouds with the datas");
+		// ROS_INFO("Filling up the clouds with the datas");
 		//Assesment of the corresponding variables
 		for (size_t i = 0; i < cloud_lidar->points.size(); ++i)
 	  {
@@ -97,7 +97,7 @@ public:
 		//Solve ICP
 		pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
 
-		ROS_INFO("Setting up the icp parameters");
+		// ROS_INFO("Setting up the icp parameters");
 		//icp.setRANSACOutlierRejectionThreshold(5);
 		icp.setRANSACOutlierRejectionThreshold(0.5);
     //icp.setRANSACIterations(100);
@@ -116,14 +116,14 @@ public:
 
 	  icp.setInputSource(cloud_lidar);
 	  icp.setInputTarget(cloud_map);
-		ROS_INFO("Solving ICP");
+		// ROS_INFO("Solving ICP");
 	  icp.align(Final);
-		ROS_INFO("Extract the ICP results");
+		// ROS_INFO("Extract the ICP results");
 		converged = icp.hasConverged();
 		error = icp.getFitnessScore();
 		transformation_ = icp.getFinalTransformation();
 
-		ROS_INFO("Do the transfrom to get the new pose of the robot");
+		// ROS_INFO("Do the transfrom to get the new pose of the robot");
 		//Extract the robot position in the Vector4
 		forwardTransform();
 
@@ -133,10 +133,10 @@ public:
 		//Update the pose of the robot
 		inverseTransform();
 
-		ROS_INFO("Publish");
+		// ROS_INFO("Publish");
 		corrected_pos_pub.publish( new_point );
 
-		ROS_INFO("Send the results");
+		// ROS_INFO("Send the results");
 		res.success = converged;
 		res.error = error;
 		res.new_position = new_point;

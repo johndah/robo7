@@ -136,9 +136,9 @@ public:
       //Then we need to do the Measurement Update
       if(use_measure)
       {
-        ROS_INFO("Start measurement update");
+        // ROS_INFO("Start measurement update");
         measurement_update();
-        ROS_INFO("Measurement update done");
+        // ROS_INFO("Measurement update done");
       }
 
       if(!use_dead_reckoning)
