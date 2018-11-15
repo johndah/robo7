@@ -4,6 +4,7 @@
 #include "geometry_msgs/Twist.h"
 #include "robo7_msgs/WheelAngularVelocities.h"
 #include "robo7_msgs/destination_point.h"
+#include "robo7_msgs/the_robot_position.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Float32.h"
 
