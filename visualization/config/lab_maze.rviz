@@ -294,7 +294,7 @@ Visualization Manager:
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /maze_map
-      Name: MarkerArray
+      Name: Given Map
       Namespaces:
         world: true
       Queue Size: 100
