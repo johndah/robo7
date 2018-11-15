@@ -277,8 +277,8 @@ private:
     lin_dis = linear_distance_linearised(om_L, -om_R);
 
     //Compute the linear distances and angles of the robot
-    the_robot_position.position.linear.x += (lin_dis * cos(z_angle)) * (1 + linear_adjustment);
-    the_robot_position.position.linear.y += (lin_dis * sin(z_angle)) * (1 + linear_adjustment);
+    the_robot_position.position.linear.x += (lin_dis * cos(the_robot_position.position.angular.z)) * (1 + linear_adjustment);
+    the_robot_position.position.linear.y += (lin_dis * sin(the_robot_position.position.angular.z)) * (1 + linear_adjustment);
     the_robot_position.position.angular.z += ang_dis * (1 + angular_adjustment);
     the_robot_position.position.angular.z = wrapAngle(the_robot_position.position.angular.z);
   }
