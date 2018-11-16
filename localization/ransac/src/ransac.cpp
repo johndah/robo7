@@ -192,14 +192,6 @@ public:
     ransac.getInliers(inliers);
     ransac.getModelCoefficients( model_param_ );
 
-		// mod.linear.x = model_param_(0);
-		// mod.linear.y = model_param_(1);
-		// mod.linear.z = model_param_(2);
-		// mod.angular.x = inliers[0];
-		// mod.angular.y = inliers[inliers.size()];
-		// mod.angular.z = model_param_(5);
-		//
-		// model_pub.publish( mod );
 		ROS_INFO("inliers : %d", static_cast<int>(inliers.size()));
 		printInliers();
 
@@ -283,50 +275,8 @@ public:
 
     tot_inliers = static_cast<int>(inliers.size());
 
-		if(x_diff > y_diff)
-		{
-      if(x_min_ind != 0)
-      {
-        if(x_min_ind == tot_inliers - 1)
-        {
-          index = x_max_ind;
-        }
-        else if(x_min_ind < x_max_ind)
-        {
-          index = x_max_ind;
-        }
-        else
-        {
-          index = x_min_ind;
-        }
-      }
-      else
-      {
-        index = x_min_ind;
-      }
-    }
-		else
-		{
-      if(y_min_ind != 0)
-      {
-        if(y_min_ind == tot_inliers - 1)
-        {
-          index = y_max_ind;
-        }
-        else if(y_min_ind < y_max_ind)
-        {
-          index = y_max_ind;
-        }
-        else
-        {
-          index = y_min_ind;
-        }
-      }
-      else
-      {
-        index = y_min_ind;
-      }
-    }
+		//Extract the index we should start with
+		extract_start_index();
 
     index1 = index;
 
@@ -385,6 +335,54 @@ public:
     }
 	}
 
+	void extract_start_index()
+	{
+		if(x_diff > y_diff)
+		{
+      if(x_min_ind != 0)
+      {
+        if(x_min_ind == tot_inliers - 1)
+        {
+          index = x_max_ind;
+        }
+        else if(x_min_ind < x_max_ind)
+        {
+          index = x_max_ind;
+        }
+        else
+        {
+          index = x_min_ind;
+        }
+      }
+      else
+      {
+        index = x_min_ind;
+      }
+    }
+		else
+		{
+      if(y_min_ind != 0)
+      {
+        if(y_min_ind == tot_inliers - 1)
+        {
+          index = y_max_ind;
+        }
+        else if(y_min_ind < y_max_ind)
+        {
+          index = y_max_ind;
+        }
+        else
+        {
+          index = y_min_ind;
+        }
+      }
+      else
+      {
+        index = y_min_ind;
+      }
+    }
+	}
+
 	float compute_y(float x)
 	{
 		return (b/a)*(x-x0) + y0;
@@ -403,6 +401,11 @@ public:
       the_corners_list.push_back(single_wall.init_point);
       the_corners_list.push_back(single_wall.end_point);
 		}
+	}
+
+	void sort_datas()
+	{
+
 	}
 
 private:
