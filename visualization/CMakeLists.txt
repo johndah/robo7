@@ -68,3 +68,7 @@ add_dependencies(the_map_update_plot ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_
 add_executable(occupancy src/occupancy.cpp)
 target_link_libraries(occupancy ${catkin_LIBRARIES})
 add_dependencies(occupancy ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(mapping_occupancy src/mapping_occupancy.cpp)
+target_link_libraries(mapping_occupancy ${catkin_LIBRARIES})
+add_dependencies(mapping_occupancy ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

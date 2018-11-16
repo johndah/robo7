@@ -11,6 +11,7 @@
 #include <robo7_msgs/MeasureFeedback.h>
 #include <robo7_msgs/cornerList.h>
 #include <robo7_msgs/former_position.h>
+#include <robo7_msgs/the_robot_position.h>
 
 //The services
 #include <robo7_srvs/scanCoord.h>
@@ -21,6 +22,7 @@
 #include <robo7_srvs/path_planning.h>
 #include <robo7_srvs/update_map.h>
 #include <robo7_srvs/GoTo.h>
+#include <robo7_srvs/UpdateOccupancyGrid.h>
 
 
 
@@ -43,6 +45,7 @@ public:
   ros::ServiceClient path_planning_srv;
   ros::ServiceClient mapping_srv;
   ros::ServiceClient go_to_srv;
+  ros::ServiceClient update_occupancy_grid_srv;
   //Server
   ros::ServiceServer to_test_service;
 
@@ -55,6 +58,7 @@ public:
     scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
     laser_scan = n.subscribe("/scan", 1, &test_server::laser_scan_callBack, this);
     position_sub = n.subscribe("/localization/kalman_filter/position", 1, &test_server::robot_position_callBack, this);
+    position_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &test_server::the_robot_pose_callBack, this);
 
     path_follower_srv = n.serviceClient<robo7_srvs::PathFollowerSrv>("/kinematics/path_follower/path_follower");
 
@@ -67,25 +71,23 @@ public:
     mapping_srv = n.serviceClient<robo7_srvs::update_map>("/localization/mapping/update_map");
 
     go_to_srv = n.serviceClient<robo7_srvs::GoTo>("/kinematics/go_to");
+
+    update_occupancy_grid_srv = n.serviceClient<robo7_srvs::UpdateOccupancyGrid>("/localization/mapping/update_occupancy_grid");
   }
 
   void laser_scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
   {
-      the_lidar_scan.header = msg->header;
-      the_lidar_scan.angle_min = msg->angle_min;
-      the_lidar_scan.angle_max = msg->angle_max;
-      the_lidar_scan.angle_increment = msg->angle_increment;
-      the_lidar_scan.time_increment = msg->time_increment;
-      the_lidar_scan.scan_time = msg->scan_time;
-      the_lidar_scan.range_min = msg->range_min;
-      the_lidar_scan.range_max = msg->range_max;
-      the_lidar_scan.ranges = msg->ranges;
-      the_lidar_scan.intensities = msg->intensities;
+      the_lidar_scan = *msg;
   }
 
   void robot_position_callBack(const geometry_msgs::Twist::ConstPtr &msg)
   {
     robot_position = *msg;
+  }
+
+  void the_robot_pose_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
+  {
+    the_robot_pose = *msg;
   }
 
   void maze_map_callBack(const robo7_msgs::cornerList::ConstPtr &msg)
@@ -100,7 +102,7 @@ public:
     destination_pose = req.destination_pose;
     done = false;
 
-    ROS_INFO("%d, %d", (int)-9.2, (int)9,8);
+    ROS_INFO("%d, %d", (int)-9.2, (int)9.8);
 
     //Plot the lidar scan in the map frame
     if(req.which_service == 0)
@@ -212,17 +214,14 @@ public:
     //Test service for the mapping
     else if(req.which_service == 7)
     {
-      robo7_srvs::update_map::Request req1;
-      robo7_srvs::update_map::Response res1;
-      robo7_msgs::former_position robot_pos;
-      robot_pos.position = robot_position;
-      req1.robot_position = robot_pos;
-      req1.the_lidar_scan = the_lidar_scan;
-      req1.map_walls = map_walls;
-      mapping_srv.call(req1, res1);
-      map_walls = res1.updated_map_walls;
+      ROS_INFO("heyhey");
+      robo7_srvs::UpdateOccupancyGrid::Request req1;
+      robo7_srvs::UpdateOccupancyGrid::Response res1;
+      req1.the_robot_pose = the_robot_pose;
+      update_occupancy_grid_srv.call(req1, res1);
       done = res1.success;
     }
+
 
     res.success = done;
     return true;
@@ -240,6 +239,7 @@ private:
 
   robo7_msgs::wallList map_walls;
   robo7_msgs::former_position robot_pos;
+  robo7_msgs::the_robot_position the_robot_pose;
 
 };
 

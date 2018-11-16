@@ -21,6 +21,7 @@ add_service_files(
   door_opener.srv
   distanceTo.srv
   GoTo.srv
+  UpdateOccupancyGrid.srv
 )
 
 

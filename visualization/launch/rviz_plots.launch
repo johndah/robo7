@@ -36,4 +36,6 @@
   <node pkg="visualization" type="the_map_update_plot" name="the_map_update_plot" output="screen"/>
 
   <node pkg="visualization" type="occupancy" name="occupancy" output="screen"/>
+
+  <node pkg="visualization" type="mapping_occupancy" name="mapping_occupancy" output="screen"/>
 </launch>
