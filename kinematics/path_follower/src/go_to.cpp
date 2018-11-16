@@ -37,7 +37,7 @@ public:
   {
     robot_pose = req.robot_pose;
     destination_pose = req.destination_pose;
-
+    
     //Convert
     change_twist_to_point();
 
