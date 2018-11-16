@@ -76,12 +76,12 @@
    </node> -->
 
 <!-- The path_planner nodes -->
-  <node pkg="occupancy_grid" type="occupancy_grid_server" name="occupancy_grid_server"
+  <node pkg="heuristic_grid" type="heuristic_grids_server" name="heuristic_grids_server"
     output="screen">
     <param name="grid_square_size" type="double" value="0.02"/>
     <param name="min_distance" type="double" value="0.13"/>
-    <param name="smoothing_kernel_size" type="int" value="15"/>
-    <param name="smoothing_kernel_sd" type="int" value="3"/>
+    <param name="smoothing_kernel_size" type="int" value="21"/>
+    <param name="smoothing_kernel_sd" type="int" value="7"/>
   </node>
 
   <!-- <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/> -->
@@ -94,7 +94,7 @@
      <param name="y_destination" type="double" value="0.2"/>
    </node>
 
-   <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
+   <!-- <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
      <param name="angle_P" type="double" value="2"/>
      <param name="angle_I" type="double" value="2"/>
      <param name="angle_D" type="double" value="0"/>
@@ -102,7 +102,7 @@
      <param name="angular_velocity_saturation_threshold" type="double" value="2"/>
      <param name="linear_speed" type="double" value="0.15"/>
      <param name="drive_backward" type="bool" value="false"/>
-   </node>
+   </node> -->
 
    <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
      <param name="distance_to_destination_threshold" type="double" value="0.05"/>
