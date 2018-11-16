@@ -76,6 +76,8 @@
    </node> -->
 
 <!-- The path_planner nodes -->
+  <node pkg="own_map" type="discretize_the_map" name="discretize_the_map" output="screen"/>
+
   <node pkg="heuristic_grid" type="heuristic_grids_server" name="heuristic_grids_server"
     output="screen">
     <param name="grid_square_size" type="double" value="0.02"/>
@@ -84,9 +86,9 @@
     <param name="smoothing_kernel_sd" type="int" value="7"/>
   </node>
 
-  <!-- <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/> -->
+  <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
 
-  <node pkg="path_testing" type="path_testing" name="path_testing" output="screen"/>
+  <!-- <node pkg="path_testing" type="path_testing" name="path_testing" output="screen"/> -->
 
 <!-- The path_follower nodes -->
    <node pkg="path_follower" type="destination_point" name="destination_point" output="screen">
@@ -112,9 +114,7 @@
    <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
 
 <!-- The mapping nodes -->
-   <node pkg="own_map" type="discretize_the_map" name="discretize_the_map" output="screen"/>
-
-   <node pkg="ransac" type="ransac" name="ransac" output="screen">
+  <node pkg="ransac" type="ransac" name="ransac" output="screen">
      <param name="threshold" type="double" value="0.02"/>
      <param name="maximum_distance_between_points" type="double" value="0.25"/>
      <param name="minimum_point_for_a_wall" type="int" value="20"/>
