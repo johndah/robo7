@@ -198,6 +198,7 @@ public:
     //Move the robot to another position
     else if(req.which_service == 6)
     {
+      ROS_INFO("Start service go to");
       robo7_srvs::GoTo::Request req1;
       robo7_srvs::GoTo::Response res1;
       req1.robot_pose = robot_position;

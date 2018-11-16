@@ -114,6 +114,9 @@
      <param name="distance_to_jump_to_next_point" type="double" value="0.1"/>
    </node>
 
+<!-- The go to node -->
+   <node pkg="path_follower" type="go_to" name="go_to" output="screen"/>
+
    <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
 
 <!-- The mapping nodes -->
