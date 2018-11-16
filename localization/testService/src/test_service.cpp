@@ -229,6 +229,7 @@ public:
 private:
   sensor_msgs::LaserScan the_lidar_scan;
   geometry_msgs::Twist robot_position;
+  geometry_msgs::Twist destination_pose;
 
   robo7_msgs::cornerList all_wall_points;
 
