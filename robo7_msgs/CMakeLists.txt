@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(robo7_msgs)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs message_generation sensor_msgs
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs message_generation sensor_msgs phidgets
 )
 
 add_message_files(
@@ -17,7 +17,6 @@ add_message_files(
   XY_coordinates.msg
   path.msg
   paths.msg
-  aWall.msg
   wallList.msg
   cornerList.msg
   Matrix4.msg
@@ -33,6 +32,12 @@ add_message_files(
   grid_row.msg
   aObject.msg
   allObjects.msg
+  former_position.msg
+  dead_reck_param.msg
+  robotPositionTest.msg
+  wallPoint.msg
+  aWall.msg
+  the_robot_position.msg
 )
 
 generate_messages(
@@ -40,11 +45,12 @@ generate_messages(
   std_msgs
   geometry_msgs
   sensor_msgs
+  phidgets
 )
 
 catkin_package(
   INCLUDE_DIRS
   LIBRARIES
-  CATKIN_DEPENDS geometry_msgs message_runtime std_msgs sensor_msgs
+  CATKIN_DEPENDS geometry_msgs message_runtime std_msgs sensor_msgs phidgets
   DEPENDS
 )

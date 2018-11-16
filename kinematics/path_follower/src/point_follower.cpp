@@ -4,15 +4,16 @@
 #include "geometry_msgs/Twist.h"
 #include "robo7_msgs/WheelAngularVelocities.h"
 #include "robo7_msgs/destination_point.h"
+#include "robo7_msgs/the_robot_position.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Float32.h"
 
 robo7_msgs::destination_point dest_twist;
-geometry_msgs::Twist pos_twist;
+robo7_msgs::the_robot_position robot_position, previous_robot_position;
 geometry_msgs::Twist desire_vel;
 
 float freq = 100;
-float dt = 1/freq;
+double dt = 1/freq;
 float pi = 3.14159;
 int break_scalar = 5;
 
@@ -35,11 +36,13 @@ float robot_theta;
 
 // Average velocity of the robot
 float aver_lin_vel;
+float velocity_sign;
 float x_point_robot;
 float y_point_robot;
 
 //Break info parameters
 bool danger;
+bool drive_backward;
 
 //Controller parameters
 float a_P;
@@ -61,9 +64,8 @@ float desire_vel_threshold = 0;
 
 bool arrived;
 bool problem = false;
+bool new_measure;
 
-
-std::clock_t last_msg;
 double duration;
 
 
@@ -81,17 +83,18 @@ void destination_callback(const robo7_msgs::destination_point::ConstPtr &msg)
   // }
   x_point = dest_twist.destination.linear.x;
   y_point = dest_twist.destination.linear.y;
-  last_msg = std::clock();
-
 }
 
-void position_callBack(const geometry_msgs::Twist::ConstPtr &msg)
+void position_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
 {
-  pos_twist = *msg;
-  robot_x = pos_twist.linear.x;
-  robot_y = pos_twist.linear.y;
-  robot_theta = pos_twist.angular.z;
-  last_msg = std::clock();
+  if((msg->header.seq != robot_position.header.seq)&&(msg->header.seq > 1))
+  {
+    robot_position = *msg;
+    robot_x = robot_position.position.linear.x;
+    robot_y = robot_position.position.linear.y;
+    robot_theta = robot_position.position.angular.z;
+    new_measure = true;
+  }
 }
 
 void break_callBack(const std_msgs::Bool::ConstPtr &msg)
@@ -131,6 +134,12 @@ float findangle(float x, float y)
   // return atan(x/y);
 }
 
+float wrapAngle( double angle )
+{
+  float twoPi = 2.0 * pi;
+  return angle - twoPi * floor( angle / twoPi );
+}
+
 void PID_update()
 {
   dif_error = diff_angle - error;
@@ -153,15 +162,26 @@ void PID_AWU_update()
 
   int_error = int_error + ( error + anti_windup ) * dt;
 
-
-
-  desire_angular_vel = (a_P * error + a_I * int_error + a_D * dif_error / dt);
+  desire_angular_vel = (a_P * error + a_I * int_error);
   desire_angular_sat = desire_angular_vel;
 
   if(desire_angular_sat > desire_vel_threshold) { desire_angular_sat = desire_vel_threshold; }
   else if(desire_angular_sat < -desire_vel_threshold) { desire_angular_sat = -desire_vel_threshold; }
 
   anti_windup = ( desire_angular_sat - desire_angular_vel ) / dt;
+
+  desire_angular_vel = desire_angular_sat;
+}
+
+void P_update()
+{
+  error = diff_angle;
+
+  desire_angular_vel = (a_P * error);
+  desire_angular_sat = desire_angular_vel;
+
+  if(desire_angular_sat > desire_vel_threshold) { desire_angular_sat = desire_vel_threshold; }
+  else if(desire_angular_sat < -desire_vel_threshold) { desire_angular_sat = -desire_vel_threshold; }
 
   desire_angular_vel = desire_angular_sat;
 }
@@ -178,9 +198,10 @@ int main(int argc, char **argv)
   n.param<float>("/point_follower/error_sat", err_sat, 10);
   n.param<float>("/point_follower/angular_velocity_saturation_threshold", desire_vel_threshold, 10);
   n.param<float>("/point_follower/linear_speed", aver_lin_vel, 0);
+  n.param<bool>("/point_follower/drive_backward", drive_backward, false);
 
   ros::Subscriber twist_sub = n.subscribe("/kinematics/path_follower/dest_point", 1, destination_callback);
-  ros::Subscriber robot_position = n.subscribe("/localization/kalman_filter/position", 1, position_callBack);
+  ros::Subscriber robot_position_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, position_callBack);
   ros::Subscriber breaker = n.subscribe("/break_info", 1, break_callBack);
   ros::Publisher desired_velocity = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
   ros::Publisher dest_point = n.advertise<geometry_msgs::Twist>("/point_destination_robot", 1);
@@ -208,7 +229,18 @@ int main(int argc, char **argv)
     point_plot.linear.y = y_point_robot;
 
     dist_left = sqrt(pow(x_point_robot,2) + pow(y_point_robot,2));
-    diff_angle = findangle(x_point_robot, y_point_robot);
+    if(!drive_backward)
+    {
+      diff_angle = findangle(x_point_robot, y_point_robot);
+      velocity_sign = +1;
+    }
+    else
+    {
+      diff_angle = findangle(x_point_robot, y_point_robot);
+      diff_angle = wrapAngle(diff_angle) - pi;
+      velocity_sign = -1;
+    }
+
 
     if(dist_left < dist_threshold)
     {
@@ -217,23 +249,29 @@ int main(int argc, char **argv)
         desire_vel.angular.z = 0;
     }
 
-
-    if((!arrived)&&(!problem))
+    if((!arrived)&&(!problem)&&(robot_position.header.seq != previous_robot_position.header.seq))
     {
+      ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
+      dt = robot_position.header.stamp.toSec() - previous_robot_position.header.stamp.toSec();
       if(sgn(diff_angle)*diff_angle > angle_ref_max)
       {
         desire_vel.linear.x = 0;
-        PID_AWU_update();
+        P_update();
+        // PID_AWU_update();
         desire_vel.angular.z = desire_angular_vel;
       }
       else
       {
-        desire_vel.linear.x = aver_lin_vel;
-        PID_AWU_update();
+        desire_vel.linear.x = velocity_sign * aver_lin_vel;
+        P_update();
+        // PID_AWU_update();
         desire_vel.angular.z = desire_angular_vel;
       }
+      ROS_INFO("(lin, ang) : (%lf, %lf)", desire_vel.linear.x, desire_vel.angular.z = desire_angular_vel);
       integ_err.data = int_error;
       integ.publish( integ_err );
+      previous_robot_position = robot_position;
+      new_measure = false;
     }
     else if(problem)
     {

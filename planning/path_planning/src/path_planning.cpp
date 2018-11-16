@@ -285,7 +285,7 @@ class PathPlanning
 
 		path_x.push_back(x_target);
 		path_y.push_back(y_target);
-		
+
 		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
 		node_target->cost_to_go = 0;
 

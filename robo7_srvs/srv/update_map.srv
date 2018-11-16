@@ -1,0 +1,14 @@
+# Request
+# Both map of the world and the lidar plot
+
+sensor_msgs/LaserScan the_lidar_scan
+robo7_msgs/wallList map_walls
+robo7_msgs/former_position robot_position
+
+---
+
+# Response
+# Return an updated version of the world map
+
+robo7_msgs/wallList updated_map_walls
+bool success

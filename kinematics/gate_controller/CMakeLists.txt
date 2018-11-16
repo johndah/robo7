@@ -20,3 +20,7 @@ include_directories(
 add_executable(gate_controller src/gate_controller.cpp)
 target_link_libraries(gate_controller ${catkin_LIBRARIES})
 add_dependencies(gate_controller ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(gate_opener src/gate_opener.cpp)
+target_link_libraries(gate_opener ${catkin_LIBRARIES})
+add_dependencies(gate_opener ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

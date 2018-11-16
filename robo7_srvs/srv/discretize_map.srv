@@ -1,0 +1,12 @@
+# Request
+# A map made of walls
+
+robo7_msgs/wallList walls
+
+---
+
+# Response
+# Return an discretized version of it
+
+robo7_msgs/wallPoint discretized_walls
+bool success
