@@ -100,6 +100,8 @@ public:
     destination_pose = req.destination_pose;
     done = false;
 
+    ROS_INFO("%d, %d", (int)-9.2, (int)9,8);
+
     //Plot the lidar scan in the map frame
     if(req.which_service == 0)
     {
