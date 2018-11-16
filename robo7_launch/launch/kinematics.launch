@@ -49,12 +49,12 @@
    </node>
 
    <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
-     <param name="initial_x_pos" type="double" value="2.15"/>
-     <param name="initial_y_pos" type="double" value="0.6"/>
-     <param name="initial_z_angle" type="double" value="1.57"/>
+     <param name="initial_x_pos" type="double" value="1.8"/>
+     <param name="initial_y_pos" type="double" value="0.2"/>
+     <param name="initial_z_angle" type="double" value="3.1416"/>
      <param name="linear_adjustment" type="double" value="0.0481"/>
      <param name="angular_adjustment" type="double" value="0.03"/> <!-- designed value = 0.235 -->
-     <param name="use_measure" type="bool" value="true"/>
+     <param name="use_measure" type="bool" value="false"/>
      <param name="time_between_two_measure" type="double" value="0.6"/>
    </node>
 
@@ -84,17 +84,17 @@
 
    <node pkg="test_service" type="test_service" name="test_service" output="screen"/>
 
-   <node pkg="occupancy_grid" type="occupancy_grid_server" name="occupancy_grid_server"
+   <node pkg="heuristic_grids" type="heuristic_grids_server" name="heuristic_grids_server"
      output="screen">
      <param name="grid_square_size" type="double" value="0.02"/>
      <param name="min_distance" type="double" value="0.13"/>
-     <param name="smoothing_kernel_size" type="int" value="15"/>
-     <param name="smoothing_kernel_sd" type="int" value="3"/>
+     <param name="smoothing_kernel_size" type="int" value="21"/>
+     <param name="smoothing_kernel_sd" type="int" value="7"/>
    </node>
 
    <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
 
-   <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
+   <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> 
 
 
 </launch>

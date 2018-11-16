@@ -29,6 +29,8 @@ add_message_files(
   MeasureFeedback.msg
   occupancy_matrix.msg
   occupancy_row.msg
+  grid_matrix.msg
+  grid_row.msg
   aObject.msg
   allObjects.msg
 )
