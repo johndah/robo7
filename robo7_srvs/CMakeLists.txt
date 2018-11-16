@@ -20,6 +20,7 @@ add_service_files(
   discretize_map.srv
   door_opener.srv
   distanceTo.srv
+  GoTo.srv
 )
 
 

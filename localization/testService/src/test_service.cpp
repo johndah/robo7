@@ -20,6 +20,7 @@
 #include <robo7_srvs/PathFollowerSrv.h>
 #include <robo7_srvs/path_planning.h>
 #include <robo7_srvs/update_map.h>
+#include <robo7_srvs/GoTo.h>
 
 
 
@@ -30,15 +31,19 @@ class test_server
 {
 public:
   ros::NodeHandle n;
+  //Subscriber
   ros::Subscriber laser_scan;
   ros::Subscriber map_point_sub;
   ros::Subscriber position_sub;
+  //Clients
   ros::ServiceClient scan_to_coord_srv;
   ros::ServiceClient ransac_srv;
   ros::ServiceClient icp_srv;
   ros::ServiceClient path_follower_srv;
   ros::ServiceClient path_planning_srv;
   ros::ServiceClient mapping_srv;
+  ros::ServiceClient go_to_srv;
+  //Server
   ros::ServiceServer to_test_service;
 
   test_server()
@@ -60,6 +65,8 @@ public:
     path_planning_srv = n.serviceClient<robo7_srvs::path_planning>("/path_planning/path_testing");
 
     mapping_srv = n.serviceClient<robo7_srvs::update_map>("/localization/mapping/update_map");
+
+    go_to_srv = n.serviceClient<robo7_srvs::GoTo>("/kinematics/go_to");
   }
 
   void laser_scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
@@ -90,6 +97,7 @@ public:
   bool test_Sequence(robo7_srvs::callServiceTest::Request &req,
          robo7_srvs::callServiceTest::Response &res)
   {
+    destination_pose = req.destination_pose;
     done = false;
 
     //Plot the lidar scan in the map frame
@@ -187,8 +195,19 @@ public:
       done = res1.success;
     }
 
-    //Test service for the mapping
+    //Move the robot to another position
     else if(req.which_service == 6)
+    {
+      robo7_srvs::GoTo::Request req1;
+      robo7_srvs::GoTo::Response res1;
+      req1.robot_pose = robot_position;
+      req1.destination_pose = destination_pose;
+      go_to_srv.call(req1, res1);
+      done = res1.success;
+    }
+
+    //Test service for the mapping
+    else if(req.which_service == 7)
     {
       robo7_srvs::update_map::Request req1;
       robo7_srvs::update_map::Response res1;
