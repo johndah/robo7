@@ -10,6 +10,7 @@
 //Services
 #include <robo7_srvs/PathFollowerSrv.h>
 #include <robo7_srvs/path_planning.h>
+#include <robo7_srvs/GoTo.h>
 
 class go_to
 {
@@ -25,7 +26,7 @@ public:
   {
     //Service client
     path_planning_srv = n.serviceClient<robo7_srvs::path_planning>("/path_planning/path_service");
-    path_follower_srv = n.serviceClient<robo7_srvs::PathFollower>("/kinematics/path_follower/path_follower");
+    path_follower_srv = n.serviceClient<robo7_srvs::PathFollowerSrv>("/kinematics/path_follower/path_follower");
 
     //Server
     go_to_server = n.advertiseService("/kinematics/go_to", &go_to::goToSequence, this);
@@ -48,8 +49,8 @@ public:
     path_planning_srv.call(req1, res1);
 
     //Find the path_planned
-    robo7_srvs::PathFollower::Request req2;
-    robo7_srvs::PathFollower::Response res2;
+    robo7_srvs::PathFollowerSrv::Request req2;
+    robo7_srvs::PathFollowerSrv::Response res2;
     req2.req = true;
     req2.trajectory = res1.path_planned;
     path_follower_srv.call(req2, res2);
