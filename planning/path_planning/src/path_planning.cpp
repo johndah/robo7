@@ -55,7 +55,7 @@ class Node
 
 		this->path_length = 0.3;
 		this->steering_angle_max = pi / (10.0 * this->dt);
-		this->angular_velocity_resolution = pi/2;
+		this->angular_velocity_resolution = pi / 2;
 
 		this->tolerance_radius = 3e-2;
 		this->tolerance_angle = pi / 8.0;
@@ -70,7 +70,6 @@ class Node
 	{
 		return cost_to_come + cost_to_go / 20;
 	}
-	
 
 	float getHeuristicCost()
 	{
@@ -190,14 +189,14 @@ class PathPlanning
 				penalty_factor = 0.3;
 				node->path_length = 0.4;
 			}
-			else if (std::abs(angular_velocity) - node->angular_velocity_resolution < 1e-1 || std::abs(angular_velocity) - 2*node->angular_velocity_resolution < 1e-1)
+			else if (std::abs(angular_velocity) - node->angular_velocity_resolution < 1e-1 || std::abs(angular_velocity) - 2 * node->angular_velocity_resolution < 1e-1)
 			{
 				penalty_factor = .7;
 				node->path_length = 0.3;
 			}
 			else
 			{
-				penalty_factor = 1.0; 
+				penalty_factor = 1.0;
 				node->path_length = 0.25;
 			}
 
@@ -237,7 +236,7 @@ class PathPlanning
 				this->occupancy_srv.request.y = y;
 
 				if (this->occupancy_client.call(this->occupancy_srv))
-					path_cost = this->occupancy_srv.response.occupancy * node-> path_length * penalty_factor;
+					path_cost = this->occupancy_srv.response.occupancy * node->path_length * penalty_factor;
 				else
 				{
 					add_node = false;
@@ -284,6 +283,9 @@ class PathPlanning
 		x_target = destination_position.x;
 		y_target = destination_position.y;
 
+		path_x.push_back(x_target);
+		path_y.push_back(y_target);
+		
 		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
 		node_target->cost_to_go = 0;
 
@@ -310,7 +312,7 @@ class PathPlanning
 			node_ptr node_current = alive_nodes[std::distance(alive_nodes.begin(), min_cost_iterator)];
 
 			if (node_current->distanceSquared(node_target) < this->goal_radius_tolerance) // && std::abs(node_current->theta - theta_target) < this->angle_tolerance)
-				return get_found_path(node_current, res);
+				return get_found_path(node_current, node_target, res);
 
 			alive_nodes.erase(min_cost_iterator);
 			dead_nodes.push_back(node_current);
@@ -370,7 +372,7 @@ class PathPlanning
 		return false;
 	}
 
-	bool get_found_path(node_ptr node_current, robo7_srvs::path_planning::Response &res)
+	bool get_found_path(node_ptr node_current, node_ptr node_target, robo7_srvs::path_planning::Response &res)
 	{
 		std::vector<node_ptr> target_nodes;
 		robo7_msgs::path target_path_msg;
@@ -380,7 +382,7 @@ class PathPlanning
 		bool search_done;
 
 		ROS_INFO("Path found!");
-		
+
 		search_done = true;
 
 		target_nodes.push_back(node_current);
@@ -439,6 +441,8 @@ class PathPlanning
 
 		std::reverse(target_nodes.begin(), target_nodes.end());
 
+		target_nodes.push_back(node_target);
+
 		for (int i = 1; i < target_nodes.size(); i++)
 		{
 			node_ptr node = target_nodes[i];
@@ -449,13 +453,16 @@ class PathPlanning
 			target_path_msg.path_y = node->path_y;
 			target_paths_msg.paths.push_back(target_path_msg);
 
-			trajectory_point_msg.id_number = i;
-			trajectory_point_msg.point_coord.x = node->x;
-			trajectory_point_msg.point_coord.y = node->y;
-			trajectory_point_msg.point_coord.z = 0;
-			trajectory_point_msg.speed = .15 - .05 * partitions;
-			trajectory_point_msg.distance = node->path_length / (partitions + 1);
-			trajectory_msg.trajectory_points.push_back(trajectory_point_msg);
+			if (!node->path_x.empty())
+			{
+				trajectory_point_msg.id_number = i;
+				trajectory_point_msg.point_coord.x = node->path_x[node->path_x.size() - 1];
+				trajectory_point_msg.point_coord.y = node->path_y[node->path_y.size() - 1];
+				trajectory_point_msg.point_coord.z = 0;
+				trajectory_point_msg.speed = .15 - .05 * partitions;
+				trajectory_point_msg.distance = node->path_length / (partitions + 1);
+				trajectory_msg.trajectory_points.push_back(trajectory_point_msg);
+			}
 		}
 
 		for (int i = 0; i < 10; i++)
