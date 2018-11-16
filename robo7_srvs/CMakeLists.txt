@@ -19,6 +19,7 @@ add_service_files(
   update_map.srv
   discretize_map.srv
   door_opener.srv
+  distanceTo.srv
 )
 
 

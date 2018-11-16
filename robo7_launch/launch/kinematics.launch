@@ -119,12 +119,21 @@
      <param name="maximum_distance_between_points" type="double" value="0.25"/>
      <param name="minimum_point_for_a_wall" type="int" value="20"/>
      <param name="minimum_point_for_a_gap" type="int" value="0"/>
+  </node>
+
+  <node pkg="heuristic_grids" type="heuristic_grids_server" name="heuristic_grids_server"
+    output="screen">
+    <param name="grid_square_size" type="double" value="0.02"/>
+    <param name="min_distance" type="double" value="0.13"/>
+    <param name="smoothing_kernel_size" type="int" value="21"/>
+    <param name="smoothing_kernel_sd" type="int" value="7"/>
    </node>
 
    <node pkg="mapping" type="update_map" name="update_map" output="screen">
      <param name="choose_method" type="int" value="1"/>
    </node>
 
+   <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
 
 <!-- The testing services node -->
    <node pkg="test_service" type="test_service" name="test_service" output="screen"/>

@@ -284,13 +284,13 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/PointStamped
       Color: 255; 255; 255
-      Enabled: true
+      Enabled: false
       History Length: 1
       Name: PointFollowing
       Radius: 0.100000001
       Topic: /visualization/point_to_follow
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/PointStamped
       Color: 204; 41; 204
@@ -312,15 +312,18 @@ Visualization Manager:
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /Paths
-      Name: MarkerArray
+      Name: Paths
       Namespaces:
-        {}
+        Curves: true
+        Target: true
+        Trajectory: true
+        Trajectory nodes: true
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /maze_map
-      Name: MarkerArray
+      Name: Given Map
       Namespaces:
         {}
       Queue Size: 100
@@ -348,6 +351,26 @@ Visualization Manager:
       Namespaces:
         {}
       Queue Size: 100
+      Value: true
+    - Alpha: 0.699999988
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Distance Grid
+      Topic: /OccupancyGrid/Distance_Grid
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Occupancy Grid
+      Topic: /OccupancyGrid/Occupancy_Grid
+      Unreliable: false
+      Use Timestamp: false
       Value: true
   Enabled: true
   Global Options:
