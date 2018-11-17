@@ -53,10 +53,10 @@ public:
 	bool update_Sequence(robo7_srvs::UpdateOccupancyGrid::Request &req,
          robo7_srvs::UpdateOccupancyGrid::Response &res)
 	{
-		ROS_INFO("Start updating the map");
+		// ROS_INFO("Start updating the map");
 		//Extract the grid out of the request message
 		extract_previous_grid();
-		ROS_INFO("Previous grid extracted");
+		// ROS_INFO("Previous grid extracted");
 
 		//Extract the pose_timed out of the request message
 		//Both lidar scan and corresponding position
@@ -68,7 +68,7 @@ public:
 		//Create a new matrix that can contains all of the lidar scan measures
 		//and previous occupancy grid map. All it cells should be seen as
 		//unoccupied cells
-		ROS_INFO("Create Local map grid");
+		// ROS_INFO("Create Local map grid");
 		create_local_pose_grid();
 		create_new_sized_grid();
 
@@ -80,7 +80,7 @@ public:
 		//Define a window around the robot where every single cell is unknown
 		//state and plot the lidar point as occupied and the straight line
 		//between the robot and lidar point as unoccupied
-		ROS_INFO("Fill up the local grid with lidar scan");
+		// ROS_INFO("Fill up the local grid with lidar scan");
 		fill_up_the_local_grid_with_lidar_scan();
 
 		//Stick this new grid on top of the current grid at its right position.
@@ -88,11 +88,11 @@ public:
 		//grid cells
 		update_current_occupancy_grid_with_local_grid();
 
-		ROS_INFO("Local (x,y) : (%lf, %lf)", x_local_min, y_local_max);
-		ROS_INFO("Current (x,y) : (%lf, %lf)", x_current_min, y_current_max);
+		// ROS_INFO("Local (x,y) : (%lf, %lf)", x_local_min, y_local_max);
+		// ROS_INFO("Current (x,y) : (%lf, %lf)", x_current_min, y_current_max);
 
 		//Then fill up the mapping grid with the corresponding values
-		ROS_INFO("Fill up the messages to send");
+		// ROS_INFO("Fill up the messages to send");
 		fill_up_the_messages();
 
 	  local_grid_pub.publish( local_grid_msg );
