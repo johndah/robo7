@@ -13,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   phidgets
 )
 
-
 catkin_package(
  CATKIN_DEPENDS roscpp std_msgs robo7_msgs robo7_srvs geometry_msgs visualization_msgs phidgets
 )

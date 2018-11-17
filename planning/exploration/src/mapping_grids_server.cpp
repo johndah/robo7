@@ -4,15 +4,13 @@
 #include "ros/ros.h"
 #include "std_msgs/Bool.h"
 #include "robo7_srvs/IsGridOccupied.h"
-#include "robo7_srvs/distanceTo.h"
+#include "robo7_srvs/IsExplored.h"
 #include "robo7_msgs/XY_coordinates.h"
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui_c.h>
 #include <image_transport/image_transport.h>
-#include "robo7_msgs/occupancy_matrix.h"
-#include "robo7_msgs/occupancy_row.h"
 #include "robo7_msgs/grid_matrix.h"
 #include "robo7_msgs/grid_row.h"
 
@@ -24,26 +22,26 @@ class HeuristicGridsServer
   public:
 	ros::NodeHandle n;
 	ros::Subscriber map_sub;
-	ros::Publisher occupancy_pub, distance_pub;
-	robo7_msgs::occupancy_matrix occupancy_matrix_msg, distance_matrix_msg;
+	ros::Publisher occupancy_pub, exploration_pub;
+	robo7_msgs::grid_matrix grid_matrix_msg, distance_matrix_msg;
 	ros::ServiceServer is_occupied_service;
-	ros::ServiceServer distance_to_service;
+	ros::ServiceServer is_explored_service;
 	Matrix grid;
 
 	HeuristicGridsServer()
 	{
 		// Parameters
-		n.param<double>("/heuristic_grids_server/grid_square_size", grid_square_size, 0.02);
-		n.param<double>("/heuristic_grids_server/min_distance", min_distance, 0.13);
-		n.param<int>("/heuristic_grids_server/smoothing_kernel_size", smoothing_kernel_size, 15);
-		n.param<int>("/heuristic_grids_server/smoothing_kernel_sd", smoothing_kernel_sd, 3);
+		n.param<double>("/mapping_grids_server/grid_square_size", grid_square_size, 0.02);
+		n.param<double>("/mapping_grids_server/min_distance", min_distance, 0.13);
+		n.param<int>("/mapping_grids_server/smoothing_kernel_size", smoothing_kernel_size, 15);
+		n.param<int>("/mapping_grids_server/smoothing_kernel_sd", smoothing_kernel_sd, 3);
 
 		map_sub = n.subscribe("/own_map/wall_coordinates", 1, &HeuristicGridsServer::mapCallback, this);
 		is_occupied_service = n.advertiseService("/occupancy_grid/is_occupied", &HeuristicGridsServer::occupancyGridRequest, this);
-		distance_to_service = n.advertiseService("/distance_grid/distance", &HeuristicGridsServer::distanceGridRequest, this);
+		is_explored_service = n.advertiseService("/distance_grid/distance", &HeuristicGridsServer::explorationGridRequest, this);
 
-		occupancy_pub = n.advertise<robo7_msgs::occupancy_matrix>("/heuristic_grids_server/occupancy_matrix", 1);
-		distance_pub = n.advertise<robo7_msgs::occupancy_matrix>("/heuristic_grids_server/distance_matrix", 1);
+		occupancy_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/grid_matrix", 1);
+		exploration_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/exploration_matrix", 1);
 
 		num_min_distance_squares = ceil(min_distance / grid_square_size);
 
@@ -65,25 +63,16 @@ class HeuristicGridsServer
 		return floor(coord / grid_square_size);
 	}
 
-	bool distanceGridRequest(robo7_srvs::distanceTo::Request &req,
-							 robo7_srvs::distanceTo::Response &res)
+	bool explorationGridRequest(robo7_srvs::IsExplored::Request &req,
+							 robo7_srvs::IsExplored::Response &res)
 	{
-		ROS_DEBUG("New grid distance request recieved");
+		ROS_DEBUG("New grid exploration request recieved");
 
-		float x_from = req.x_from;
-		float y_from = req.y_from;
-		float x_to = req.x_to;
-		float y_to = req.y_to;
+		float x = req.x;
+		float y = req.y;
+		float theta = req.theta;
 
-		if (x_to != current_x_to || y_to != current_y_to)
-		{
-			distance_grid_init = false;
-			current_x_to = x_to;
-			current_y_to = y_to;
-			ROS_INFO("New target!");
-		}
-
-		res.distance = getDistanceFromGrid(x_to, y_to, x_from, y_from);
+		res.distance = getExplorationGrid(x, y, theta);
 
 		return true;
 	}
@@ -113,10 +102,10 @@ class HeuristicGridsServer
 
 		if (!occupancy_grid_init)
 		{
-			occupancy_matrix_msg = publishOccupancyGrid();
+			grid_matrix_msg = publishOccupancyGrid();
 
 			for (int i = 0; i < 10; i++)
-				occupancy_pub.publish(occupancy_matrix_msg);
+				occupancy_pub.publish(grid_matrix_msg);
 
 			occupancy_grid_init = true;
 		}
@@ -298,16 +287,14 @@ class HeuristicGridsServer
 		}
 	}
 
-	int getDistanceFromGrid(double x_to, double y_to, double x_from, double y_from)
+	int getExplorationGrid(double x, double y, double theta)
 	{
-
-		if (distance_grid_init)
-		{
-			return distance_grid.at<int>(sq(x_from), sq(y_from));
-		}
+		if (exploration_grid_init)
+			exploration_grid = cv::Mat::zeros(num_grid_squares_x, num_grid_squares_y, CV_32SC1);
 		else
 		{
-			distance_grid = cv::Mat::zeros(num_grid_squares_x, num_grid_squares_y, CV_32SC1);
+			exploration_grid.at<int>(sq(x), sq(y))
+			
 
 			if (!setDistance(sq(x_to), sq(y_to), 0))
 			{
@@ -337,31 +324,31 @@ class HeuristicGridsServer
 		}
 	}
 
-	robo7_msgs::occupancy_matrix publishOccupancyGrid()
+	robo7_msgs::grid_matrix publishOccupancyGrid()
 	{
-		robo7_msgs::occupancy_row occupancy_row_msg;
-		robo7_msgs::occupancy_matrix occupancy_matrix_msg;
+		robo7_msgs::grid_row grid_row_msg;
+		robo7_msgs::grid_matrix grid_matrix_msg;
 
-		std::vector<float> occupancy_row;
+		std::vector<float> grid_row;
 
 		for (int i = 0; i < occupancy_grid.rows; i++)
 		{
-			occupancy_row.clear();
+			grid_row.clear();
 			for (int j = 0; j < occupancy_grid.cols; j++)
 			{
-				occupancy_row.push_back(occupancy_grid.at<float>(i, j));
+				grid_row.push_back(occupancy_grid.at<float>(i, j));
 			}
-			occupancy_row_msg.occupancy_row = occupancy_row;
-			occupancy_matrix_msg.occupancy_rows.push_back(occupancy_row_msg);
+			grid_row_msg.grid_row = grid_row;
+			grid_matrix_msg.grid_rows.push_back(grid_row_msg);
 		}
 
-		return occupancy_matrix_msg;
+		return grid_matrix_msg;
 	}
 
-	robo7_msgs::occupancy_matrix publishDistanceGrid()
+	robo7_msgs::grid_matrix publishDistanceGrid()
 	{
-		robo7_msgs::occupancy_row distance_row_msg;
-		robo7_msgs::occupancy_matrix distance_matrix_msg;
+		robo7_msgs::grid_row distance_row_msg;
+		robo7_msgs::grid_matrix distance_matrix_msg;
 
 		std::vector<float> distance_row;
 
@@ -372,8 +359,8 @@ class HeuristicGridsServer
 			{
 				distance_row.push_back(distance_grid.at<float>(i, j));
 			}
-			distance_row_msg.occupancy_row = distance_row;
-			distance_matrix_msg.occupancy_rows.push_back(distance_row_msg);
+			distance_row_msg.grid_row = distance_row;
+			distance_matrix_msg.grid_rows.push_back(distance_row_msg);
 		}
 
 		return distance_matrix_msg;
@@ -387,41 +374,28 @@ class HeuristicGridsServer
 	int smoothing_kernel_sd;
 	int num_grid_squares_x;
 	int num_grid_squares_y;
+	int window_width = window_height = 10;
 	std::vector<float> X_wall_coordinates;
 	std::vector<float> Y_wall_coordinates;
 	cv::Mat basic_grid;
 	cv::Mat occupancy_grid;
-	cv::Mat distance_grid;
 	cv::Mat exploration_grid;
 	float current_x_to, current_y_to;
-	bool occupancy_grid_init, distance_grid_init;
+	bool occupancy_grid_init, exploration_grid_init;
 };
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "heuristic_grids_server");
+	ros::init(argc, argv, "mapping_grids_server");
 
-	HeuristicGridsServer heuristic_grids_server;
+	HeuristicGridsServer mapping_grids_server;
 
 	ros::Rate loop_rate(5000);
 
 	ROS_INFO("Heuristic grids server running");
 
-	heuristic_grids_server.updateBasicGridSize();
+	mapping_grids_server.updateBasicGridSize();
 
-	/*
-	while (ros::ok())
-	{
-		occupancy_matrix_msg = heuristic_grids_server.publishOccupancyGrid();
-		distance_matrix_msg = heuristic_grids_server.publishDistanceGrid();
-
-		heuristic_grids_server.occupancy_pub.publish(occupancy_matrix_msg);
-		heuristic_grids_server.distance_pub.publish(distance_matrix_msg);
-
-		ros::spinOnce();
-		loop_rate.sleep();
-	}
-		*/
 	ros::spin();
 
 	return 0;
