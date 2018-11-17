@@ -371,6 +371,16 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
+    - Alpha: 0.699999988
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /visualization/mapping/updated_occupancy_grid
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -391,25 +401,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 9.21791077
+      Distance: 12.0234976
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.964239001
-        Y: 2.23405862
-        Z: 1.04373002
+        X: 1.05211008
+        Y: 1.10315681
+        Z: 1.04385638
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.56979632
+      Pitch: 1.54979634
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.000398159027
+      Yaw: 0.0203991123
     Saved: ~
 Window Geometry:
   Displays:

@@ -101,7 +101,7 @@
 
    <node pkg="mapping" type="update_occupancy_grid" name="update_occupancy_grid" output="screen">
      <param name="local_window_size" type="double" value="2"/>
-     <param name="cell_size" type="double" value="0.05"/>
+     <param name="cell_size" type="double" value="0.02"/>
    </node>
 
 
@@ -109,6 +109,8 @@
    <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
 
 <!-- The testing services node -->
-   <node pkg="test_service" type="test_service" name="test_service" output="screen"/>
+   <node pkg="test_service" type="test_service" name="test_service" output="screen">
+     <param name="cell_size" type="double" value="0.02"/>
+   </node>
 
 </launch>

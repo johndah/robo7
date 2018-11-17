@@ -51,6 +51,10 @@ public:
 
   test_server()
   {
+    n.param<float>("/test_service/cell_size", cell_size, 0.05);
+
+    saver_grid_initialisation();
+
     //The service definition
     to_test_service = n.advertiseService("/localization/test_service", &test_server::test_Sequence, this);
 
@@ -218,7 +222,9 @@ public:
       robo7_srvs::UpdateOccupancyGrid::Request req1;
       robo7_srvs::UpdateOccupancyGrid::Response res1;
       req1.the_robot_pose = the_robot_pose;
+      req1.occupancy_grid = the_grid_saved;
       update_occupancy_grid_srv.call(req1, res1);
+      the_grid_saved = res1.updated_occupancy_grid;
       done = res1.success;
     }
 
@@ -240,6 +246,28 @@ private:
   robo7_msgs::wallList map_walls;
   robo7_msgs::former_position robot_pos;
   robo7_msgs::the_robot_position the_robot_pose;
+
+  robo7_msgs::mapping_grid the_grid_saved;
+  robo7_msgs::matrix initial_grid;
+  robo7_msgs::matrix_row one_row;
+  float cell_size;
+
+  void saver_grid_initialisation()
+  {
+    the_grid_saved.header.seq = 0;
+    the_grid_saved.header.stamp = ros::Time::now();
+    the_grid_saved.window_width = cell_size;
+    the_grid_saved.window_height = cell_size;
+    the_grid_saved.cell_size = cell_size;
+    the_grid_saved.top_left_corner.x = cell_size * (int)(the_robot_pose.position.linear.x/cell_size);
+    the_grid_saved.top_left_corner.y = cell_size * (int)(the_robot_pose.position.linear.y/cell_size);
+    one_row.cols.clear();
+    one_row.cols.push_back(0);
+    initial_grid.nb_rows = 1;
+    initial_grid.nb_cols = 1;
+    initial_grid.rows.push_back(one_row);
+    the_grid_saved.occupancy_grid = initial_grid;
+  }
 
 };
 
