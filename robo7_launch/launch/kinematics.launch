@@ -67,8 +67,8 @@
 
 <!-- The path_follower nodes -->
    <node pkg="path_follower" type="destination_point" name="destination_point" output="screen">
-     <param name="x_destination" type="double" value="1.2"/>
-     <param name="y_destination" type="double" value="1.6"/>
+     <param name="x_destination" type="double" value="0.2"/>
+     <param name="y_destination" type="double" value="0.215"/>
    </node>
 
    <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
