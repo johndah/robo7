@@ -71,7 +71,7 @@
      <param name="y_destination" type="double" value="1.6"/>
    </node>
 
-   <!-- <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
+   <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
      <param name="angle_P" type="double" value="2"/>
      <param name="angle_I" type="double" value="2"/>
      <param name="angle_D" type="double" value="0"/>
@@ -79,7 +79,7 @@
      <param name="angular_velocity_saturation_threshold" type="double" value="2"/>
      <param name="linear_speed" type="double" value="0.15"/>
      <param name="drive_backward" type="bool" value="false"/>
-   </node> -->
+   </node>
 
    <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
      <param name="distance_to_destination_threshold" type="double" value="0.05"/>
