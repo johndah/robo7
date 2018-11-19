@@ -126,7 +126,6 @@ class ObjectFilter
         // if its within the distance limmit it is considered the same object!
         float dist = distance(new_obj, *a_obj);
         ROS_INFO("disten: %f", dist);
-        ROS_INFO("distlim: %f", distance_rad_lim);
         if (dist <= distance_rad_lim){
           ROS_INFO("Object filter: comparing objects");
 
