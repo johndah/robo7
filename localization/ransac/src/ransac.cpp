@@ -192,8 +192,8 @@ public:
     ransac.getInliers(inliers);
     ransac.getModelCoefficients( model_param_ );
 
-		ROS_INFO("inliers : %d", static_cast<int>(inliers.size()));
-		printInliers();
+		// ROS_INFO("inliers : %d", static_cast<int>(inliers.size()));
+		// printInliers();
 
 		x0 = model_param_(0); y0 = model_param_(1); z0 = model_param_(2);
 		a = model_param_(3); b = model_param_(4); c = model_param_(5);
@@ -316,7 +316,7 @@ public:
         wall_done = true;
         wall_pts_nb++;
 				single_wall.nb_inliers = wall_pts_nb;
-				ROS_INFO("wall inliers : %d", wall_pts_nb);
+				// ROS_INFO("wall inliers : %d", wall_pts_nb);
         add_wall_to_list();
       }
       else if((dist > maximum_space_between_points)&&(std::abs(inliers[index%tot_inliers] - inliers[(index+1)%tot_inliers]) > gap_threshold))
@@ -327,7 +327,7 @@ public:
         wall_done = true;
         wall_pts_nb++;
 				single_wall.nb_inliers = wall_pts_nb;
-				ROS_INFO("wall inliers : %d", wall_pts_nb);
+				// ROS_INFO("wall inliers : %d", wall_pts_nb);
         add_wall_to_list();
       }
       wall_pts_nb++;

@@ -133,11 +133,11 @@ public:
 
   void state_callBack(const robo7_msgs::activation_states::ConstPtr &msg)
   {
-    if(msg->header.seq == 1)
+    if(msg->header.seq >= 0)
     {
       state_activated = *msg;
       slam_mode = state_activated.mapping;
-    }  
+    }
   }
 
   void updatePosition()
@@ -157,9 +157,13 @@ public:
         time_Update();
       }
 
+      // ROS_INFO("Looking for position ? : %d", state_activated.localize_itself);
+      // ROS_INFO("Looking for position ? : %d", true);
+
       //Then we need to do the Measurement Update
       if(use_measure&&state_activated.localize_itself)
       {
+        ROS_INFO("doing localization");
         measurement_update();
       }
 

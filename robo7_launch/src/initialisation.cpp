@@ -42,6 +42,8 @@ public:
 	void first_publish()
 	{
 		//Robot actions state
+		state_activated.header.seq = 0;
+		state_activated.header.stamp = ros::Time::now();
 		state_activated.follow_point = false;
 		state_activated.localize_itself = false;
 		state_activated.mapping = false;
@@ -112,6 +114,7 @@ int main(int argc, char **argv)
 
 	Initialisation Initialisation_;
 
+	ros::Duration(1.0).sleep(); // sleep for half a second
 	Initialisation_.first_publish();
 
 	ros::Rate loop_rate(100);

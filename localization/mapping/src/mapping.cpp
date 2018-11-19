@@ -58,6 +58,10 @@ public:
 		//Publishers
 		updated_discretized_map_pub = n.advertise<robo7_msgs::cornerList>("/localization/mapping/slam_map", 1);
 		activation_states_pub = n.advertise<robo7_msgs::activation_states>("/robot_state/activation_states", 1);
+
+		//Shitty published
+		activation_states_pub.publish( state_activated );
+		activation_states_pub.publish( state_activated );
 	}
 
 	void robot_pose_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
@@ -109,6 +113,7 @@ public:
 			condition_respected = false;
 
 			//Start the localization if it is not the case so far
+			state_activated.header.stamp = ros::Time::now();
 			state_activated.localize_itself = true;
 
 			activation_states_pub.publish( state_activated );
