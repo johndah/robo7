@@ -33,6 +33,7 @@ public:
 	ros::ServiceClient update_discretized_map_srv;
 	//Publishers
   ros::Publisher updated_discretized_map_pub;
+	ros::Publisher activation_states_pub;
 
 	Mapping()
 	{
@@ -40,6 +41,11 @@ public:
 		n.param<float>("/mapping/distance_between_two_measures", dist_threshold, 0.10);
 		n.param<float>("/mapping/cell_size", cell_size, 0.10);
 		n.param<bool>("/mapping/use_mapping_algorithm", use_mapping, false);
+
+		//Initialize state
+		state_activated.mapping = false;
+		condition_respected = true;
+		initialize_occupancy_grid();
 
 		//Subscribers
 		the_robot_pose_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &Mapping::robot_pose_callBack, this);
@@ -51,6 +57,7 @@ public:
 
 		//Publishers
 		updated_discretized_map_pub = n.advertise<robo7_msgs::cornerList>("/localization/mapping/slam_map", 1);
+		activation_states_pub = n.advertise<robo7_msgs::activation_states>("/robot_state/activation_states", 1);
 	}
 
 	void robot_pose_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
@@ -60,20 +67,18 @@ public:
 
 	void state_callBack(const robo7_msgs::activation_states::ConstPtr &msg)
   {
-    state_activated = *msg;
+		if(msg->header.seq == 1)
+		{
+			state_activated = *msg;
+		}
   }
 
 	void updateMap()
 	{
-		//Definition pf the condition
-		if(distance_between(previous_update_pose, the_robot_pose)&&use_mapping&&state_activated.mapping)
-		{
-			condition_respected = true;
-		}
-
 		//If the condition is respected
-		if(condition_respected)
+		if(condition_respected&&state_activated.mapping)
 		{
+			ROS_INFO("New update");
 			//First you update the occupancy grid
 			robo7_srvs::UpdateOccupancyGrid::Request req1;
 			robo7_srvs::UpdateOccupancyGrid::Response res1;
@@ -92,15 +97,27 @@ public:
 			//Save when/where was the last update
 			previous_update_pose = the_robot_pose;
 
+			//Need to transform the type of message of discretized_map
+			discretized_map_msg.number = discretized_map.number;
+			discretized_map_msg.corners = discretized_map.the_points;
+
 			//Finally you publish the newly discretized map so that the robot can use'
 			//for localizing itself
-			updated_discretized_map_pub.publish( discretized_map );
+			updated_discretized_map_pub.publish( discretized_map_msg );
 
 			//Turn back the condition to false
 			condition_respected = false;
 
 			//Start the localization if it is not the case so far
 			state_activated.localize_itself = true;
+
+			activation_states_pub.publish( state_activated );
+		}
+
+		//Definition pf the condition
+		if(distance_between(previous_update_pose, the_robot_pose)&&use_mapping)
+		{
+			condition_respected = true;
 		}
 	}
 
@@ -114,6 +131,7 @@ private:
 
 	//The discretized map
 	robo7_msgs::wallPoint discretized_map;
+	robo7_msgs::cornerList discretized_map_msg;
 
 	//Conditions triggers
 	bool condition_respected;

@@ -230,7 +230,7 @@ int main(int argc, char **argv)
   geometry_msgs::Twist point_plot;
   std_msgs::Float32 integ_err;
 
-  state_activated.follow_point = true;
+  state_activated.follow_point = false;
 
   while (ros::ok())
   {
@@ -265,7 +265,7 @@ int main(int argc, char **argv)
 
     if((!arrived)&&(!problem)&&(robot_position.header.seq != previous_robot_position.header.seq)&&state_activated.follow_point)
     {
-      ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
+      // ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
       dt = robot_position.header.stamp.toSec() - previous_robot_position.header.stamp.toSec();
       if(sgn(diff_angle)*diff_angle > angle_ref_max)
       {
@@ -281,7 +281,7 @@ int main(int argc, char **argv)
         // PID_AWU_update();
         desire_vel.angular.z = desire_angular_vel;
       }
-      ROS_INFO("(lin, ang) : (%lf, %lf)", desire_vel.linear.x, desire_vel.angular.z = desire_angular_vel);
+      // ROS_INFO("(lin, ang) : (%lf, %lf)", desire_vel.linear.x, desire_vel.angular.z = desire_angular_vel);
       integ_err.data = int_error;
       integ.publish( integ_err );
       previous_robot_position = robot_position;
@@ -308,7 +308,11 @@ int main(int argc, char **argv)
 
     robot_arrived.publish( is_robot_arrived );
     dest_point.publish( point_plot);
-    desired_velocity.publish(desire_vel);
+
+    if(state_activated.follow_point)
+    {
+      desired_velocity.publish(desire_vel);
+    }
     loop_rate.sleep();
   }
 

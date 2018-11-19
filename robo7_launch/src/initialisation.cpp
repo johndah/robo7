@@ -39,13 +39,24 @@ public:
 		activation_states_pub = n.advertise<robo7_msgs::activation_states>("/robot_state/activation_states", 1);
 	}
 
+	void first_publish()
+	{
+		//Robot actions state
+		state_activated.follow_point = false;
+		state_activated.localize_itself = false;
+		state_activated.mapping = false;
+
+		activation_states_pub.publish( state_activated );
+	}
+
 	void initialisation_sequence()
 	{
+		header_initialisation();
 		if(!mapping_mode)
 		{
 			//Here should stand the initialisation for the non mapping mode
 			//Otherwise it is the picking up sequence mode
-
+			initialize_pickingup_states();
 		}
 		else
 		{
@@ -53,10 +64,10 @@ public:
 
 			//Start the mapping mode
 			initialize_mapping_states();
-
-			//Publish the initial state of the robot
-			activation_states_pub.publish( state_activated );
 		}
+
+		//Publish the initial state of the robot
+		activation_states_pub.publish( state_activated );
 	}
 
 private:
@@ -65,6 +76,12 @@ private:
 
 	//The mode we choose
 	bool mapping_mode;
+
+	void header_initialisation()
+	{
+		state_activated.header.seq = 1;
+		state_activated.header.stamp = ros::Time::now();
+	}
 
 	void initialize_pickingup_states()
 	{
@@ -91,19 +108,21 @@ private:
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "Mapping service");
+	ros::init(argc, argv, "Initialisation service");
 
 	Initialisation Initialisation_;
 
-	ros::Rate loop_rate(100);
+	Initialisation_.first_publish();
 
-	ROS_INFO("Mapping Service is running");
+	ros::Rate loop_rate(100);
 
 	ros::Duration(Initialisation_.time_before_initialisation).sleep(); // sleep for half a second
 
 	ros::spinOnce();
 
 	Initialisation_.initialisation_sequence();
+
+	ROS_INFO("Initialisation state of the robot done");
 
 	return 0;
 }

@@ -133,8 +133,11 @@ public:
 
   void state_callBack(const robo7_msgs::activation_states::ConstPtr &msg)
   {
-    state_activated = *msg;
-    slam_mode = state_activated.mapping;
+    if(msg->header.seq == 1)
+    {
+      state_activated = *msg;
+      slam_mode = state_activated.mapping;
+    }  
   }
 
   void updatePosition()
