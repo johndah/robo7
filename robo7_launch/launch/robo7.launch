@@ -6,4 +6,9 @@
 
   <include file="$(find visualization)/launch/rviz_plots.launch"/>
 
+  <node pkg="robo7_launch" type="initialisation" name="initialisation" output="screen">
+    <param name="use_mapping_mode" type="bool" value="false"/>
+    <param name="time_before_starting_everything" type="double" value="5.0"/>
+  </node>
+
 </launch>

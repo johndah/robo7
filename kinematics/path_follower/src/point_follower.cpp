@@ -5,6 +5,7 @@
 #include "robo7_msgs/WheelAngularVelocities.h"
 #include "robo7_msgs/destination_point.h"
 #include "robo7_msgs/the_robot_position.h"
+#include "robo7_msgs/activation_states.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Float32.h"
 
@@ -68,6 +69,8 @@ bool new_measure;
 
 double duration;
 
+robo7_msgs::activation_states state_activated;
+
 
 void destination_callback(const robo7_msgs::destination_point::ConstPtr &msg)
 {
@@ -83,6 +86,11 @@ void destination_callback(const robo7_msgs::destination_point::ConstPtr &msg)
   // }
   x_point = dest_twist.destination.linear.x;
   y_point = dest_twist.destination.linear.y;
+}
+
+void state_callBack(const robo7_msgs::activation_states::ConstPtr &msg)
+{
+  state_activated = *msg;
 }
 
 void position_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
@@ -200,9 +208,13 @@ int main(int argc, char **argv)
   n.param<float>("/point_follower/linear_speed", aver_lin_vel, 0);
   n.param<bool>("/point_follower/drive_backward", drive_backward, false);
 
+  //The subscribers
   ros::Subscriber twist_sub = n.subscribe("/kinematics/path_follower/dest_point", 1, destination_callback);
   ros::Subscriber robot_position_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, position_callBack);
   ros::Subscriber breaker = n.subscribe("/break_info", 1, break_callBack);
+  ros::Subscriber state_activation_sub = n.subscribe("/robot_state/activation_states", 1, state_callBack);
+
+  //The publishers
   ros::Publisher desired_velocity = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
   ros::Publisher dest_point = n.advertise<geometry_msgs::Twist>("/point_destination_robot", 1);
   ros::Publisher robot_arrived = n.advertise<std_msgs::Bool>("/robot_arrived", 1);
@@ -249,7 +261,7 @@ int main(int argc, char **argv)
         desire_vel.angular.z = 0;
     }
 
-    if((!arrived)&&(!problem)&&(robot_position.header.seq != previous_robot_position.header.seq))
+    if((!arrived)&&(!problem)&&(robot_position.header.seq != previous_robot_position.header.seq)&&state_activated.follow_point)
     {
       ROS_INFO("new measure, %d, %d", robot_position.header.seq, previous_robot_position.header.seq);
       dt = robot_position.header.stamp.toSec() - previous_robot_position.header.stamp.toSec();
@@ -282,6 +294,12 @@ int main(int argc, char **argv)
     if(dist_left > dist_threshold)
     {
       arrived = false;
+    }
+
+    if(!state_activated.follow_point)
+    {
+      desire_vel.linear.x = 0;
+      desire_vel.angular.z = 0;
     }
 
     is_robot_arrived.data = arrived;

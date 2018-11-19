@@ -22,6 +22,7 @@ add_service_files(
   distanceTo.srv
   GoTo.srv
   UpdateOccupancyGrid.srv
+  UpdateDiscretizedMap.srv
 )
 
 

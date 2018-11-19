@@ -23,6 +23,7 @@
 #include <robo7_srvs/update_map.h>
 #include <robo7_srvs/GoTo.h>
 #include <robo7_srvs/UpdateOccupancyGrid.h>
+#include <robo7_srvs/UpdateDiscretizedMap.h>
 
 
 
@@ -46,6 +47,7 @@ public:
   ros::ServiceClient mapping_srv;
   ros::ServiceClient go_to_srv;
   ros::ServiceClient update_occupancy_grid_srv;
+  ros::ServiceClient update_discretized_map_srv;
   //Server
   ros::ServiceServer to_test_service;
 
@@ -77,6 +79,8 @@ public:
     go_to_srv = n.serviceClient<robo7_srvs::GoTo>("/kinematics/go_to");
 
     update_occupancy_grid_srv = n.serviceClient<robo7_srvs::UpdateOccupancyGrid>("/localization/mapping/update_occupancy_grid");
+
+    update_discretized_map_srv = n.serviceClient<robo7_srvs::UpdateDiscretizedMap>("/localization/mapping/update_discretized_map");
   }
 
   void laser_scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
@@ -103,7 +107,6 @@ public:
   bool test_Sequence(robo7_srvs::callServiceTest::Request &req,
          robo7_srvs::callServiceTest::Response &res)
   {
-    destination_pose = req.destination_pose;
     done = false;
 
     ROS_INFO("%d, %d", (int)-9.2, (int)9.8);
@@ -206,19 +209,18 @@ public:
     //Move the robot to another position
     else if(req.which_service == 6)
     {
-      ROS_INFO("Start service go to");
-      robo7_srvs::GoTo::Request req1;
-      robo7_srvs::GoTo::Response res1;
-      req1.robot_pose = robot_position;
-      req1.destination_pose = destination_pose;
-      go_to_srv.call(req1, res1);
-      done = res1.success;
+      // ROS_INFO("Start service go to");
+      // robo7_srvs::GoTo::Request req1;
+      // robo7_srvs::GoTo::Response res1;
+      // req1.robot_pose = robot_position;
+      // req1.destination_pose = destination_pose;
+      // go_to_srv.call(req1, res1);
+      // done = res1.success;
     }
 
-    //Test service for the mapping
+    //Test service for the update occupancy grid
     else if(req.which_service == 7)
     {
-      ROS_INFO("heyhey");
       robo7_srvs::UpdateOccupancyGrid::Request req1;
       robo7_srvs::UpdateOccupancyGrid::Response res1;
       req1.the_robot_pose = the_robot_pose;
@@ -226,6 +228,16 @@ public:
       update_occupancy_grid_srv.call(req1, res1);
       the_grid_saved = res1.updated_occupancy_grid;
       done = res1.success;
+    }
+
+    //Test service for the update discretized map
+    else if(req.which_service == 8)
+    {
+      robo7_srvs::UpdateDiscretizedMap::Request req1;
+      robo7_srvs::UpdateDiscretizedMap::Response res1;
+      req1.occupancy_grid = the_grid_saved;
+      update_discretized_map_srv.call(req1, res1);
+      the_walls_discretized = res1.discretized_walls;
     }
 
 
@@ -251,6 +263,8 @@ private:
   robo7_msgs::matrix initial_grid;
   robo7_msgs::matrix_row one_row;
   float cell_size;
+
+  robo7_msgs::wallPoint the_walls_discretized;
 
   void saver_grid_initialisation()
   {

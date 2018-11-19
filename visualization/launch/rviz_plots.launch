@@ -37,5 +37,5 @@
 
   <node pkg="visualization" type="occupancy" name="occupancy" output="screen"/>
 
-  <node pkg="visualization" type="mapping_occupancy" name="mapping_occupancy" output="screen"/>
+  <node pkg="visualization" type="slam_visualization" name="slam_visualization" output="screen"/>
 </launch>

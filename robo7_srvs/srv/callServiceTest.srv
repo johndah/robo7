@@ -1,5 +1,4 @@
 # request
 int32 which_service
-geometry_msgs/Twist destination_pose
 ---
 bool success  # True if the sequence was successful

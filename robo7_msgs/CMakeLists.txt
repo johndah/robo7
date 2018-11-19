@@ -41,6 +41,7 @@ add_message_files(
   mapping_grid.msg
   matrix_row.msg
   matrix.msg
+  activation_states.msg
 )
 
 generate_messages(

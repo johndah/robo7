@@ -53,11 +53,6 @@ public:
 	bool update_Sequence(robo7_srvs::UpdateOccupancyGrid::Request &req,
          robo7_srvs::UpdateOccupancyGrid::Response &res)
 	{
-		// ROS_INFO("Start updating the map");
-		//Extract the grid out of the request message
-		extract_previous_grid();
-		// ROS_INFO("Previous grid extracted");
-
 		//Extract the pose_timed out of the request message
 		//Both lidar scan and corresponding position
 		robot_pose = req.the_robot_pose.position;
@@ -360,13 +355,13 @@ private:
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "Mapping service");
+	ros::init(argc, argv, "Update occupancy service");
 
 	Update_Occ_Grid Update_Occ_Grid_;
 
 	ros::Rate loop_rate(100);
 
-	ROS_INFO("Mapping Service is running");
+	ROS_INFO("Update Occupancy Service is running");
 
 	ros::spin();
 

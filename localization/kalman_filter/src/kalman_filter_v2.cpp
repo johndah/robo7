@@ -13,6 +13,7 @@
 #include <robo7_msgs/cornerList.h>
 #include <robo7_msgs/robotPositionTest.h>
 #include <robo7_msgs/the_robot_position.h>
+#include <robo7_msgs/activation_states.h>
 
 #include <robo7_srvs/scanCoord.h>
 #include <robo7_srvs/ICPAlgorithm.h>
@@ -31,6 +32,8 @@ public:
   ros::Subscriber measure_sub;
   ros::Subscriber scan_sub;
   ros::Subscriber map_point_sub;
+  ros::Subscriber slam_map_point_sub;
+  ros::Subscriber state_activation_sub;
   //Publishers
   ros::Publisher robot_position;
   ros::Publisher robot_position_pub;
@@ -57,10 +60,12 @@ public:
     n.param<float>("/kalman_filter/sigma_distance_lidar", sigma_d_lidar, 0.05);
     n.param<float>("/kalman_filter/sigma_angle_lidar", sigma_a_lidar, 0.1);
 
-    ROS_INFO("Sigmas : %f, %f ,%f, %f", sigma_d, sigma_a, sigma_d_lidar, sigma_a_lidar);
     //Decide if we only go for dead_reckoning or EKF
     n.param<bool>("/kalman_filter/use_measure", use_measure, false);
     n.param<bool>("/kalman_filter/use_dead_reckoning", use_dead_reckoning, false);
+
+    //Pass in SLAM mode
+    n.param<bool>("/kalman_filter/slam_mode", slam_mode, false);
 
     //Initialize the different matrices
     initialize_variables();
@@ -71,6 +76,8 @@ public:
     encoder_Right = n.subscribe("/r_motor/encoder", 1, &kalmanFilter::encoder_R_callBack, this);
     scan_sub = n.subscribe("/scan", 1, &kalmanFilter::scan_callBack, this);
     map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &kalmanFilter::maze_map_callBack, this);
+    slam_map_point_sub = n.subscribe("/localization/mapping/slam_map", 1, &kalmanFilter::slam_map_callBack, this);
+    state_activation_sub = n.subscribe("/robot_state/activation_states", 1, &kalmanFilter::state_callBack, this);
 
     scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
@@ -110,7 +117,24 @@ public:
 
   void maze_map_callBack(const robo7_msgs::cornerList::ConstPtr &msg)
   {
-    all_wall_points = *msg;
+    if(!slam_mode)
+    {
+      all_wall_points = *msg;
+    }
+  }
+
+  void slam_map_callBack(const robo7_msgs::cornerList::ConstPtr &msg)
+  {
+    if(slam_mode)
+    {
+      all_wall_points = *msg;
+    }
+  }
+
+  void state_callBack(const robo7_msgs::activation_states::ConstPtr &msg)
+  {
+    state_activated = *msg;
+    slam_mode = state_activated.mapping;
   }
 
   void updatePosition()
@@ -131,7 +155,7 @@ public:
       }
 
       //Then we need to do the Measurement Update
-      if(use_measure)
+      if(use_measure&&state_activated.localize_itself)
       {
         measurement_update();
       }
@@ -502,6 +526,7 @@ private:
   //Boolean telling if we want to use the measures or not
   bool use_measure;
   bool use_dead_reckoning;
+  bool slam_mode;
 
   //Boolean for sending and receiving measures
   bool new_lidar_scan;
@@ -543,6 +568,7 @@ private:
 
   //Initial time that leave the robot the time to start everything before the computations
   ros::Time time_start;
+  robo7_msgs::activation_states state_activated;
 
   //Other useful function
   int sgn(int v)
