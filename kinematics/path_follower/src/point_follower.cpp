@@ -230,6 +230,8 @@ int main(int argc, char **argv)
   geometry_msgs::Twist point_plot;
   std_msgs::Float32 integ_err;
 
+  state_activated.follow_point = true;
+
   while (ros::ok())
   {
     ros::spinOnce();
