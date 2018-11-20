@@ -5,7 +5,7 @@
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Twist.h"
 #include "robo7_msgs/XY_coordinates.h"
-#include "robo7_msgs/DEVdetectedObj.h"
+#include "robo7_msgs/classifiedObj.h"
 #include "robo7_msgs/aObject.h"
 #include "robo7_msgs/allObjects.h"
 #include "robo7_srvs/objectToRobot.h"
@@ -28,7 +28,7 @@ class ObjectFilter
 		n.param<float>("/object_filter/distance_rad_lim", distance_rad_lim, 0.05);
     n.param<int>("/object_filter/num_classes", num_classes, 14);
 
-		obj_sub = n.subscribe("/vision/object", 1, &ObjectFilter::ObjCallback, this);
+		obj_sub = n.subscribe("/vision/results", 1, &ObjectFilter::ObjCallback, this);
     robo_pos_sub = n.subscribe("/localization/kalman_filter/position", 1, &ObjectFilter::roboPosCallback, this);
     obj_to_robo_srv = n.serviceClient<robo7_srvs::objectToRobot>("/localization/object_to_robot");
 
@@ -44,7 +44,7 @@ class ObjectFilter
   }
 
 
-	void ObjCallback(const robo7_msgs::DEVdetectedObj::ConstPtr &msg)
+	void ObjCallback(const robo7_msgs::classifiedObj::ConstPtr &msg)
 	{
     if (!position_updated){
       ROS_WARN("Object filter: Unable to filer object, no robot position recieved");
@@ -128,7 +128,6 @@ class ObjectFilter
         ROS_INFO("disten: %f", dist);
         if (dist <= distance_rad_lim){
           ROS_INFO("Object filter: comparing objects");
-
 
           // avrage the positon
           (*a_obj).pos.x = (((*a_obj).pos.x * (*a_obj).total_votes) + new_obj.pos.x) / (*a_obj).total_votes;
