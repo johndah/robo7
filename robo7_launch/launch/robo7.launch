@@ -1,6 +1,6 @@
 <launch>
 
-  <include file="$(find robo7_launch)/launch/hardware.launch"/>
+  <!-- <include file="$(find robo7_launch)/launch/hardware.launch"/> -->
 
   <node pkg="robo7_launch" type="initialisation" name="initialisation" output="screen">
     <param name="use_mapping_mode" type="bool" value="true"/>
