@@ -235,23 +235,23 @@ private:
 		// ROS_INFO("Distance robot-lidar: (%lf, %lf)", x_robot-x_lidar, y_robot-y_lidar);
 		// ROS_INFO("Inner cell : (%d, %d)", cell_ind[0], cell_ind[1]);
 		// ROS_INFO("Matrix size : (%d, %d)", the_local_grid.rows(), the_local_grid.cols());
-		if((0 <= cell_ind[0])&&(cell_ind[0] < the_local_grid.rows())
-					&&(0 <= cell_ind[1])&&(cell_ind[1] < the_local_grid.cols()))
+		// ROS_INFO("Condition respected");
+		int N_step = floor( sqrt(pow(x_robot - x_lidar,2) + pow(y_robot - y_lidar,2))/cell_size ) + 1;
+		float x_step = (x_robot - x_lidar)/N_step;
+		float y_step = (y_robot - y_lidar)/N_step;
+		// ROS_INFO("Nb of step : %d, %lf, %lf", N_step, x_step, y_step);
+		for(int j=0; j < N_step + 1; j++)
 		{
-			// ROS_INFO("Condition respected");
-			int N_step = floor( sqrt(pow(x_robot - x_lidar,2) + pow(y_robot - y_lidar,2))/cell_size ) + 1;
-			float x_step = (x_robot - x_lidar)/N_step;
-			float y_step = (y_robot - y_lidar)/N_step;
-			// ROS_INFO("Nb of step : %d, %lf, %lf", N_step, x_step, y_step);
-			for(int j=0; j < N_step + 1; j++)
-			{
-				// ROS_INFO("%d", j);
-				cell_ind = corresponding_local_cell(x_robot - j * x_step, y_robot - j * y_step);
-				// ROS_INFO("cell to fill : (%d,%d)", cell_ind[0], cell_ind[1]);
-				the_local_grid(cell_ind[0], cell_ind[1]) = unoccupied;
-			}
-			the_local_grid(cell_ind[0], cell_ind[1]) = occupied;
+			// ROS_INFO("%d", j);
+			cell_ind = corresponding_local_cell(x_robot - j * x_step, y_robot - j * y_step);
+			// ROS_INFO("cell to fill : (%d,%d)", cell_ind[0], cell_ind[1]);
+			if((0 <= cell_ind[0])&&(cell_ind[0] < the_local_grid.rows())
+						&&(0 <= cell_ind[1])&&(cell_ind[1] < the_local_grid.cols()))
+						{
+							the_local_grid(cell_ind[0], cell_ind[1]) = unoccupied;
+						}
 		}
+		the_local_grid(cell_ind[0], cell_ind[1]) = occupied;
 		// ROS_INFO("_");
 	}
 
