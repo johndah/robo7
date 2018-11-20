@@ -27,7 +27,7 @@ private:
 KeyboardController::KeyboardController():
   linear_(0),
   angular_(0),
-  l_scale_(0.2),
+  l_scale_(0.4),
   a_scale_(1.5)
 {
   nh_.param("scale_angular", a_scale_, a_scale_);
