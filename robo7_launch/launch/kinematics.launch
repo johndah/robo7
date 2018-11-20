@@ -112,7 +112,7 @@
 
   <node pkg="mapping" type="mapping" name="mapping" output="screen">
     <param name="cell_size" type="double" value="0.02"/>
-    <param name="distance_between_two_measures" type="double" value="0.2"/>
+    <param name="distance_between_two_measures" type="double" value="0.1"/>
     <param name="use_mapping_algorithm" type="bool" value="true"/>
   </node>
 
