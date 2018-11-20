@@ -72,6 +72,7 @@ public:
 	bool ransacSequence(robo7_srvs::RansacWall::Request &req,
          robo7_srvs::RansacWall::Response &res)
 	{
+		ROS_INFO("Start RANSAC");
 		the_cloud = req.the_cloud;
 		ROS_INFO("Number of points : %d, %lf", the_cloud.number, the_cloud.the_points[0].x);
 		robo7_msgs::wallList all_the_walls;
@@ -145,6 +146,8 @@ public:
 		res.all_corners = all_corners;
 		res.ransac_walls = all_the_walls;
 		res.success = true;
+
+		ROS_INFO("RANSAC done \n");
     return true;
 	}
 

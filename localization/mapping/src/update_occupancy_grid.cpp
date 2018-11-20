@@ -54,6 +54,8 @@ public:
          robo7_srvs::UpdateOccupancyGrid::Response &res)
 	{
 		time_now = ros::Time::now();
+		ROS_INFO("Occupancy grid update");
+		ROS_INFO("Extraction of datas");
 		//Extract the pose_timed out of the request message
 		//Both lidar scan and corresponding position
 		robot_pose = req.the_robot_pose.position;
@@ -61,6 +63,7 @@ public:
 		extract_grid_msg = req.occupancy_grid;
 		extract_previous_grid();
 
+		ROS_INFO("Create both local and new sized grid");
 		//Create a new matrix that can contains all of the lidar scan measures
 		//and previous occupancy grid map. All it cells should be seen as
 		//unoccupied cells
@@ -68,17 +71,19 @@ public:
 		create_local_pose_grid();
 		create_new_sized_grid();
 
-
+		ROS_INFO("Stick previous grid");
 		//Stick the previous occupancy grid on the top of the new grid at its
 		//right position
 		stick_previous_occupancy_grid();
 
+		ROS_INFO("Fill up local grid");
 		//Define a window around the robot where every single cell is unknown
 		//state and plot the lidar point as occupied and the straight line
 		//between the robot and lidar point as unoccupied
 		// ROS_INFO("Fill up the local grid with lidar scan");
 		fill_up_the_local_grid_with_lidar_scan();
 
+		ROS_INFO("Update current grid with local grid");
 		//Stick this new grid on top of the current grid at its right position.
 		//Keep in mind that "unknown cells" should take tthe value of the previous
 		//grid cells
@@ -87,6 +92,7 @@ public:
 		// ROS_INFO("Local (x,y) : (%lf, %lf)", x_local_min, y_local_max);
 		// ROS_INFO("Current (x,y) : (%lf, %lf)", x_current_min, y_current_max);
 
+		ROS_INFO("Fill up messages and publish");
 		//Then fill up the mapping grid with the corresponding values
 		// ROS_INFO("Fill up the messages to send");
 		fill_up_the_messages();
@@ -97,6 +103,7 @@ public:
 		//Return / Publish the messages
 		res.updated_occupancy_grid = updated_grid_msg;
 
+		ROS_INFO("Occupancy grid done \n");
 		// ROS_INFO("Time of one execution : %lf s", ros::Time::now().toSec()-time_now.toSec());
 		return true;
 	}
