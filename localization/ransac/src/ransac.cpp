@@ -73,7 +73,7 @@ public:
          robo7_srvs::RansacWall::Response &res)
 	{
 		the_cloud = req.the_cloud;
-		// ROS_INFO("Number of points : %d, %lf", the_cloud.number, the_cloud.the_points[0].x);
+		ROS_INFO("Number of points : %d, %lf", the_cloud.number, the_cloud.the_points[0].x);
 		robo7_msgs::wallList all_the_walls;
     robo7_msgs::cornerList all_corners;
 
@@ -94,10 +94,11 @@ public:
     clean_the0points();
     wall_nb = 1;
 
+		ROS_INFO("Extraction of the walls");
 		//Extraction of all the walls
 		while(still_walls)
 		{
-
+			ROS_INFO("Update cloud");
       updateCloud();
 
 			if(copy)
@@ -106,6 +107,7 @@ public:
 				copy = false;
 			}
 
+			ROS_INFO("Solve RANSAC");
 			//Find the line model that fit this new point cloud
 			if(cloud->width > 2) {
 				solveRansac();
@@ -113,6 +115,7 @@ public:
 				still_walls = false;
 			}
 
+			ROS_INFO("Add the walls");
 			if( (static_cast<int>(inliers.size()) < min_point) || !still_walls )
 			{
 				still_walls = false;
@@ -127,8 +130,6 @@ public:
         updateInliers();
 				updatePoints();
 			}
-
-      wall_nb++;
 		}
 
 		all_the_walls.walls = wall_full_list;
@@ -400,6 +401,7 @@ public:
 			wall_full_list.push_back(single_wall);
       the_corners_list.push_back(single_wall.init_point);
       the_corners_list.push_back(single_wall.end_point);
+			wall_nb++;
 		}
 	}
 

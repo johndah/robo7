@@ -163,7 +163,7 @@ public:
       //Then we need to do the Measurement Update
       if(use_measure&&state_activated.localize_itself)
       {
-        ROS_INFO("doing localization");
+        // ROS_INFO("doing localization");
         measurement_update();
       }
 

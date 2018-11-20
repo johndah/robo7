@@ -97,7 +97,7 @@ public:
 		//Return / Publish the messages
 		res.updated_occupancy_grid = updated_grid_msg;
 
-		ROS_INFO("Time of one execution : %lf s", ros::Time::now().toSec()-time_now.toSec());
+		// ROS_INFO("Time of one execution : %lf s", ros::Time::now().toSec()-time_now.toSec());
 		return true;
 	}
 
