@@ -108,6 +108,7 @@ public:
 			}
 
 			ROS_INFO("Solve RANSAC");
+			ROS_INFO("Cloud size %d, %d", cloud->width, cloud->height);
 			//Find the line model that fit this new point cloud
 			if(cloud->width > 2) {
 				solveRansac();
