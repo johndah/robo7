@@ -53,6 +53,7 @@ public:
 	bool update_Sequence(robo7_srvs::UpdateOccupancyGrid::Request &req,
          robo7_srvs::UpdateOccupancyGrid::Response &res)
 	{
+		time_now = ros::Time::now();
 		//Extract the pose_timed out of the request message
 		//Both lidar scan and corresponding position
 		robot_pose = req.the_robot_pose.position;
@@ -96,6 +97,7 @@ public:
 		//Return / Publish the messages
 		res.updated_occupancy_grid = updated_grid_msg;
 
+		ROS_INFO("Time of one execution : %lf s", ros::Time::now().toSec()-time_now.toSec());
 		return true;
 	}
 
@@ -108,7 +110,6 @@ private:
 
 	//The publish messages
 	robo7_msgs::mapping_grid local_grid_msg;
-
 
 	//The local grid parameters
 	Eigen::MatrixXf the_local_grid;
@@ -134,6 +135,9 @@ private:
 	//Usefull global variable
 	float x_robot, y_robot;
 	float x_lidar, y_lidar;
+
+	//Compute time of one execution
+	ros::Time time_now;
 
 	void create_new_sized_grid()
 	{
