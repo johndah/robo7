@@ -83,14 +83,10 @@ public:
 
 
     // initialize PointClouds
-		cloud_init = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
     cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
-    final_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
 
 		//Initialize the wall extraction algorithm
 		still_walls = true;
-
-		bool copy = true;
 
     clean_the0points();
     wall_nb = 1;
@@ -102,22 +98,16 @@ public:
 			ROS_INFO("Update cloud");
       updateCloud();
 
-			if(copy)
-			{
-				pcl::copyPointCloud<pcl::PointXYZ>(*cloud, *cloud_init);
-				copy = false;
-			}
-
 			ROS_INFO("Solve RANSAC");
 			ROS_INFO("Cloud size %d, %d", cloud->width, cloud->height);
 			//Find the line model that fit this new point cloud
-			if(cloud->width > 2) {
+			if((cloud->width > 2)&&(cloud->width > min_point)) {
 				solveRansac();
 			} else {
 				still_walls = false;
 			}
 
-			ROS_INFO("Add the walls");
+			ROS_INFO("Add the walls, nb inliers = %d", static_cast<int>(inliers.size()));
 			if( (static_cast<int>(inliers.size()) < min_point) || !still_walls )
 			{
 				still_walls = false;
@@ -188,20 +178,28 @@ public:
 
 	void solveRansac()
 	{
-		pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr
-      model_p (new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
+		ROS_INFO("Solving RANSAC");
+		model_p = pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr	(new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
 
+		ROS_INFO("Creating model");
     pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_p);
+		ROS_INFO("ransac threshold");
     ransac.setDistanceThreshold (ransac_threshold);
+		ROS_INFO("Computing model");
     ransac.computeModel();
+		ROS_INFO("Model computed");
     ransac.getInliers(inliers);
     ransac.getModelCoefficients( model_param_ );
+
+		ROS_INFO("Model param extracted");
 
 		// ROS_INFO("inliers : %d", static_cast<int>(inliers.size()));
 		// printInliers();
 
 		x0 = model_param_(0); y0 = model_param_(1); z0 = model_param_(2);
 		a = model_param_(3); b = model_param_(4); c = model_param_(5);
+
+		ROS_INFO("Model parameters implemented");
 	}
 
   void printInliers()
@@ -420,6 +418,7 @@ private:
 
   robo7_msgs::XY_coordinates point_cloud_XY_2;
   Eigen::VectorXf model_param_;
+	pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr	model_p;
 
 	bool still_walls; // To know if there is still some walls to find
 	bool wall_done; //To know if you reach the end of the wall

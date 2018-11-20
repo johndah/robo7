@@ -6,9 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /SLAM_walls1/Status1
       Splitter Ratio: 0.5
-    Tree Height: 650
+    Tree Height: 250
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -173,7 +172,7 @@ Visualization Manager:
       Marker Topic: /visualization/robotMarker
       Name: RobotPosition
       Namespaces:
-        map: true
+        {}
       Queue Size: 1
       Value: true
     - Class: rviz/Marker
@@ -446,16 +445,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.78912306
+      Distance: 11.9647541
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.194571242
-        Y: 0.494900882
-        Z: 0.33245346
+        X: 0.535381436
+        Y: 0.890230596
+        Z: 0.322169095
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false

@@ -203,6 +203,7 @@ private:
 		int start_x_ind = start_cell[0];
 		int start_y_ind = start_cell[1];
 
+		ROS_INFO("Current grid sized (i, j) = (%d, %d)", the_current_grid.rows(), the_current_grid.cols());
 		for(int i = 0; i < the_prev_grid.rows(); i++)
 		{
 			for(int j = 0; j < the_prev_grid.cols(); j++)
