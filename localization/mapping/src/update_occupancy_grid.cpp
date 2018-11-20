@@ -244,14 +244,20 @@ private:
 		{
 			// ROS_INFO("%d", j);
 			cell_ind = corresponding_local_cell(x_robot - j * x_step, y_robot - j * y_step);
-			// ROS_INFO("cell to fill : (%d,%d)", cell_ind[0], cell_ind[1]);
+			ROS_INFO("cell to fill : (%d,%d)", cell_ind[0], cell_ind[1]);
 			if((0 <= cell_ind[0])&&(cell_ind[0] < the_local_grid.rows())
 						&&(0 <= cell_ind[1])&&(cell_ind[1] < the_local_grid.cols()))
 						{
-							the_local_grid(cell_ind[0], cell_ind[1]) = unoccupied;
+							if(j != N_step)
+							{
+								the_local_grid(cell_ind[0], cell_ind[1]) = unoccupied;
+							}
+							else
+							{
+								the_local_grid(cell_ind[0], cell_ind[1]) = occupied;
+							}
 						}
 		}
-		the_local_grid(cell_ind[0], cell_ind[1]) = occupied;
 		// ROS_INFO("_");
 	}
 
