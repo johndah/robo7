@@ -55,7 +55,7 @@ public:
 
   		namedWindow("Detected image");
       // namedWindow("bbx");
-      // namedWindow("Cropped object image");
+      namedWindow("Cropped object image");
 
       depth_points_sub = n.subscribe("/camera/depth_registered/points", 1, &ACFdetector::depthCallBack, this);
       obj_detected_pub = n.advertise<acfDetector::detectedObj>("/vision/object", 1);
@@ -108,11 +108,11 @@ public:
       return p;
     }
 
-    cv::Rect enlargeBBX(cv::Rect o, int cols, int rows)
+    cv::Rect enlargeBBX(cv::Rect o, int cols, int rows, float scale)
     {
       cv::Rect large_bbx;
 
-      if(o.width >= rows/2)
+      if(o.width >= rows/scale)
       {
         large_bbx.y = 0;
         large_bbx.height = rows;
@@ -125,10 +125,10 @@ public:
       }
       else
       {
-        int x_tl = o.x - o.width / 2;
-        int y_tl = o.y - o.height / 2;
-        int x_br = o.x + 3 * o.width / 2;
-        int y_br = o.y + 3 * o.height / 2;
+        int x_tl = o.x - o.width * (scale-1)/2;
+        int y_tl = o.y - o.height * (scale-1)/ 2;
+        int x_br = o.x + o.width * (1+(scale-1)/2);
+        int y_br = o.y + o.height * (1+(scale-1)/2);
 
         if (x_tl >= 0)
           large_bbx.x = x_tl;
@@ -139,12 +139,12 @@ public:
         else
           large_bbx.y = 0;
         if (x_br >= cols)
-          large_bbx.x = cols - 2 * o.width;
+          large_bbx.x = cols - scale * o.width;
         if (y_br >= rows)
-          large_bbx.y = rows - 2 * o.height;
+          large_bbx.y = rows - scale * o.height;
 
-        large_bbx.width = 2 * o.width;
-        large_bbx.height = 2 * o.height;
+        large_bbx.width = scale * o.width;
+        large_bbx.height = scale * o.height;
       }
 
       // ROS_INFO("x: %d", o.x);
@@ -240,11 +240,12 @@ public:
           cv::putText(resultImg, ss.str() + ", " + colorVec[response], cv::Point(o.x, o.y), CV_FONT_HERSHEY_SIMPLEX, 0.8, {255, 255, 255});
           ind++;
 
-          cv::Rect large_o = ACFdetector::enlargeBBX(o, origImg.cols, origImg.rows);
+          // Crop the image with enlarged bbx
+          cv::Rect large_o = ACFdetector::enlargeBBX(o, origImg.cols, origImg.rows, 1.4);
           cv::Mat obj_img;
           obj_img = origImg(large_o);
 
-          // imshow("Cropped object image", obj_img);
+          imshow("Cropped object image", obj_img);
 
           sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", obj_img).toImageMsg();
 
@@ -289,7 +290,7 @@ public:
           std_msgs::String color;
           color.data = colorVec[response];
           object_pub.color = color;
-          object_pub.objClass = 1;
+          // object_pub.objClass = 1;
 
           obj_detected_pub.publish(object_pub);
         }

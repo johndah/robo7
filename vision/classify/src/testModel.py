@@ -14,6 +14,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 from mobilenet_v2 import mobilenetv2
 from acfDetector.msg import detectedObj
+from classify.msg import classifiedObj
 
 # Parameter setting
 ckpt_dir ='../checkpoints/160_1/'
@@ -51,14 +52,40 @@ class classifier:
             sys.exit("[*] Failed to find a checkpoint")
 
         self.bridge = CvBridge()
+
         self.detectedObj_sub = rospy.Subscriber("/vision/object", detectedObj, self.applyModel)
-        self.result_pub = rospy.Publisher("/vision/result", Int16, queue_size=1)
+        self.result_pub = rospy.Publisher("/vision/result", classifiedObj, queue_size=1)
         
-        self.image_sub = rospy.Subscriber("/vision/object/img", Image, self.applyModel)
-        self.obj_class_pub = rospy.Publisher("/vision/object/class", Int16, queue_size=1)
+        # self.image_sub = rospy.Subscriber("/vision/object/img", Image, self.applyModel)
+        # self.obj_class_pub = rospy.Publisher("/vision/object/class", Int16, queue_size=1)
+
+    # def applyModel(self, data):
+    #     origImg = self.bridge.imgmsg_to_cv2(data, "bgr8")
+
+    #     origImg = cv2.resize(origImg, (width, height))
+
+    #     img = origImg.astype(np.float32)
+
+    #     feed_dict = {self.inputs: [img]}
+    #     im, res = self.sess.run([self.inputs, self.pred], feed_dict=feed_dict)
+
+    #     result_class = res.argmax()
+
+    #     # put resulting text on image
+    #     cv2.putText(origImg, self.objClass[result_class], (30, 20),
+    #         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+    #     cv2.imshow("object image", origImg)
+    #     cv2.waitKey(1000)
+
+    #     print("pro:", res)
+    #     rospy.loginfo("predict class: %d", result_class)
+
+    #     self.obj_class_pub.publish(result_class)
+
 
     def applyModel(self, data):
-        origImg = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        origImg = self.bridge.imgmsg_to_cv2(data.img, "bgr8")
 
         origImg = cv2.resize(origImg, (width, height))
 
@@ -70,29 +97,20 @@ class classifier:
         result_class = res.argmax()
 
         # put resulting text on image
-        cv2.putText(origImg, objClass[result_class], (60, 10),
-            cv2.CV_FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        cv2.putText(origImg, self.objClass[result_class], (30, 20),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         cv2.imshow("object image", origImg)
-        cv2.waitKey(3)
+        cv2.waitKey(2)
 
-        print("pro:", res)
-        rospy.loginfo("predict class: %d", result_class)
+        # print("pro:", res)
+        # rospy.loginfo("predict class: %d", result_class)
 
-
-        ##      for testing         ##
-        # self.numImg = self.numImg + 1
-        # rospy.loginfo("true class: %d", self.trueClass)
-        # if self.trueClass == result_class:
-        #     rospy.loginfo("True !!")
-        #     self.trueImg = self.trueImg + 1
-        # else:
-        #     rospy.loginfo("False !!")
-
-        # rospy.loginfo("acc right now: %f", float(self.trueImg) / self.numImg)
-        ##      for testing         ##
-
-        self.obj_class_pub.publish(result_class)
+        # publish result
+        msg = classifiedObj()
+        msg.objClass = result_class
+        msg.pos = data.pos
+        self.result_pub.publish(msg)
 
 
 def main():

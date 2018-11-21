@@ -126,6 +126,33 @@ v: 0~255
 
  
 
+## Classifier
+
+Build virtual environment for classifier
+
+```
+cd ~
+virtualenv --system-site-packages ~/tensorflowenv
+
+source ~/tensorflowenv/bin/activate
+
+pip install --upgrade tensorflow
+
+deactivate
+```
+
+Run classifier on ros
+
+```
+roscd [package]
+chmod +x [file.py]
+rosrun 
+```
+
+
+
+
+
 ## Log
 
 | Time       | Done                                                         | To do                                         |
@@ -136,6 +163,44 @@ v: 0~255
 | 2018-11-14 | Fix the problem why red and purple objects can not be detected. (BGR to RGB) | 1. Detect a image blurry or not               |
 |            | Generate classify dataset                                    | 2. Extract the training dataset               |
 |            |                                                              | 3. Split with training and validation dataset |
-|            |                                                              |                                               |
-|            |                                                              |                                               |
 
+
+
+2018-11-21
+
+Train more than 20,000 images with size of 160 * 160 
+
+Split 90% for training and 10% for validation
+
+
+
+**Result:**
+
+The accuracy of validation dataset is 91.4%
+
+Test the model on overall dataset
+
+| Class             | # Class | # Correctly classified | Accuracy |
+| ----------------- | ------- | ---------------------- | -------- |
+| Yellow Ball       |         |                        |          |
+| Yellow Cube       |         |                        |          |
+| Green Cube        |         |                        |          |
+| Green Cylinder    |         |                        |          |
+| Green Hollow Cube |         |                        |          |
+| Orange Cross      |         |                        |          |
+| Orange Star       |         |                        |          |
+| Red Cylinder      |         |                        |          |
+| Red Hollow Cube   |         |                        |          |
+| Red Ball          |         |                        |          |
+| Blue Cube         |         |                        |          |
+| Blue Triangle     |         |                        |          |
+| Purple Cross      |         |                        |          |
+| Purple Star       |         |                        |          |
+
+
+
+
+
+
+
+ 

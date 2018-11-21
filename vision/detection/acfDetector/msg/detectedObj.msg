@@ -3,4 +3,4 @@
 sensor_msgs/Image img
 geometry_msgs/Point pos
 std_msgs/String color
-uint8 objClass
+#uint8 objClass
