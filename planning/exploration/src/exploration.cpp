@@ -71,14 +71,22 @@ public:
       theta = theta0_default;
       ROS_INFO("Exploration uses default parameters \nx0: %f \ny0: %f \ntheta0: %f", x, y, theta);
     }
-    
-    explore_srv.request.x = x;
-    explore_srv.request.y = y;
-    explore_srv.request.theta = theta;
 
-    if (exploration_client.call(explore_srv))
+    float dt = 0.01;
+    for (float t = 0; t < 1.8; t += dt)
     {
-      ROS_INFO("Explored here: %d", explore_srv.response.explored);
+      if (t > 1.2)
+        theta -= 1.2*dt;
+
+      explore_srv.request.x = x;
+      explore_srv.request.y = y;
+      explore_srv.request.theta = theta;
+
+      if (exploration_client.call(explore_srv))
+      {
+        ROS_INFO("Explored here: %d", explore_srv.response.explored);
+      }
+      y += dt;
     }
 
     res.success = true;
