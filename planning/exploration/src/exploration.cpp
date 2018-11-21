@@ -38,7 +38,8 @@ public:
 
     exploration_srv = nh.advertiseService("exploration_service", &Exploration::performExploration, this);
 
-    robot_pose = nh.subscribe("localization/kalman_filter/position_timed", 1000, &Exploration::getPositionCallBack, this);
+    //robot_pose = nh.subscribe("localization/kalman_filter/position_timed", 1000, &Exploration::getPositionCallBack, this);
+    robot_pose = nh.subscribe("/localization/kalman_filter/position", 1000, &Exploration::getPositionCallBack, this);
 
     occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
     exploration_client = nh.serviceClient<robo7_srvs::explore>("/exploration_grid/explore");

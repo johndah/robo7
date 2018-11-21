@@ -349,6 +349,7 @@ class HeuristicGridsServer
 			occupancy_row.clear();
 			for (int j = 0; j < occupancy_grid.cols; j++)
 			{
+				ROS_INFO("Publishing");
 				occupancy_row.push_back(occupancy_grid.at<float>(i, j));
 			}
 			occupancy_row_msg.occupancy_row = occupancy_row;
@@ -402,7 +403,7 @@ int main(int argc, char **argv)
 
 	HeuristicGridsServer heuristic_grids_server;
 
-	ros::Rate loop_rate(5000);
+	ros::Rate loop_rate(100);
 
 	ROS_INFO("Heuristic grids server running");
 

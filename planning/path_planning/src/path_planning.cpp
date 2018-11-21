@@ -94,13 +94,9 @@ class Node
 		this->occupancy_srv.request.x = this->x;
 		this->occupancy_srv.request.y = this->y;
 		if (this->occupancy_client.call(this->occupancy_srv))
-		{
 			return this->occupancy_srv.response.occupancy >= 1;
-		}
 		else
-		{
 			return true;
-		}
 	}
 
 	bool isClose(node_ptr other)
