@@ -392,7 +392,6 @@ class HeuristicGridsServer
 	cv::Mat basic_grid;
 	cv::Mat occupancy_grid;
 	cv::Mat distance_grid;
-	cv::Mat exploration_grid;
 	float current_x_to, current_y_to;
 	bool occupancy_grid_init, distance_grid_init;
 };
