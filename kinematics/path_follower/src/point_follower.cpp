@@ -261,6 +261,7 @@ int main(int argc, char **argv)
         arrived = true;
         desire_vel.linear.x = 0;
         desire_vel.angular.z = 0;
+        angle_ref_max = pi/8;
     }
 
     if((!arrived)&&(!problem)&&(robot_position.header.seq != previous_robot_position.header.seq)&&state_activated.follow_point)
@@ -273,6 +274,7 @@ int main(int argc, char **argv)
         P_update();
         // PID_AWU_update();
         desire_vel.angular.z = desire_angular_vel;
+        angle_ref_max = pi/8;
       }
       else
       {
@@ -280,6 +282,7 @@ int main(int argc, char **argv)
         P_update();
         // PID_AWU_update();
         desire_vel.angular.z = desire_angular_vel;
+        angle_ref_max = pi/3;
       }
       // ROS_INFO("(lin, ang) : (%lf, %lf)", desire_vel.linear.x, desire_vel.angular.z = desire_angular_vel);
       integ_err.data = int_error;
