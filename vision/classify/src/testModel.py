@@ -13,15 +13,24 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
 from mobilenet_v2 import mobilenetv2
+from acfDetector.msg import detectedObj
 
-ckpt_dir ='../checkpoints'
-width = 60
-height = 60
-
+# Parameter setting
+ckpt_dir ='../checkpoints/160_1/'
+width = 160
+height = 160
 
 class classifier:
 
     def __init__(self):
+
+        # initialize vaiables
+        self.objClass = ["Yellow Ball", "Yellow Cube",
+                        "Green Cube", "Green Cylinder", "Green Hollow Cube",
+                        "Orange Cross", "Orange Star",
+                        "Red Cyliner", "Red Hollow Cube", "Red Ball",
+                        "Blue Cube", "Blue Triangle",
+                        "Purple Cross", "Purple Star"]
 
         # Network define
         tf.reset_default_graph()
@@ -32,7 +41,6 @@ class classifier:
         self.saver=tf.train.Saver()
 
         self.sess = tf.Session()
-        # saver.restore(sess, checkpoint)
 
         ckpt = tf.train.get_checkpoint_state(ckpt_dir)
         if ckpt and ckpt.model_checkpoint_path:
@@ -42,39 +50,31 @@ class classifier:
         else:
             sys.exit("[*] Failed to find a checkpoint")
 
-
         self.bridge = CvBridge()
+        self.detectedObj_sub = rospy.Subscriber("/vision/object", detectedObj, self.applyModel)
+        self.result_pub = rospy.Publisher("/vision/result", Int16, queue_size=1)
+        
         self.image_sub = rospy.Subscriber("/vision/object/img", Image, self.applyModel)
         self.obj_class_pub = rospy.Publisher("/vision/object/class", Int16, queue_size=1)
-
-    ##      for testing         ##
-    #     self.obj_true_class_sub = rospy.Subscriber("/vision/object/trueClass", Int16, self.callback)
-    #     self.trueClass = 100
-    #     self.numImg = 0
-    #     self.trueImg = 0
-
-
-    # def callback(self, data):
-    #     self.trueClass = data.data
-
-    ##      for testing      ##
 
     def applyModel(self, data):
         origImg = self.bridge.imgmsg_to_cv2(data, "bgr8")
 
         origImg = cv2.resize(origImg, (width, height))
 
-        cv2.imshow("object image", origImg)
-        cv2.waitKey(3)
-
         img = origImg.astype(np.float32)
-
-        # with tf.Session as sess:
 
         feed_dict = {self.inputs: [img]}
         im, res = self.sess.run([self.inputs, self.pred], feed_dict=feed_dict)
 
         result_class = res.argmax()
+
+        # put resulting text on image
+        cv2.putText(origImg, objClass[result_class], (60, 10),
+            cv2.CV_FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
+        cv2.imshow("object image", origImg)
+        cv2.waitKey(3)
 
         print("pro:", res)
         rospy.loginfo("predict class: %d", result_class)
@@ -91,7 +91,6 @@ class classifier:
 
         # rospy.loginfo("acc right now: %f", float(self.trueImg) / self.numImg)
         ##      for testing         ##
-
 
         self.obj_class_pub.publish(result_class)
 
