@@ -102,7 +102,7 @@ public:
 			}
 			else
 			{
-
+				update_discretized_map_for_localization();
 			}
 
 
