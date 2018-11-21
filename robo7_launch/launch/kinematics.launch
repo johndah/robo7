@@ -22,8 +22,11 @@
 
    <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" output="screen"/>
 
+<<<<<<< HEAD
+=======
 
 <!-- The localization nodes -->
+>>>>>>> 70f5a958bbe8613c85dce6bfd5a7eb2b1e4fde35
    <node pkg="ransac" type="lidar_map_coordinates" name="lidar_map_coordinates" output="screen">
      <param name="lidar_angle" type="double" value="3.14"/>
    </node>
@@ -131,6 +134,13 @@
      <param name="choose_method" type="int" value="1"/>
    </node>
 
+<<<<<<< HEAD
+   <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
+
+   <node pkg="object_visualization" type="object_to_robot" name="object_to_robot" output="screen"/>
+   <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
+=======
+>>>>>>> 70f5a958bbe8613c85dce6bfd5a7eb2b1e4fde35
 
 
    <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->

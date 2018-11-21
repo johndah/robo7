@@ -1,4 +1,9 @@
 <launch>
+  <!-- motors -->
+  <node pkg="phidgets" type="motor" name="l_motor"
+        args="_serial:=469412 _name:=l_motor _frequency:=10"  output="screen"/>
+  <node pkg="phidgets" type="motor" name="r_motor"
+        args="_serial:=469741 _name:=r_motor _frequency:=10"  output="screen"/>
 
   <node pkg="motors" type="motor_controller" name="motor_controller">
     <param name="l_P" type="double" value="0.8"/>
