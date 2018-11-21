@@ -204,7 +204,7 @@ private:
 			{
 				if(the_occupancy_grid.occupancy_grid.rows[i].cols[j] == occupied)
 				{
-					ROS_INFO("cell value : %lf", the_occupancy_grid.occupancy_grid.rows[i].cols[j]);
+					// ROS_INFO("cell value : %lf", the_occupancy_grid.occupancy_grid.rows[i].cols[j]);
 					geometry_msgs::Vector3 aPoint = corresponding_coordinates(i,j);
 					discretized_map_msg.number++;
 					discretized_map_msg.corners.push_back(aPoint);
