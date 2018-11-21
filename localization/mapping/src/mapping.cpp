@@ -99,6 +99,10 @@ public:
 				req2.occupancy_grid = the_occupancy_grid;
 				update_discretized_map_srv.call(req2, res2);
 				discretized_map = res2.discretized_walls;
+
+				//Need to transform the type of message of discretized_map
+				discretized_map_msg.number = discretized_map.number;
+				discretized_map_msg.corners = discretized_map.the_points;
 			}
 			else
 			{
@@ -108,10 +112,6 @@ public:
 
 			//Save when/where was the last update
 			previous_update_pose = the_robot_pose;
-
-			//Need to transform the type of message of discretized_map
-			discretized_map_msg.number = discretized_map.number;
-			discretized_map_msg.corners = discretized_map.the_points;
 
 			//Finally you publish the newly discretized map so that the robot can use'
 			//for localizing itself
