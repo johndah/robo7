@@ -11,6 +11,4 @@
 
   <include file="$(find visualization)/launch/rviz_plots.launch"/>
 
-
-
 </launch>

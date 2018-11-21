@@ -50,9 +50,9 @@ public:
 		ransac_service = n.advertiseService("/localization/ransac", &RansacServer::ransacSequence, this);
 
 		// ROS_INFO("Died ?");
-		cloud_init.clear();
-		cloud = cloud_init.makeShared();
-		model_p =  pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr(new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
+		// cloud_init.clear();
+		// cloud = cloud_init.makeShared();
+		// model_p =  pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr(new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
 		// ROS_INFO("No");
 
 		//Publishers
@@ -75,8 +75,7 @@ public:
 
     // initialize PointClouds
 		// ROS_INFO("Cloud declaration");
-		cloud_init.clear();
-		cloud = cloud_init.makeShared();
+		cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ> >();
 		// ROS_INFO("Cloud declared");
 
 		//Initialize the wall extraction algorithm
@@ -172,12 +171,7 @@ public:
 
 	void solveRansac()
 	{
-		// ROS_INFO("Model declaration");
-		// pcl::SampleConsensusModelLine<pcl::PointXYZ> line_cloud_model (cloud);
-		// // ROS_INFO("Linking pointer");
-		// model_p = std::shared_ptr(line_cloud_model);
-		// ROS_INFO("Model declared");
-
+		model_p = boost::make_shared<pcl::SampleConsensusModelLine<pcl::PointXYZ> >(cloud);
 
     pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_p);
 		ROS_INFO("ransac declared");
