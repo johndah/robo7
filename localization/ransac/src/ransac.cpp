@@ -50,9 +50,9 @@ public:
 		ransac_service = n.advertiseService("/localization/ransac", &RansacServer::ransacSequence, this);
 
 		// ROS_INFO("Died ?");
-		// cloud_init.clear();
-		// cloud = cloud_init.makeShared();
-		// model_p =  pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr(new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
+		cloud_init.clear();
+		cloud = cloud_init.makeShared();
+		model_p =  pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr(new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
 		// ROS_INFO("No");
 
 		//Publishers
@@ -178,8 +178,6 @@ public:
 		// model_p = std::shared_ptr(line_cloud_model);
 		// ROS_INFO("Model declared");
 
-		pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr
-    model_p (new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
 
     pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_p);
 		ROS_INFO("ransac declared");
@@ -195,8 +193,6 @@ public:
 
 		x0 = model_param_(0); y0 = model_param_(1); z0 = model_param_(2);
 		a = model_param_(3); b = model_param_(4); c = model_param_(5);
-
-		delete model_p;
 	}
 
   void printInliers()
@@ -436,7 +432,7 @@ private:
 	robo7_msgs::aWall single_wall;
 	std::vector<robo7_msgs::aWall> wall_full_list;
   std::vector<geometry_msgs::Vector3> the_corners_list;
-	// pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr model_p;
+	pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr model_p;
 
 	//Model parameters Extraction
 	float x0; float y0; float z0; //point on line

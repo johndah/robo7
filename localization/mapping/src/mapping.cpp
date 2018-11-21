@@ -8,13 +8,11 @@
 #include <robo7_msgs/the_robot_position.h>
 #include <robo7_msgs/activation_states.h>
 
-
 //The services
 #include <robo7_srvs/UpdateOccupancyGrid.h>
 #include <robo7_srvs/UpdateDiscretizedMap.h>
 
 #include <stdlib.h>
-
 #include <string>
 #include <vector>
 
@@ -41,10 +39,12 @@ public:
 		n.param<float>("/mapping/distance_between_two_measures", dist_threshold, 0.10);
 		n.param<float>("/mapping/cell_size", cell_size, 0.10);
 		n.param<bool>("/mapping/use_mapping_algorithm", use_mapping, false);
+		n.param<bool>("/mapping/use_ransac", use_ransac, false);
 
 		//Initialize state
 		state_activated.mapping = false;
 		condition_respected = true;
+		occupied = 2;
 		initialize_occupancy_grid();
 
 		//Subscribers
@@ -91,12 +91,20 @@ public:
 			update_occupancy_grid_srv.call(req1, res1);
 			the_occupancy_grid = res1.updated_occupancy_grid;
 
-			//Then you update the discretized map version
-			robo7_srvs::UpdateDiscretizedMap::Request req2;
-			robo7_srvs::UpdateDiscretizedMap::Response res2;
-			req2.occupancy_grid = the_occupancy_grid;
-			update_discretized_map_srv.call(req2, res2);
-			discretized_map = res2.discretized_walls;
+			if(use_ransac)
+			{
+				//Then you update the discretized map version
+				robo7_srvs::UpdateDiscretizedMap::Request req2;
+				robo7_srvs::UpdateDiscretizedMap::Response res2;
+				req2.occupancy_grid = the_occupancy_grid;
+				update_discretized_map_srv.call(req2, res2);
+				discretized_map = res2.discretized_walls;
+			}
+			else
+			{
+
+			}
+
 
 			//Save when/where was the last update
 			previous_update_pose = the_robot_pose;
@@ -141,7 +149,8 @@ private:
 	//Conditions triggers
 	bool condition_respected;
 	float dist_threshold; float cell_size;
-	bool use_mapping;
+	float occupied, unoccupied, unknown;
+	bool use_mapping, use_ransac;
 
 	//State of the robot
 	robo7_msgs::activation_states state_activated;
@@ -185,8 +194,36 @@ private:
 		}
 	}
 
+	void update_discretized_map_for_localization()
+	{
+		discretized_map_msg.number = 0;
+		discretized_map_msg.corners.clear();
+		for(int i=0; i < the_occupancy_grid.occupancy_grid.nb_rows; i++)
+		{
+			for(int j=0; j < the_occupancy_grid.occupancy_grid.nb_cols; j++)
+			{
+				if(the_occupancy_grid.occupancy_grid.rows[i].cols[j] == occupied)
+				{
+					geometry_msgs::Vector3 aPoint = corresponding_coordinates(i,j);
+					discretized_map_msg.number++;
+					discretized_map_msg.corners.push_back(aPoint);
+				}
+			}
+		}
+	}
 
+	geometry_msgs::Vector3 corresponding_coordinates(int i, int j)
+	{
+		float x_value = the_occupancy_grid.top_left_corner.x + (j+1) * cell_size - cell_size/2;
+		float y_value = the_occupancy_grid.top_left_corner.y - (i+1) * cell_size + cell_size/2;
 
+		geometry_msgs::Vector3 wall_point;
+		wall_point.x = x_value;
+		wall_point.y = y_value;
+		wall_point.z = 0;
+
+		return wall_point;
+	}
 };
 
 
