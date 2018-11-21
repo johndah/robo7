@@ -202,6 +202,7 @@ private:
 		{
 			for(int j=0; j < the_occupancy_grid.occupancy_grid.nb_cols; j++)
 			{
+				ROS_INFO("cell value : %lf", the_occupancy_grid.occupancy_grid.rows[i].cols[j]);
 				if(the_occupancy_grid.occupancy_grid.rows[i].cols[j] == occupied)
 				{
 					geometry_msgs::Vector3 aPoint = corresponding_coordinates(i,j);
