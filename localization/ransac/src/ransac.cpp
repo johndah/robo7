@@ -1,18 +1,12 @@
-// #include <iostream>
-#include <pcl/console/parse.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-#include <pcl/sample_consensus/ransac.h>
-#include <pcl/sample_consensus/sac_model_plane.h>
-#include <pcl/sample_consensus/sac_model_sphere.h>
-#include <pcl/sample_consensus/sac_model_line.h>
-// #include <pcl/visualization/pcl_visualizer.h>
-// #include <boost/thread/thread.hpp>
-
+#include <ros/ros.h>
+#include <stdlib.h>
+#include <string>
+#include <vector>
+#include <memory>
+#include <iostream>
 #include <unistd.h>
 
-#include <ros/ros.h>
+//The messages
 #include <robo7_msgs/XY_coordinates.h>
 #include <robo7_msgs/aWall.h>
 #include <robo7_msgs/wallList.h>
@@ -21,26 +15,18 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
 
-#include <stdlib.h>
+//RANSAC library
+#include <pcl/console/parse.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/io/boost.h>
+#include <pcl/point_types.h>
+#include <pcl/sample_consensus/ransac.h>
+#include <pcl/sample_consensus/sac_model_plane.h>
+#include <pcl/sample_consensus/sac_model_sphere.h>
+#include <pcl/sample_consensus/sac_model_line.h>
 
-#include <string>
-#include <vector>
 
-// boost::shared_ptr<pcl::visualization::PCLVisualizer>
-//
-// simpleVis (pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud)
-// {
-//   // --------------------------------------------
-//   // -----Open 3D viewer and add point cloud-----
-//   // --------------------------------------------
-//   boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
-//   viewer->setBackgroundColor (0, 0, 0);
-//   viewer->addPointCloud<pcl::PointXYZ> (cloud, "sample cloud");
-//   viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
-//   //viewer->addCoordinateSystem (1.0, "global");
-//   viewer->initCameraParameters ();
-//   return (viewer);
-// }
 
 class RansacServer
 {
@@ -63,6 +49,12 @@ public:
 
 		ransac_service = n.advertiseService("/localization/ransac", &RansacServer::ransacSequence, this);
 
+		// ROS_INFO("Died ?");
+		// cloud_init.clear();
+		// cloud = cloud_init.makeShared();
+		// model_p =  pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr(new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
+		// ROS_INFO("No");
+
 		//Publishers
 		model_pub = n.advertise<geometry_msgs::Twist>("/localization/ransac/modelLine", 1);
 		wall_list = n.advertise<robo7_msgs::wallList>("/localization/ransac/walls", 1);
@@ -81,9 +73,11 @@ public:
 		wall_full_list.clear();
     the_corners_list.clear();
 
-
     // initialize PointClouds
-    cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+		// ROS_INFO("Cloud declaration");
+		cloud_init.clear();
+		cloud = cloud_init.makeShared();
+		// ROS_INFO("Cloud declared");
 
 		//Initialize the wall extraction algorithm
 		still_walls = true;
@@ -178,20 +172,23 @@ public:
 
 	void solveRansac()
 	{
-		ROS_INFO("Solving RANSAC");
-		model_p = pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr	(new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
+		// ROS_INFO("Model declaration");
+		// pcl::SampleConsensusModelLine<pcl::PointXYZ> line_cloud_model (cloud);
+		// // ROS_INFO("Linking pointer");
+		// model_p = std::shared_ptr(line_cloud_model);
+		// ROS_INFO("Model declared");
 
-		ROS_INFO("Creating model");
+		pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr
+    model_p (new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
+
     pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_p);
-		ROS_INFO("ransac threshold");
+		ROS_INFO("ransac declared");
     ransac.setDistanceThreshold (ransac_threshold);
-		ROS_INFO("Computing model");
+		ROS_INFO("threshold declared");
     ransac.computeModel();
-		ROS_INFO("Model computed");
+		ROS_INFO("Model solved");
     ransac.getInliers(inliers);
     ransac.getModelCoefficients( model_param_ );
-
-		ROS_INFO("Model param extracted");
 
 		// ROS_INFO("inliers : %d", static_cast<int>(inliers.size()));
 		// printInliers();
@@ -199,7 +196,7 @@ public:
 		x0 = model_param_(0); y0 = model_param_(1); z0 = model_param_(2);
 		a = model_param_(3); b = model_param_(4); c = model_param_(5);
 
-		ROS_INFO("Model parameters implemented");
+		delete model_p;
 	}
 
   void printInliers()
@@ -418,7 +415,6 @@ private:
 
   robo7_msgs::XY_coordinates point_cloud_XY_2;
   Eigen::VectorXf model_param_;
-	pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr	model_p;
 
 	bool still_walls; // To know if there is still some walls to find
 	bool wall_done; //To know if you reach the end of the wall
@@ -440,6 +436,7 @@ private:
 	robo7_msgs::aWall single_wall;
 	std::vector<robo7_msgs::aWall> wall_full_list;
   std::vector<geometry_msgs::Vector3> the_corners_list;
+	// pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr model_p;
 
 	//Model parameters Extraction
 	float x0; float y0; float z0; //point on line
@@ -447,9 +444,9 @@ private:
 	float x_ext, y_ext;
   float x_ext1, y_ext1;
 
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_init;
+	pcl::PointCloud<pcl::PointXYZ> cloud_init;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr final_cloud;
+	// pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr	model_p;
 
 	geometry_msgs::Twist mod;
 	float ransac_threshold;
