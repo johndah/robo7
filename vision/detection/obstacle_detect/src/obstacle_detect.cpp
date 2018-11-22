@@ -42,7 +42,7 @@ public:
     destroyAllWindows();
   }
 
-  void meanValue(Mat img, float &mean, int &num){
+  void obstacle_Pos_estimation(Mat img, float &mean, int &num){
     float sum = 0;
     float pixelValue;
     for (int i=0; i<=img.rows; i++){
@@ -62,6 +62,8 @@ public:
     // img.setTo(0, img > 230);
     // medianBlur(img, img, 5);
 
+
+
     float depth;
     int numObstcale = 0;
     int first = -1, last = -1;
@@ -79,10 +81,7 @@ public:
           numObstcale = numObstcale + 1;
 
           if (first == -1)
-          {
             first = j;
-            ROS_INFO("LALALALALA, %d", j);
-          }
 
           last = -2;
         }
@@ -96,13 +95,6 @@ public:
     ROS_INFO("right: %d", last);
   }
 
-  void obstacle_Pos_estimation(Mat img, float &depth, float &leftDist, float &rightDist){
-
-    // img.setTo(0, img > 230);
-    depth = 1;
-    leftDist = 1;
-    rightDist = 1;
-  }
 
   void depthImageCallBack(const sensor_msgs::ImageConstPtr& msg)
   {
@@ -160,7 +152,7 @@ public:
     Mat cropedImage = origImg(Rect(0, 260, 640, 20));
     float mean;
     int num;
-    meanValue(cropedImage, mean, num);
+    obstacle_Pos_estimation(cropedImage, mean, num);
     ROS_INFO("mean value: %f", mean);
     ROS_INFO("num of pixels: %d", num);
 
