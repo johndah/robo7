@@ -25,13 +25,17 @@ class ObjectFilter
 	ObjectFilter()
 	{
 		// Parameters
-		n.param<float>("/object_filter/distance_rad_lim", distance_rad_lim, 0.05);
     n.param<int>("/object_filter/num_classes", num_classes, 14);
+
+    // If distance between two objects of the same class is smaller than this, consider them the same obj
+		n.param<float>("/object_filter/dist_same_class_lim", dist_same_class_lim, 0.02);
+
+    // If distance between two objects of the different classes is smaller than this, consider them the same obj
+		n.param<float>("/object_filter/dist_other_obj_lim", dist_other_class_lim, 0.035);
 
 		obj_sub = n.subscribe("/vision/results", 1, &ObjectFilter::ObjCallback, this);
     robo_pos_sub = n.subscribe("/localization/kalman_filter/position", 1, &ObjectFilter::roboPosCallback, this);
     obj_to_robo_srv = n.serviceClient<robo7_srvs::objectToRobot>("/localization/object_to_robot");
-
 		all_obj_pub = n.advertise<robo7_msgs::allObjects>("/vision/all_objects", 1);
 
 	}
@@ -54,7 +58,6 @@ class ObjectFilter
     robo7_srvs::objectToRobot::Request srv_req;
     robo7_srvs::objectToRobot::Response srv_resp;
 
-    //geometry_msgs::Point obj_cam_coords = msg->pos;
     srv_req.camera_position = msg->pos;         // geometry_msgs/Point
     srv_req.robot_position = robo_pos;          // geometry_msgs/Twist
 
@@ -65,8 +68,8 @@ class ObjectFilter
       return;
     }
 
-    ROS_INFO("pos x: %f", srv_resp.object_in_map_frame.x);
-    ROS_INFO("pos y: %f", srv_resp.object_in_map_frame.y);
+    ROS_INFO("Object filter: new object position in map x: %f", srv_resp.object_in_map_frame.x);
+    ROS_INFO("Object filter: new object position in map y: %f", srv_resp.object_in_map_frame.y);
 
     std::vector<int> init_weigh(num_classes, 0);
 
@@ -118,6 +121,7 @@ class ObjectFilter
 
   void saveObj(robo7_msgs::aObject new_obj){
     // Do we have any objects in the vector already?
+    float distance_lim = 0;
     if (filtered_objs.size() > 0){
 
       // Check all the current save object to see if the new_obj is the same
@@ -125,17 +129,28 @@ class ObjectFilter
 
         // if its within the distance limmit it is considered the same object!
         float dist = distance(new_obj, *a_obj);
-        ROS_INFO("disten: %f", dist);
-        if (dist <= distance_rad_lim){
-          ROS_INFO("Object filter: comparing objects");
+        //ROS_INFO("Object filter: new_obj distance: %f", dist);
+
+        // Different limits to treat the new object as a separate object if it is the same class
+        if (new_obj.obj_class == (*a_obj).obj_class){
+          distance_lim = dist_same_class_lim;
+          //ROS_INFO("Object filter: new object is the same class as another in the list");
+        } else{
+          distance_lim = dist_other_class_lim;
+          //ROS_INFO("Object filter: new object is of another class a object in the list");
+        }
+
+        if (dist <= distance_lim){
+          //ROS_INFO("Object filter: new object within the radius of another one");
 
           // avrage the positon
-          (*a_obj).pos.x = (((*a_obj).pos.x * (*a_obj).total_votes) + new_obj.pos.x) / (*a_obj).total_votes;
-          (*a_obj).pos.y = (((*a_obj).pos.y * (*a_obj).total_votes) + new_obj.pos.y) / (*a_obj).total_votes;
+          (*a_obj).pos.x = (((*a_obj).pos.x * (*a_obj).total_votes) + new_obj.pos.x) / ((*a_obj).total_votes + 1);
+          (*a_obj).pos.y = (((*a_obj).pos.y * (*a_obj).total_votes) + new_obj.pos.y) / ((*a_obj).total_votes + 1);
+
           (*a_obj).total_votes += 1;
           (*a_obj).weights[new_obj.obj_class] += 1;
 
-          // set class to dominant class
+          // Set class to dominant class
           int dom_class = donminantClass(*a_obj);
           if (dom_class != -1){
             (*a_obj).obj_class = dom_class;
@@ -145,24 +160,19 @@ class ObjectFilter
           return;
         }
       }
-
-      ROS_INFO("Object filter: new object not matching any in list, adding it");
-      filtered_objs.push_back(new_obj);
-
-
-    } else {
-      ROS_INFO("Object filter: adding first object to list");
-      filtered_objs.push_back(new_obj);
     }
+
+    // We will only get here if the new_obj has not been matched to another object in the list
+    ROS_INFO("Object filter: new object not matching any in list or list was empty, adding it");
+    filtered_objs.push_back(new_obj);
 
   }
 
 
-  // TODO: Return all objects in some way
-
   private:
     int num_classes;
-    float distance_rad_lim;
+    float dist_same_class_lim;
+    float dist_other_class_lim;
     geometry_msgs::Twist robo_pos;
     bool position_updated;
     std::vector<robo7_msgs::aObject> filtered_objs;
