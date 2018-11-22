@@ -28,7 +28,7 @@ using RectVec = std::vector<cv::Rect>;
 
 // Load the svm color classifier
 int width = 80, height = 80;
-std::string svmModel = "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/SVMmodel.xml";
+std::string svmModel = "/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/SVMmodel.xml";
 Ptr<SVM>svm = ml::SVM::load(svmModel);
 
 class ACFdetector
@@ -55,7 +55,7 @@ public:
 
   		namedWindow("Detected image");
       // namedWindow("bbx");
-      namedWindow("Cropped object image");
+      // namedWindow("Cropped object image");
 
       depth_points_sub = n.subscribe("/camera/depth_registered/points", 1, &ACFdetector::depthCallBack, this);
       obj_detected_pub = n.advertise<acfDetector::detectedObj>("/vision/object", 1);
@@ -68,7 +68,7 @@ public:
         detector->setDoNonMaximaSuppression(true);
       }
 
-      n.param<int>("/acf_detector/scoreThre", scoreThre, 50);
+      n.param<double>("/acf_detector/scoreThre", scoreThre, 50);
     }
 
   	~ACFdetector()
@@ -245,7 +245,7 @@ public:
           cv::Mat obj_img;
           obj_img = origImg(large_o);
 
-          imshow("Cropped object image", obj_img);
+          // imshow("Cropped object image", obj_img);
 
           sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", obj_img).toImageMsg();
 
@@ -324,7 +324,7 @@ private:
   AcfPtr detector;
 
   cv::Mat resultImg;
-  int scoreThre;
+  double scoreThre;
 
 };
 
