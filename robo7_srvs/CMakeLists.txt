@@ -16,6 +16,11 @@ add_service_files(
   scanCoord.srv
   objectToRobot.srv
   path_planning.srv
+  update_map.srv
+  discretize_map.srv
+  door_opener.srv
+  distanceTo.srv
+  GoTo.srv
 )
 
 

@@ -1,5 +1,7 @@
 # request
-robo7_msgs/XY_coordinates point_cloud  # position of the object to pickup, in the map coordinates
+robo7_msgs/XY_coordinates point_cloud
+robo7_msgs/wallPoint the_cloud
 ---
 robo7_msgs/cornerList all_corners
+robo7_msgs/wallList ransac_walls
 bool success  # True if the pickup sequence was sucsessful

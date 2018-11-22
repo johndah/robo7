@@ -164,15 +164,11 @@ rosrun
 |            | Generate classify dataset                                    | 2. Extract the training dataset               |
 |            |                                                              | 3. Split with training and validation dataset |
 
-
-
-2018-11-21
+### 2018-11-21
 
 Train more than 20,000 images with size of 160 * 160 
 
 Split 90% for training and 10% for validation
-
-
 
 **Result:**
 
@@ -180,22 +176,22 @@ The accuracy of validation dataset is 91.4%
 
 Test the model on overall dataset
 
-| Class             | # Class | # Correctly classified | Accuracy |
-| ----------------- | ------- | ---------------------- | -------- |
-| Yellow Ball       |         |                        |          |
-| Yellow Cube       |         |                        |          |
-| Green Cube        |         |                        |          |
-| Green Cylinder    |         |                        |          |
-| Green Hollow Cube |         |                        |          |
-| Orange Cross      |         |                        |          |
-| Orange Star       |         |                        |          |
-| Red Cylinder      |         |                        |          |
-| Red Hollow Cube   |         |                        |          |
-| Red Ball          |         |                        |          |
-| Blue Cube         |         |                        |          |
-| Blue Triangle     |         |                        |          |
-| Purple Cross      |         |                        |          |
-| Purple Star       |         |                        |          |
+| Class             | # Class | # Correctly classified | Accuracy / % |
+| ----------------- | ------- | ---------------------- | ------------ |
+| Yellow Ball       | 1650    | 1639                   | 99.33        |
+| Yellow Cube       | 768     | 760                    | 98.96        |
+| Green Cube        | 2406    | 2406                   | 1            |
+| Green Cylinder    | 2364    | 2348                   | 99.32        |
+| Green Hollow Cube | 756     | 695                    | 91.93        |
+| Orange Cross      | 60      | 0                      | 0            |
+| Orange Star       | 1794    | 1794                   | 1            |
+| Red Cylinder      | 1242    | 988                    | 79.55        |
+| Red Hollow Cube   | 918     | 857                    | 93.35        |
+| Red Ball          | 1926    | 1925                   | 99.95        |
+| Blue Cube         | 588     | 580                    | 98.64        |
+| Blue Triangle     | 1812    | 803                    | 44.32        |
+| Purple Cross      | 2658    | 2657                   | 99.96        |
+| Purple Star       | 2046    | 1953                   | 95.45        |
 
 
 

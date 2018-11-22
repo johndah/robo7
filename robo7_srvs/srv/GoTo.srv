@@ -1,5 +1,6 @@
 # request
-int32 which_service
+geometry_msgs/Twist robot_pose
 geometry_msgs/Twist destination_pose
 ---
+bool obstacle
 bool success  # True if the sequence was successful

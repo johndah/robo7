@@ -8,4 +8,12 @@
     <param name="l_open" type="int" value="80"/>
   </node>
 
+  <node pkg="gate_controller" type="gate_opener" name="gate_opener" output="screen">
+    <param name="r_closed" type="int" value="80"/>
+    <param name="r_open" type="int" value="31"/>
+
+    <param name="l_closed" type="int" value="31"/>
+    <param name="l_open" type="int" value="80"/>
+  </node>
+
 </launch>

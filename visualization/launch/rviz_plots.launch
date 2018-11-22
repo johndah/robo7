@@ -5,7 +5,7 @@
   <!--
   -->
 
-  <node pkg="visualization" type="visualization" name="visualization">
+  <node pkg="visualization" type="visualization" name="visualization" output="screen">
     <param name="lidar_angle" type="double" value="3.14"/>
   </node>
 
@@ -33,4 +33,7 @@
 
   <node pkg="visualization" type="plot_path_discretized" name="plot_path_discretized" output="screen"/>
 
+  <node pkg="visualization" type="the_map_update_plot" name="the_map_update_plot" output="screen"/>
+
+  <node pkg="visualization" type="occupancy" name="occupancy" output="screen"/>
 </launch>

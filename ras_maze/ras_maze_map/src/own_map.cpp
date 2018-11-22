@@ -125,12 +125,12 @@ int main(int argc, char **argv)
 
         corner.x = x1;
         corner.y = y1;
-        corner.z = 0;
+        corner.z = 0.2;
         the_corners_list.push_back(corner);
 
         corner.x = x2;
         corner.y = y2;
-        corner.z = 0;
+        corner.z = 0.2;
         the_corners_list.push_back(corner);
 
         //Discretized map

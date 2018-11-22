@@ -3,11 +3,17 @@
 #include <Eigen/Geometry>
 #include <math.h>
 #include <ros/ros.h>
+
+//The messages
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Float32.h>
 #include <robo7_msgs/XY_coordinates.h>
 #include <robo7_msgs/cornerList.h>
+#include <robo7_msgs/wallList.h>
+
+
+//The extra libraries
 #include </usr/include/eigen3/Eigen/Dense>
 using Eigen::MatrixXd;
 
@@ -130,6 +136,8 @@ public:
 
     res.point_cloud_coordinates = point_XY;
     res.the_lidar_point_cloud = lidar_points_corner;
+    res.the_lidar_points.number = lidar_points_corner.number;
+    res.the_lidar_points.the_points = lidar_points_corner.corners;
     res.success = true;
     point_coordinates.publish( point_XY );
     point_cloud_input.publish( res.the_lidar_point_cloud );
@@ -170,6 +178,8 @@ private:
 
   std::vector<geometry_msgs::Vector3> the_corners_list;
   geometry_msgs::Vector3 corner;
+
+  robo7_msgs::wallList lidar_points;
 
 };
 
