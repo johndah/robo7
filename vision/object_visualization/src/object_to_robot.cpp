@@ -57,6 +57,8 @@ public:
 
     object_map_position_vector = rotation_matrix2 * object_robot_position_vector + translation_vector2;
 
+    back_transform();
+
     res.object_in_robot_frame = object_robot_frame;
     res.object_in_map_frame = object_map_frame;
     res.success = true;
