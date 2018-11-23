@@ -1,0 +1,5 @@
+<launch>
+
+  <node pkg="object_filter" type="object_filter" name="object_filter"  output="screen"/>
+
+</launch>
