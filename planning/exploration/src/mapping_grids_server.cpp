@@ -17,7 +17,39 @@
 typedef std::vector<float> Array;
 typedef std::vector<Array> Matrix;
 
+class Node;
+
+typedef std::shared_ptr<Node> node_ptr;
 float pi = 3.14159265358979323846;
+
+class Node
+{
+  public:
+	float x, y, cost;
+	//float angular_velocity, time, dt;
+	//float path_cost, path_length;
+	//float steering_angle_max, angular_velocity_resolution;
+	//float tolerance_radius, tolerance_angle;
+	//unsigned int node_id;
+	//std::vector<float> path_x, path_y, path_theta;
+
+	Node(float x, float y, float cost)
+	{
+		this->x = x;
+		this->y = y;
+		this->cost = cost;
+	}
+
+	float getCost()
+	{
+		return cost;
+	}
+
+	bool inCollision()
+	{
+		return cost >= 1.0;
+	}
+};
 
 class MappingGridsServer
 {
@@ -28,6 +60,8 @@ class MappingGridsServer
 	robo7_msgs::grid_matrix grid_matrix_msg, exoploration_matrix_msg;
 	ros::ServiceServer is_occupied_service;
 	ros::ServiceServer explore_service;
+	ros::ServiceClient occupancy_client;
+
 	Matrix grid;
 
 	MappingGridsServer()
@@ -45,6 +79,8 @@ class MappingGridsServer
 		occupancy_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/grid_matrix", 1);
 		exploration_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/exploration_matrix", 1);
 
+		occupancy_client = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
+
 		num_min_distance_squares = ceil(min_distance / grid_square_size);
 
 		if (smoothing_kernel_size % 2 == 0)
@@ -53,31 +89,24 @@ class MappingGridsServer
 			ROS_WARN("Entered kernel size is even number, changing to: %d", smoothing_kernel_size);
 		}
 
-		window_width = .3;
-		window_height = .2;
-	}
-
-	void mapCallback(const robo7_msgs::XY_coordinates::ConstPtr &msg)
-	{
-		X_wall_coordinates = msg->X_coordinates;
-		Y_wall_coordinates = msg->Y_coordinates;
-	}
-
-	int sq(float coord)
-	{
-		return floor(coord / grid_square_size);
+		window_width = .45;
+		window_height = .45;
 	}
 
 	bool explorationGridRequest(robo7_srvs::explore::Request &req,
 								robo7_srvs::explore::Response &res)
 	{
 		ROS_DEBUG("New grid exploration request recieved");
+		ROS_INFO("Getting explore request");
 
 		float x = req.x;
 		float y = req.y;
 		float theta = req.theta;
 
-		res.explored = getExplorationGrid(x, y, theta);
+		geometry_msgs::Twist frontier_destination_pose = getFrontier(x, y, theta);
+
+		res.frontier_destination_pose = frontier_destination_pose;
+		res.success = true;
 
 		return true;
 	}
@@ -117,6 +146,85 @@ class MappingGridsServer
 		}
 
 		return true;
+	}
+
+	geometry_msgs::Twist getFrontier(float x, float y, float theta)
+	{
+		std::vector<node_ptr> frontier_nodes;
+
+		if (!exploration_grid_init)
+		{
+			exploration_grid = cv::Mat::zeros(num_grid_squares_x, num_grid_squares_y, CV_32SC1);
+			exploration_grid_init = true;
+		}
+
+		theta = pi / 2 - theta;
+
+		float i0 = x + window_width * cos(theta) / 2.0;
+		float j0 = y - window_width * sin(theta) / 2.0;
+
+		float i_inc = float(cos(theta) * grid_square_size) / 2.0;
+		float j_inc = float(sin(theta) * grid_square_size) / 2.0;
+		float j_max = float(window_height / grid_square_size);
+		float x_grid, y_grid, i_shift, i_max;
+
+		ROS_INFO("Will explore here");
+		for (float j = 0.0; j < j_max; j += .5)
+		{
+			i_shift = float(window_height / grid_square_size) / 3 - j / 3;
+			i_max = float(window_width / grid_square_size) - i_shift;
+
+			for (float i = i_shift; i < i_max; i += .5)
+			{
+				x_grid = i0 + grid_square_size * (j * sin(theta) - i * cos(theta));
+				y_grid = j0 + grid_square_size * (j * cos(theta) + i * sin(theta));
+
+				if (exploration_grid.at<float>(sq(x_grid), sq(y_grid)) < 1.0 && !(sq(x_grid) < 0) && !(sq(x_grid) >= num_grid_squares_x) && !(sq(y_grid) < 0) && !(sq(y_grid) >= num_grid_squares_y))
+				{
+					//if (exploration_grid.at<float>(sq(x_grid), sq(y_grid)) == -1.0)
+					//	exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = 1.0;
+					if (j < 1.0 || j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5)
+					{
+						float cost = occupancy_grid.at<float>(sq(x_grid), sq(y_grid));
+						node_ptr frontier_node = std::make_shared<Node>(x_grid, y_grid, cost);
+						frontier_nodes.push_back(frontier_node);
+
+						exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = -1.0;
+					}
+					else
+						exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = 1.0;
+				}
+			}
+		}
+
+		grid_matrix_msg = publishExplorationGrid();
+
+		for (int i = 0; i < 10; i++)
+			exploration_pub.publish(grid_matrix_msg);
+
+		auto min_cost_iterator = std::min_element(frontier_nodes.begin(), frontier_nodes.end(), [](const node_ptr a, const node_ptr b) {
+			return a->getCost() < b->getCost();
+		});
+
+		node_ptr frontier_destination_node = frontier_nodes[std::distance(frontier_nodes.begin(), min_cost_iterator)];
+
+		geometry_msgs::Twist frontier_destination_pose;
+
+		frontier_destination_pose.linear.x = frontier_destination_node->x;
+		frontier_destination_pose.linear.y = frontier_destination_node->y;
+
+		return frontier_destination_pose;
+	}
+
+	void mapCallback(const robo7_msgs::XY_coordinates::ConstPtr &msg)
+	{
+		X_wall_coordinates = msg->X_coordinates;
+		Y_wall_coordinates = msg->Y_coordinates;
+	}
+
+	int sq(float coord)
+	{
+		return floor(coord / grid_square_size);
 	}
 
 	void updateBasicGridSize()
@@ -220,7 +328,6 @@ class MappingGridsServer
 		{
 			for (int j = 0; j < normalized_grid.cols; ++j)
 			{
-				// if(unfiltered_grid[i][j] >= 1){
 				if (grid[i][j] >= 1)
 				{
 					normalized_grid_ones.at<float>(i, j) = 1;
@@ -228,67 +335,8 @@ class MappingGridsServer
 			}
 		}
 
-		//DISPLAY: Uncomment here and
-		// namedWindow("Display window", cv::WINDOW_NORMAL );
-		// cv::resizeWindow("Display window", 600,600);
-		// imshow( "Display window", grid_in );
-		// cv::waitKey(0);
-		// imshow( "Display window", grid_filtered );
-		// cv::waitKey(0);
-		// imshow( "Display window", normalized_grid );
-		// cv::waitKey(0);
-		// imshow( "Display window", normalized_grid_ones );
-		// cv::waitKey(0);
-		// cvDestroyWindow("Display window");
-
 		ROS_INFO("Gaussed grid ready");
 		return normalized_grid_ones;
-	}
-
-	int getExplorationGrid(float x, float y, float theta)
-	{
-		if (!exploration_grid_init)
-		{
-			exploration_grid = cv::Mat::zeros(num_grid_squares_x, num_grid_squares_y, CV_32SC1);
-			exploration_grid_init = true;
-		}
-
-		theta = pi / 2 - theta;
-
-		float i0 = x + window_width * cos(theta) / 2.0;
-		float j0 = y - window_width * sin(theta) / 2.0;
-
-		float i_inc = float(cos(theta) * grid_square_size) / 2.0;
-		float j_inc = float(sin(theta) * grid_square_size) / 2.0;
-		float j_max = float(window_height / grid_square_size);
-		float x_grid, y_grid, i_shift, i_max;
-
-		for (float j = 0.0; j < j_max; j += .5)
-		{
-			i_shift = float(window_height / grid_square_size) / 2 - j / 2;
-			i_max = float(window_width / grid_square_size) - i_shift;
-
-			for (float i = i_shift; i < i_max; i += .5)
-			{
-				x_grid = i0 + grid_square_size * (j * sin(theta) - i * cos(theta));
-				y_grid = j0 + grid_square_size * (j * cos(theta) + i * sin(theta));
-
-				if (exploration_grid.at<float>(sq(x_grid), sq(y_grid)) < 1.0 && !(sq(x_grid) < 0) && !(sq(x_grid) >= num_grid_squares_x) && !(sq(y_grid) < 0) && !(sq(y_grid) >= num_grid_squares_y))
-				{
-					if (j < 1.0 || j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5)
-						exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = -1.0;
-					else
-						exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = 1.0;
-				}
-			}
-		}
-
-		grid_matrix_msg = publishExplorationGrid();
-
-		for (int i = 0; i < 10; i++)
-			exploration_pub.publish(grid_matrix_msg);
-
-		return exploration_grid.at<int>(sq(x), sq(y));
 	}
 
 	robo7_msgs::grid_matrix publishOccupancyGrid()

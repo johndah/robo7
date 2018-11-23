@@ -10,4 +10,5 @@ float32 theta
 # Response
 # true means that the grid cell has been covered by the camera window
 
-float32 explored
+bool success  # True if the sequence was successful
+geometry_msgs/Twist frontier_destination_pose
