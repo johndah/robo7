@@ -96,7 +96,7 @@ public:
     robo7_srvs::path_planning::Request path_req;
     robo7_srvs::path_planning::Response path_res;
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 18; i++)
     {
 
       explore_srv.request.x = x;
@@ -106,7 +106,6 @@ public:
       if (exploration_client.call(explore_srv))
       {
         ROS_INFO("Explored here: %d", explore_srv.response.success);
-        ROS_INFO("Explored here: %f", explore_srv.response.frontier_destination_pose.linear.x);
       }
 
       x = explore_srv.response.frontier_destination_pose.linear.x;
@@ -119,31 +118,33 @@ public:
       if (path_planning_client.call(path_req, path_res))
       {
         res.success = path_res.success;
-        ROS_INFO("Path found here: %d", path_res.success);
       }
 
       robo7_msgs::trajectory trajectory_array;
 
       trajectory_array = path_res.path_planned;
-      ROS_INFO("Trajectory sizes %d ", (int)trajectory_array.trajectory_points.size());
 
+      float partial_x, partial_y, partial_theta;
       for (int j = 0; j < trajectory_array.trajectory_points.size(); j++)
       {
-        float partial_x = trajectory_array.trajectory_points[j].point_coord.x;
-        float partial_y = trajectory_array.trajectory_points[j].point_coord.y;
-        //one_point.z = trajectory_array.trajectory_points[i].point_coord.z;
+        partial_x = trajectory_array.trajectory_points[j].point_coord.x;
+        partial_y = trajectory_array.trajectory_points[j].point_coord.y;
+        partial_theta = trajectory_array.trajectory_points[j].pose.angular.z;
+        // one_point.z = trajectory_array.trajectory_points[i].point_coord.z;
+        ROS_INFO("theta %f", partial_theta);
         explore_srv.request.x = partial_x;
         explore_srv.request.y = partial_y;
-        explore_srv.request.theta = theta;
+        explore_srv.request.theta = partial_theta;
 
         if (exploration_client.call(explore_srv))
         {
           ROS_INFO("Adding parial explorations: %f", explore_srv.response.frontier_destination_pose.linear.y);
         }
       }
-      robot_pose.linear.x = x;
-      robot_pose.linear.y = y;
-      robot_pose.angular.z = y;
+
+      robot_pose.linear.x = partial_x;
+      robot_pose.linear.y = partial_y;
+      robot_pose.angular.z = partial_theta;
     }
 
     res.success = true;

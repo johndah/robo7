@@ -97,7 +97,6 @@ class MappingGridsServer
 								robo7_srvs::explore::Response &res)
 	{
 		ROS_DEBUG("New grid exploration request recieved");
-		ROS_INFO("Getting explore request");
 
 		float x = req.x;
 		float y = req.y;
@@ -150,6 +149,7 @@ class MappingGridsServer
 
 	geometry_msgs::Twist getFrontier(float x, float y, float theta)
 	{
+
 		std::vector<node_ptr> frontier_nodes;
 
 		if (!exploration_grid_init)
@@ -168,7 +168,6 @@ class MappingGridsServer
 		float j_max = float(window_height / grid_square_size);
 		float x_grid, y_grid, i_shift, i_max;
 
-		ROS_INFO("Will explore here");
 		for (float j = 0.0; j < j_max; j += .5)
 		{
 			i_shift = float(window_height / grid_square_size) / 3 - j / 3;
@@ -181,8 +180,9 @@ class MappingGridsServer
 
 				if (exploration_grid.at<float>(sq(x_grid), sq(y_grid)) < 1.0 && !(sq(x_grid) < 0) && !(sq(x_grid) >= num_grid_squares_x) && !(sq(y_grid) < 0) && !(sq(y_grid) >= num_grid_squares_y))
 				{
-					//if (exploration_grid.at<float>(sq(x_grid), sq(y_grid)) == -1.0)
-					//	exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = 1.0;
+					//float occupied = basic_grid.at<float>(sq(x_grid), sq(y_grid));
+					//if (occupied == 1.0)
+					//	break;
 					if (j < 1.0 || j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5)
 					{
 						float cost = occupancy_grid.at<float>(sq(x_grid), sq(y_grid));
@@ -196,6 +196,7 @@ class MappingGridsServer
 				}
 			}
 		}
+      	ROS_INFO("Frontier sizes %d ", (int)frontier_nodes.size());
 
 		grid_matrix_msg = publishExplorationGrid();
 
@@ -260,7 +261,6 @@ class MappingGridsServer
 	{
 		float x_diff = x - a;
 		float y_diff = y - b;
-		//ROS_INFO("x: %d, y: %d, a: %d, b: %d", x, y, a, b);
 		return std::sqrt(x_diff * x_diff + y_diff * y_diff);
 	}
 
@@ -393,8 +393,8 @@ class MappingGridsServer
 	float window_height;
 	std::vector<float> X_wall_coordinates;
 	std::vector<float> Y_wall_coordinates;
-	cv::Mat basic_grid;
 	cv::Mat occupancy_grid;
+	cv::Mat basic_grid;
 	cv::Mat exploration_grid;
 	float current_x_to, current_y_to;
 	bool occupancy_grid_init, exploration_grid_init;

@@ -383,6 +383,7 @@ class PathPlanning
 
 		target_nodes.push_back(node_current);
 
+		float theta;
 		while (node_current->parent != NULL)
 		{
 
@@ -413,7 +414,7 @@ class PathPlanning
 
 					float x = path_x[0];
 					float y = path_y[0];
-					float theta = path_theta[0];
+					theta = path_theta[0];
 					float angular_velocity = partial_node->angular_velocity;
 					float path_cost = partial_node->path_cost / parts;
 					float cost_to_come = partial_node->cost_to_come;
@@ -437,6 +438,8 @@ class PathPlanning
 
 		std::reverse(target_nodes.begin(), target_nodes.end());
 
+		node_target->path_theta.push_back(node_target->theta);
+
 		target_nodes.push_back(node_target);
 
 		for (int i = 1; i < target_nodes.size(); i++)
@@ -455,6 +458,11 @@ class PathPlanning
 				trajectory_point_msg.point_coord.x = node->path_x[node->path_x.size() - 1];
 				trajectory_point_msg.point_coord.y = node->path_y[node->path_y.size() - 1];
 				trajectory_point_msg.point_coord.z = 0;
+
+				trajectory_point_msg.pose.linear.x = node->path_x[node->path_x.size() - 1];
+				trajectory_point_msg.pose.linear.y = node->path_y[node->path_y.size() - 1];
+				trajectory_point_msg.pose.angular.z = node->path_theta[node->path_theta.size() - 1];
+
 				trajectory_point_msg.speed = .15 - .05 * partitions;
 				trajectory_point_msg.distance = node->path_length / (partitions + 1);
 				trajectory_msg.trajectory_points.push_back(trajectory_point_msg);
@@ -466,8 +474,13 @@ class PathPlanning
 			target_path_pub.publish(target_paths_msg);
 			trajectory_pub.publish(trajectory_msg);
 		}
+		geometry_msgs::Twist destination_pose;
+		destination_pose.linear.x = target_nodes[target_nodes.size() - 1]->x;
+		destination_pose.linear.y = target_nodes[target_nodes.size() - 1]->y;
+		destination_pose.angular.z = target_nodes[target_nodes.size() - 1]->theta;
 
 		res.path_planned = trajectory_msg;
+		res.destination_pose = destination_pose;
 		res.success = search_done;
 
 		return search_done;
