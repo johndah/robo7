@@ -33,7 +33,7 @@ public:
 
     // Parameter setting
     num = 0;
-    distThre = 210;
+    distThre = 220;
     numThre = 5000;
   }
 
@@ -42,9 +42,10 @@ public:
     destroyAllWindows();
   }
 
-  void obstacle_Pos_estimation(Mat img, float &mean, int &num){
+  void obstacle_Pos_estimation(Mat img, float &mean, int &num, float &depth, int &left, int &right){
     float sum = 0;
     float pixelValue;
+    num = 0;
     for (int i=0; i<=img.rows; i++){
       for (int j=0; j<=img.cols; j++){
         pixelValue = img.at<unsigned short>(i, j);
@@ -62,17 +63,15 @@ public:
     // img.setTo(0, img > 230);
     // medianBlur(img, img, 5);
 
-
-
-    float depth;
     int numObstcale = 0;
-    int first = -1, last = -1;
+    left = -1;
+    right = -1;
     sum = 0;
     for (int j=0; j<=img.cols; j++){
         pixelValue = img.at<unsigned short>(10, j);
         if (pixelValue == 0 || pixelValue > 230){
-          if (last == -2)
-            last = j;
+          if (right == -2)
+            right = j;
           continue;
         }
 
@@ -80,19 +79,19 @@ public:
           sum = sum + pixelValue;
           numObstcale = numObstcale + 1;
 
-          if (first == -1)
-            first = j;
+          if (left == -1)
+            left = j;
 
-          last = -2;
+          right = -2;
         }
       }
-    if (last == -2)
-      last = img.cols;
+    if (right == -2)
+      right = img.cols;
     depth = sum / numObstcale;
 
     ROS_INFO("depth: %f", depth);
-    ROS_INFO("left: %d", first);
-    ROS_INFO("right: %d", last);
+    ROS_INFO("left: %d", left);
+    ROS_INFO("right: %d", right);
   }
 
 
@@ -105,6 +104,7 @@ public:
 
     // Preprocess the depth image
     depthImage.setTo(0, depthImage < 10);
+    depthImage.setTo(100, depthImage > 230);
     medianBlur ( depthImage, depthImage, 5);
 
     // ROS_INFO("min: %f", min);
@@ -135,6 +135,21 @@ public:
     obstale_detect_pub.publish(flag);
 
 
+    // detect obstacle
+    Mat cropedImage = origImg(Rect(0, 260, 640, 20));
+    float mean, depth;
+    int num, left, right;
+    obstacle_Pos_estimation(cropedImage, mean, num, depth, left, right);
+    ROS_INFO("mean value: %f", mean);
+    ROS_INFO("num of pixels: %d", num);
+
+    if (mean < distThre)
+      ROS_INFO("Obstacle in front!!");
+
+    if (num < numThre)
+      ROS_INFO("Black side in front!!");
+
+
     // Visualize depth image
     cv::Mat adjMap;
     double min;
@@ -145,22 +160,16 @@ public:
     cv::Mat falseColorsMap;
     applyColorMap(adjMap, falseColorsMap, cv::COLORMAP_AUTUMN);
     rectangle(falseColorsMap, Point(0, 260), Point(640, 280), Scalar(255,255,255), 2, 8, 0);
+
+    if (left != -1 && right != -1){
+      circle(falseColorsMap, Point(left, 270), 2, Scalar(255,255,255), 2, 8, 0);
+      circle(falseColorsMap, Point(right, 270), 2, Scalar(255,255,255), 2, 8, 0);
+    }
+
     cv::imshow("Filtered image", falseColorsMap);
     waitKey(2);
 
-    // detect obstacle
-    Mat cropedImage = origImg(Rect(0, 260, 640, 20));
-    float mean;
-    int num;
-    obstacle_Pos_estimation(cropedImage, mean, num);
-    ROS_INFO("mean value: %f", mean);
-    ROS_INFO("num of pixels: %d", num);
 
-    if (mean < distThre)
-      ROS_INFO("Obstacle in front!!");
-
-    if (num < numThre)
-      ROS_INFO("Black side in front!!");
 
     // float depth, leftDist, rightDist;
     // obstacle_Pos_estimation(cropedImage, depth, leftDist, rightDist);
