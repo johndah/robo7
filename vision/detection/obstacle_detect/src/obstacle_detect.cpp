@@ -8,6 +8,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+#include "robo7_msgs/detectedObstacle.h"
+
 using namespace std;
 using namespace cv;
 
@@ -29,11 +31,13 @@ public:
     frame_acc = 0;
 
     depth_image_sub = it_.subscribe("/camera/depth/image_raw", 1, &ObjectDetection::depthImageCallBack, this);
-    obstale_detect_pub = n.advertise<std_msgs::Bool>("/obstacle/flag", 1);
+    // obstale_detect_pub = n.advertise<std_msgs::Bool>("/obstacle/flag", 1);
+    obstale_detect_pub = n.advertise<robo7_msgs::detectedObstacle>("vision/obstacle", 1);
 
     // Parameter setting
     num = 0;
-    distThre = 220;
+    distThre = 10;
+    depthThre = 140;
     numThre = 5000;
   }
 
@@ -110,29 +114,29 @@ public:
     // ROS_INFO("min: %f", min);
     // ROS_INFO("max: %f", max);
 
-    flag.data = false;
+    // flag.data = false;
 
-    // if (min < 150)
-    // {
-    //   flag.data = true;
-    //   frame_acc++;
-    //   // ROS_INFO("frame_acc: %d", frame_acc);
-    // }
-    //
-    // if (flag.data == false)
-    // {
-    //   frame_acc = 1;
-    // }
-    //
-    // if (frame_acc >= 8)
-    // {
-    //   flag.data = true;
-    // }
-    // else
-    // {
-    //   flag.data = false;
-    // }
-    obstale_detect_pub.publish(flag);
+    // // if (min < 150)
+    // // {
+    // //   flag.data = true;
+    // //   frame_acc++;
+    // //   // ROS_INFO("frame_acc: %d", frame_acc);
+    // // }
+    // //
+    // // if (flag.data == false)
+    // // {
+    // //   frame_acc = 1;
+    // // }
+    // //
+    // // if (frame_acc >= 8)
+    // // {
+    // //   flag.data = true;
+    // // }
+    // // else
+    // // {
+    // //   flag.data = false;
+    // // }
+    // obstale_detect_pub.publish(flag);
 
 
     // detect obstacle
@@ -143,7 +147,7 @@ public:
     ROS_INFO("mean value: %f", mean);
     ROS_INFO("num of pixels: %d", num);
 
-    if (mean < distThre)
+    if ((right - left) < distThre)
       ROS_INFO("Obstacle in front!!");
 
     if (num < numThre)
