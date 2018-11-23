@@ -17,11 +17,11 @@ from acfDetector.msg import detectedObj
 from classify.msg import classifiedObj
 
 # Parameter setting
-ckpt_dir ='../checkpoints/160_1/'
+ckpt_dir ='../checkpoints/160_11_23/'
 width = 160
 height = 160
 proThred = 0.9
-mode = "collect data"
+mode = "collect data..."
 
 class classifier:
     def __init__(self):
