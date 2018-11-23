@@ -95,9 +95,9 @@
 <!-- The mapping nodes -->
   <node pkg="ransac" type="ransac" name="ransac" output="screen">
     <!-- launch-prefix="valgrind"> -->
-     <param name="threshold" type="double" value="0.05"/>
+     <param name="threshold" type="double" value="0.02"/>
      <param name="maximum_distance_between_points" type="double" value="0.25"/>
-     <param name="minimum_point_for_a_wall" type="int" value="20"/>
+     <param name="minimum_point_for_a_wall" type="int" value="10"/>
      <param name="minimum_point_for_a_gap" type="int" value="0"/>
   </node>
 
