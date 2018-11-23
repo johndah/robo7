@@ -112,7 +112,7 @@ public:
 
 				//Remove the inliers from the previously used point cloud in order
 				//to look for another model (wall)
-        updateInliers();
+        // updateInliers();
 				updatePoints();
 			}
 		}
