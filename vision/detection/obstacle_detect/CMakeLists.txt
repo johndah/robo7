@@ -8,13 +8,14 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   roscpp
+  robo7_msgs
 )
 
 find_package(OpenCV REQUIRED)
 
 catkin_package(
   DEPENDS
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge geometry_msgs image_transport
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge geometry_msgs image_transport robo7_msgs
 )
 
 include_directories(include

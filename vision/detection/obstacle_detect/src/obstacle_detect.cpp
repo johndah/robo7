@@ -36,9 +36,9 @@ public:
 
     // Parameter setting
     num = 0;
-    distThre = 10;
-    depthThre = 140;
+    distThre = 20;
     numThre = 5000;
+    scale = 0.000213;
   }
 
   ~ObjectDetection()
@@ -71,11 +71,16 @@ public:
     left = -1;
     right = -1;
     sum = 0;
+    vector<int> xy;
+
     for (int j=0; j<=img.cols; j++){
         pixelValue = img.at<unsigned short>(10, j);
-        if (pixelValue == 0 || pixelValue > 230){
+        if (pixelValue == 0 || pixelValue > 140){
           if (right == -2)
+          {
             right = j;
+            break;
+          }
           continue;
         }
 
@@ -93,9 +98,9 @@ public:
       right = img.cols;
     depth = sum / numObstcale;
 
-    ROS_INFO("depth: %f", depth);
-    ROS_INFO("left: %d", left);
-    ROS_INFO("right: %d", right);
+    // ROS_INFO("depth: %f", depth);
+    // ROS_INFO("left: %d", left);
+    // ROS_INFO("right: %d", right);
   }
 
 
@@ -108,14 +113,14 @@ public:
 
     // Preprocess the depth image
     depthImage.setTo(0, depthImage < 10);
-    depthImage.setTo(100, depthImage > 230);
+    // depthImage.setTo(100, depthImage > 230);
     medianBlur ( depthImage, depthImage, 5);
 
     // ROS_INFO("min: %f", min);
     // ROS_INFO("max: %f", max);
 
     // flag.data = false;
-
+    //
     // // if (min < 150)
     // // {
     // //   flag.data = true;
@@ -144,15 +149,31 @@ public:
     float mean, depth;
     int num, left, right;
     obstacle_Pos_estimation(cropedImage, mean, num, depth, left, right);
-    ROS_INFO("mean value: %f", mean);
-    ROS_INFO("num of pixels: %d", num);
+    // ROS_INFO("mean value: %f", mean);
+    // ROS_INFO("num of pixels: %d", num);
 
-    if ((right - left) < distThre)
-      ROS_INFO("Obstacle in front!!");
+    // ROS_INFO("size: %d", right-left);
+    // if ((right - left) > distThre)
+    //   ROS_INFO("Obstacle in front!!");
 
     if (num < numThre)
       ROS_INFO("Black side in front!!");
 
+    // publish msg
+    robo7_msgs::detectedObstacle msg_pub;
+    if ((right - left) > distThre)
+      msg_pub.flag.data = true;
+    else
+      msg_pub.flag.data = false;
+
+    msg_pub.dist = depth/1000 - 0.03;
+    msg_pub.x1 = (scale * (left - 320) * depth) / 100 + 0.02;
+    msg_pub.x2 = (scale * (right - 320) * depth) / 100 + 0.02;
+    obstale_detect_pub.publish(msg_pub);
+
+    // ROS_INFO("dist: %f", msg_pub.dist);
+    // ROS_INFO("x1: %f", msg_pub.x1);
+    // ROS_INFO("x2: %f", msg_pub.x2);
 
     // Visualize depth image
     cv::Mat adjMap;
@@ -173,36 +194,6 @@ public:
     cv::imshow("Filtered image", falseColorsMap);
     waitKey(2);
 
-
-
-    // float depth, leftDist, rightDist;
-    // obstacle_Pos_estimation(cropedImage, depth, leftDist, rightDist);
-
-
-    // num = num + 1;
-    // if (num == 20){
-    //   cout << cropedImage << endl;
-    //   cout << "------------------------------------" << endl;
-    //   num = 0;
-    //   cout << "mean value:" << endl;
-    //   cout << meanValue(cropedImage) << endl;
-    //   cout << "------------------------------------" << endl;
-    // }
-
-
-
-
-      // Mat element = getStructuringElement(0, Size(5, 5), Point(5, 5));
-      // morphologyEx(falseColorsMap, falseColorsMap, 2, element);
-
-    // depthImage.convertTo(depthImage, CV_32F);
-
-    // cv::imshow("Filtered image", depthImage);
-    // cv::imshow("depth_image", cv_ptr->image);
-
-    // cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::TYPE_16UC1);
-    // cv::normalize(cv_ptr->image, cv_ptr->image, 0, 255, cv::NORM_MINMAX);
-
   }
 
 
@@ -215,6 +206,7 @@ private:
   int num;
   int numThre;
   float distThre;
+  float scale;
 };
 
 int main(int argc, char **argv)
