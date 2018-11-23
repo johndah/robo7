@@ -180,23 +180,42 @@ Test the model on overall dataset
 | ----------------- | ------- | ---------------------- | ------------ |
 | Yellow Ball       | 1650    | 1639                   | 99.33        |
 | Yellow Cube       | 768     | 760                    | 98.96        |
-| Green Cube        | 2406    | 2406                   | 1            |
+| Green Cube        | 2406    | 2406                   | 100          |
 | Green Cylinder    | 2364    | 2348                   | 99.32        |
 | Green Hollow Cube | 756     | 695                    | 91.93        |
 | Orange Cross      | 60      | 0                      | 0            |
-| Orange Star       | 1794    | 1794                   | 1            |
+| Orange Star       | 1794    | 1794                   | 100          |
 | Red Cylinder      | 1242    | 988                    | 79.55        |
 | Red Hollow Cube   | 918     | 857                    | 93.35        |
 | Red Ball          | 1926    | 1925                   | 99.95        |
 | Blue Cube         | 588     | 580                    | 98.64        |
 | Blue Triangle     | 1812    | 803                    | 44.32        |
 | Purple Cross      | 2658    | 2657                   | 99.96        |
-| Purple Star       | 2046    | 1953                   | 95.45        |
+| Purple Star       | 2046    | 1953                   | 95.4         |
+
+
+
+Remove some unclear images
+
+| Class             | # Class |                          |       | acc   |
+| ----------------- | ------- | ------------------------ | ----- | ----- |
+| Yellow Ball       | 1638    | OK                       |       | 100   |
+| Yellow Cube       | 755     | OK                       |       | 97.48 |
+| Green Cube        | 1604    | OK                       |       | 100   |
+| Green Cylinder    | 1294    | OK                       |       | 63.25 |
+| Green Hollow Cube | 696     | completely wrong         | +558  | 95.53 |
+| Orange Cross      | 48      | completely wrong         | +762  | 83.58 |
+| Orange Star       | 1108    | OK                       |       | 96.84 |
+| Red Cylinder      | 798     | 立起来的还行，平躺不行   | +1498 | 73.52 |
+| Red Hollow Cube   | 882     | 偶尔错误，识别为cylinder | +1039 | 86.15 |
+| Red Ball          | 1535    | OK                       |       | 99.47 |
+| Blue Cube         | 504     | OK                       |       | 58.33 |
+| Blue Triangle     | 816     | sometimes wrong          | +716  | 99.80 |
+| Purple Cross      | 1564    | OK                       |       | 99.55 |
+| Purple Star       | 905     | completely wrong         | +668  | 95.25 |
 
 
 
 
 
 
-
- 
