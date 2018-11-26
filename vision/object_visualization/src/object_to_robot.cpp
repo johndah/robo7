@@ -33,8 +33,7 @@ public:
     n.param<float>("/object_to_robot/camera_angle", camera_angle, 0);
 
     //Initialize all the matrices
-
-
+    matrices_initializations();
 
     //The service definition
     object_to_robot_frame_srv = n.advertiseService("/localization/object_to_robot", &objectToRobot::transform_Sequence, this);
@@ -50,7 +49,9 @@ public:
 
     object_robot_position_vector = rotation_matrix_1 * rotation_matrix_2 * rotation_matrix_3 * object_camera_position_vector + translation_vector;
 
-    object_map_position_vector = rotation_matrix2 * object_robot_position_vector + translation_vector2;
+    object_map_position_vector = rotation_matrix_map * object_robot_position_vector + translation_vector2;
+
+    back_transform();
 
     res.object_in_robot_frame = object_robot_frame;
     res.object_in_map_frame = object_map_frame;
@@ -83,6 +84,8 @@ private:
   //From robot frame to map frame
   Eigen::Matrix3f rotation_matrix_map;
   Eigen::Vector3f translation_vector2;
+
+  float pi;
 
 
   void forward_transform()

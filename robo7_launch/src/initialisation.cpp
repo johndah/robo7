@@ -34,6 +34,7 @@ public:
 		//Parameters input
 		n.param<bool>("/initialisation/use_mapping_mode", mapping_mode, false);
 		n.param<float>("/initialisation/time_before_starting_everything", time_before_initialisation, 5.0);
+		n.param<int>("/initialisation/which_map_mode", map_mode, 1);
 
 		//Publishers
 		activation_states_pub = n.advertise<robo7_msgs::activation_states>("/robot_state/activation_states", 1);
@@ -46,7 +47,7 @@ public:
 		state_activated.header.stamp = ros::Time::now();
 		state_activated.follow_point = false;
 		state_activated.localize_itself = false;
-		state_activated.mapping = false;
+		state_activated.mapping = true;
 
 		activation_states_pub.publish( state_activated );
 	}
@@ -65,7 +66,15 @@ public:
 			//Here stands the initialisation for the mapping mode
 
 			//Start the mapping mode
-			initialize_mapping_states();
+			if(map_mode == 0)
+			{
+				initialize_mapping_states1();
+			}
+			else
+			{
+				initialize_mapping_states2();
+			}
+
 		}
 
 		//Publish the initial state of the robot
@@ -78,6 +87,7 @@ private:
 
 	//The mode we choose
 	bool mapping_mode;
+	int map_mode;
 
 	void header_initialisation()
 	{
@@ -94,13 +104,23 @@ private:
 		state_activated.mapping = false;
 	}
 
-	void initialize_mapping_states()
+	void initialize_mapping_states1()
 	{
 		//Robot state
 
 		//Robot actions state
 		state_activated.follow_point = false;
 		state_activated.localize_itself = false;
+		state_activated.mapping = true;
+	}
+
+	void initialize_mapping_states2()
+	{
+		//Robot state
+
+		//Robot actions state
+		state_activated.follow_point = false;
+		state_activated.localize_itself = true;
 		state_activated.mapping = true;
 	}
 
