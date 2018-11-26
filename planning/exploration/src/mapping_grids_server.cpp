@@ -62,7 +62,7 @@ class MappingGridsServer
 	ros::ServiceServer explore_service;
 	ros::ServiceClient occupancy_client;
 
-	std::vector<node_ptr> frontier_nodes;
+	std::vector<node_ptr> all_frontiers_nodes;
 	Matrix grid, wall_grid;
 
 	MappingGridsServer()
@@ -154,6 +154,8 @@ class MappingGridsServer
 	geometry_msgs::Twist getFrontier(float x, float y, float theta)
 	{
 
+		std::vector<node_ptr> frontier_nodes;
+
 		if (!exploration_grid_init)
 		{
 			exploration_grid = cv::Mat::zeros(num_grid_squares_x, num_grid_squares_y, CV_32SC1);
@@ -177,14 +179,14 @@ class MappingGridsServer
 		float x_grid, y_grid, i_shift, i_max;
 
 		float frontier_x, frontier_y;
-		for (int i = 0; i < frontier_nodes.size(); i++)
+		for (int i = 0; i < all_frontiers_nodes.size(); i++)
 		{
-			frontier_x = frontier_nodes[i]->x;
-			frontier_y = frontier_nodes[i]->y;
+			frontier_x = all_frontiers_nodes[i]->x;
+			frontier_y = all_frontiers_nodes[i]->y;
 			if (exploration_grid.at<float>(sq(frontier_x), sq(frontier_y)) == 1.0)
 			{
 				//ROS_INFO("Replacing");
-				frontier_nodes.erase(frontier_nodes.begin() + i);
+				all_frontiers_nodes.erase(frontier_nodes.begin() + i);
 			}
 		}
 
@@ -268,6 +270,7 @@ class MappingGridsServer
 							{
 								node_ptr frontier_node = std::make_shared<Node>(x_grid, y_grid, cost);
 								frontier_nodes.push_back(frontier_node);
+								all_frontiers_nodes.push_back(frontier_node);
 								exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = -1.0;
 							}
 						}
@@ -293,9 +296,19 @@ class MappingGridsServer
 		for (int i = 0; i < 10; i++)
 			exploration_pub.publish(grid_matrix_msg);
 
-		auto min_cost_iterator = std::min_element(frontier_nodes.begin(), frontier_nodes.end(), [](const node_ptr a, const node_ptr b) {
-			return a->getCost() < b->getCost();
-		});
+		std::vector<node_ptr>::iterator min_cost_iterator;
+		if (!frontier_nodes.empty())
+		{
+			min_cost_iterator = std::min_element(frontier_nodes.begin(), frontier_nodes.end(), [](const node_ptr a, const node_ptr b) {
+				return a->getCost() < b->getCost();
+			});
+		}
+		else
+		{
+			min_cost_iterator = std::min_element(all_frontiers_nodes.begin(), all_frontiers_nodes.end(), [](const node_ptr a, const node_ptr b) {
+				return a->getCost() < b->getCost();
+			});
+		}
 
 		node_ptr frontier_destination_node = frontier_nodes[std::distance(frontier_nodes.begin(), min_cost_iterator)];
 

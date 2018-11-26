@@ -131,23 +131,22 @@ public:
       {
         //partial_theta = trajectory_array.trajectory_points[j].point_coord.z;
         //ROS_INFO("Partial theta %d: %f  diff %f", j, partial_theta, std::abs(partial_theta - trajectory_array.trajectory_points[j].pose.angular.z));
-        //if (std::abs(partial_theta - trajectory_array.trajectory_points[j].pose.angular.z) < 2.2)
-        //{
-        //partial_x = trajectory_array.trajectory_points[j].point_coord.x;
-        //partial_y = trajectory_array.trajectory_points[j].point_coord.y;
-        partial_x = trajectory_array.trajectory_points[j].pose.linear.x;
-        partial_y = trajectory_array.trajectory_points[j].pose.linear.y;
-        partial_theta = trajectory_array.trajectory_points[j].pose.angular.z;
+        // if (std::abs(partial_theta - trajectory_array.trajectory_points[j].pose.angular.z) < 2.2)
+        // {
+          // partial_x = trajectory_array.trajectory_points[j].point_coord.x;
+          // partial_y = trajectory_array.trajectory_points[j].point_coord.y;
+          partial_x = trajectory_array.trajectory_points[j].pose.linear.x;
+          partial_y = trajectory_array.trajectory_points[j].pose.linear.y;
+          partial_theta = trajectory_array.trajectory_points[j].pose.angular.z;
+          explore_srv.request.x = partial_x;
+          explore_srv.request.y = partial_y;
+          explore_srv.request.theta = partial_theta;
 
-        explore_srv.request.x = partial_x;
-        explore_srv.request.y = partial_y;
-        explore_srv.request.theta = partial_theta;
+          exploration_client.call(explore_srv);
+          //        if (exploration_client.call(explore_srv))
 
-        exploration_client.call(explore_srv);
-        //        if (exploration_client.call(explore_srv))
-
-        //ROS_INFO("Adding parial explorations: %f", explore_srv.response.frontier_destination_pose.linear.y);
-        //}
+          //ROS_INFO("Adding parial explorations: %f", explore_srv.response.frontier_destination_pose.linear.y);
+        // }
       }
 
       robot_pose.linear.x = partial_x;

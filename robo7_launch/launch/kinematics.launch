@@ -80,7 +80,7 @@
   <!-- The path_planner nodes -->
     <node pkg="own_map" type="discretize_the_map" name="discretize_the_map" output="screen"/>
 
-
+    
     <node pkg="heuristic_grids" type="heuristic_grids_server" name="heuristic_grids_server"
         output="screen">
       <param name="grid_square_size" type="double" value="0.02"/>
