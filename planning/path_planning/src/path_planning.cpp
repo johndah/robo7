@@ -283,15 +283,6 @@ class PathPlanning
 			theta0 = theta0_default;
 		}
 
-		float theta0_resolution = pi / 2;
-
-		for (float t0 = theta0 - pi; t0 < theta0 + pi; t0 += theta0_resolution)
-		{
-			node_ptr node_start = std::make_shared<Node>(x0, y0, t0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
-			node_start->cost_to_go = node_start->getHeuristicCost();
-			alive_nodes.push_back(node_start);
-		}
-
 		x_target = destination_position.x;
 		y_target = destination_position.y;
 
@@ -300,6 +291,19 @@ class PathPlanning
 
 		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
 		node_target->cost_to_go = 0;
+
+		path_x.clear(); 
+		path_y.clear(); 
+		path_theta.clear();
+		
+		float theta0_resolution = pi / 2;
+
+		for (float t0 = theta0 - pi; t0 < theta0 + pi; t0 += theta0_resolution)
+		{
+			node_ptr node_start = std::make_shared<Node>(x0, y0, t0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
+			node_start->cost_to_go = node_start->getHeuristicCost();
+			alive_nodes.push_back(node_start);
+		}
 
 		target_msg.x = x_target;
 		target_msg.y = y_target;
