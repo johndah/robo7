@@ -223,8 +223,8 @@ private:
 				std::vector<int> local_cell(2,0);
 				local_cell[0] = i_ind + i;
 				local_cell[1] = j_ind + j;
-				if((local_cell[0] > 0)&&(local_cell[0] < the_occupancy_grid.occupancy_grid.nb_rows)
-						&&(local_cell[1] > 0)&&(local_cell[1] < the_occupancy_grid.occupancy_grid.nb_cols))
+				if((local_cell[0] >= 0)&&(local_cell[0] < the_occupancy_grid.occupancy_grid.nb_rows)
+						&&(local_cell[1] >= 0)&&(local_cell[1] < the_occupancy_grid.occupancy_grid.nb_cols))
 						{
 							if(the_occupancy_grid.occupancy_grid.rows[local_cell[0]].cols[local_cell[1]] >= 1)
 							{
