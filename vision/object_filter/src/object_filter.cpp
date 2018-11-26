@@ -2,6 +2,7 @@
 #include <cmath>
 #include "ros/ros.h"
 #include "std_msgs/Bool.h"
+#include "std_msgs/Int16.h"
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Twist.h"
 #include "robo7_msgs/XY_coordinates.h"
@@ -15,11 +16,11 @@ class ObjectFilter
 {
   public:
 	ros::NodeHandle n;
+  ros::ServiceClient obj_to_robo_srv;
 	ros::Subscriber obj_sub;
   ros::Subscriber robo_pos_sub;
-  ros::ServiceClient obj_to_robo_srv;
-
   ros::Publisher all_obj_pub;
+  ros::Publisher speaker_pub;
 
 
 	ObjectFilter()
@@ -28,15 +29,16 @@ class ObjectFilter
     n.param<int>("/object_filter/num_classes", num_classes, 14);
 
     // If distance between two objects of the same class is smaller than this, consider them the same obj
-		n.param<float>("/object_filter/dist_same_class_lim", dist_same_class_lim, 0.02);
+		n.param<float>("/object_filter/dist_same_class_lim", dist_same_class_lim, 0.035);
 
     // If distance between two objects of the different classes is smaller than this, consider them the same obj
-		n.param<float>("/object_filter/dist_other_obj_lim", dist_other_class_lim, 0.035);
+		n.param<float>("/object_filter/dist_other_obj_lim", dist_other_class_lim, 0.02);
 
 		obj_sub = n.subscribe("/vision/results", 1, &ObjectFilter::ObjCallback, this);
     robo_pos_sub = n.subscribe("/localization/kalman_filter/position", 1, &ObjectFilter::roboPosCallback, this);
     obj_to_robo_srv = n.serviceClient<robo7_srvs::objectToRobot>("/localization/object_to_robot");
 		all_obj_pub = n.advertise<robo7_msgs::allObjects>("/vision/all_objects", 1);
+    speaker_pub = n.advertise<std_msgs::Int16>("/vision/object/class", 1);
 
 	}
 
@@ -52,6 +54,7 @@ class ObjectFilter
 	{
     if (!position_updated){
       ROS_WARN("Object filter: Unable to filer object, no robot position recieved");
+      publishSpeaker(-1);
       return;
     }
 
@@ -65,6 +68,7 @@ class ObjectFilter
 
     if (!srv_resp.success){
       ROS_WARN("Object filter: Unable to filer object, objectToRobot service call failed");
+      publishSpeaker(-1);
       return;
     }
 
@@ -92,6 +96,12 @@ class ObjectFilter
     }
   }
 
+  void publishSpeaker(int speak_class){
+    std_msgs::Int16 pub_speak;
+    pub_speak.data = speak_class;
+    speaker_pub.publish(pub_speak);
+  }
+
 
   float distance(robo7_msgs::aObject point_a, robo7_msgs::aObject point_b){
     // returns the distance between two aobjects
@@ -111,8 +121,16 @@ class ObjectFilter
           dom_class = m;
         }
       }
+
+      // Speak if dominant class has changed:
+      if(a_obj.obj_class != dom_class){
+        publishSpeaker(dom_class);
+      }
+
       return dom_class;
+
     } else {
+      publishSpeaker(-1);
       ROS_WARN("Object filter: Something went wrong, comparing classes");
       return -1;
     }
@@ -165,6 +183,7 @@ class ObjectFilter
     // We will only get here if the new_obj has not been matched to another object in the list
     ROS_INFO("Object filter: new object not matching any in list or list was empty, adding it");
     filtered_objs.push_back(new_obj);
+    publishSpeaker(new_obj.obj_class);
 
   }
 
