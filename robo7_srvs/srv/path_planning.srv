@@ -1,6 +1,7 @@
 # request
 geometry_msgs/Twist robot_position
 geometry_msgs/Point destination_position
+bool exploring
 ---
 robo7_msgs/trajectory path_planned
 geometry_msgs/Twist destination_pose
