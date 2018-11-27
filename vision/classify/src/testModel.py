@@ -60,7 +60,7 @@ class classifier:
         self.bridge = CvBridge()
 
         self.detectedObj_sub = rospy.Subscriber("/vision/object", detectedObj, self.applyModel, queue_size=1)
-        self.result_pub = rospy.Publisher("/vision/result", classifiedObj, queue_size=1)
+        self.result_pub = rospy.Publisher("/vision/results", classifiedObj, queue_size=1)
 
         # self.image_sub = rospy.Subscriber("/vision/object/img", Image, self.applyModel)
         # self.obj_class_pub = rospy.Publisher("/vision/object/class", Int16, queue_size=1)
