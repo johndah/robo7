@@ -25,7 +25,7 @@ float pi = 3.14159265358979323846;
 class Node
 {
   public:
-	float x, y, cost;
+	float x, y, cost, distance_cost;
 	//float angular_velocity, time, dt;
 	//float path_cost, path_length;
 	//float steering_angle_max, angular_velocity_resolution;
@@ -33,16 +33,18 @@ class Node
 	//unsigned int node_id;
 	//std::vector<float> path_x, path_y, path_theta;
 
-	Node(float x, float y, float cost)
+	Node(float x, float y, float cost, float distance_cost)
 	{
 		this->x = x;
 		this->y = y;
 		this->cost = cost;
+		this->distance_cost = distance_cost;
 	}
 
 	float getCost()
 	{
-		return cost;
+		ROS_INFO("cost %f distance %f", cost, 1 / (2 * distance_cost));
+		return cost; // + 1/(2*distance_cost);
 	}
 
 	bool inCollision()
@@ -75,14 +77,14 @@ class MappingGridsServer
 		n.param<int>("/mapping_grids_server/smoothing_kernel_sd", smoothing_kernel_sd, 3);
 
 		map_sub = n.subscribe("/own_map/wall_coordinates", 1, &MappingGridsServer::mapCallback, this);
-		is_occupied_service = n.advertiseService("/occupancy_grid/is_occupied", &MappingGridsServer::occupancyGridRequest, this);
+		is_occupied_service = n.advertiseService("mapping_grids_server/occupancy_grid/is_occupied", &MappingGridsServer::occupancyGridRequest, this);
 		explore_service = n.advertiseService("/exploration_grid/explore", &MappingGridsServer::explorationGridRequest, this);
 
 		occupancy_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/occupancy_matrix", 1);
 		wall_occupancy_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/wall_occupancy_matrix", 1);
 		exploration_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/exploration_matrix", 1);
 
-		occupancy_client = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
+		occupancy_client = n.serviceClient<robo7_srvs::IsGridOccupied>("mapping_grids_server/occupancy_grid/is_occupied");
 
 		num_min_distance_squares = ceil(min_distance / grid_square_size);
 		num_wall_thickness_squares = ceil(wall_thickness / grid_square_size);
@@ -184,10 +186,7 @@ class MappingGridsServer
 			frontier_x = all_frontiers_nodes[i]->x;
 			frontier_y = all_frontiers_nodes[i]->y;
 			if (exploration_grid.at<float>(sq(frontier_x), sq(frontier_y)) == 1.0)
-			{
-				//ROS_INFO("Replacing");
-				all_frontiers_nodes.erase(frontier_nodes.begin() + i);
-			}
+				all_frontiers_nodes.erase(all_frontiers_nodes.begin() + i);
 		}
 
 		bool add_exploration_cell;
@@ -196,35 +195,21 @@ class MappingGridsServer
 			i_shift = float(window_height / grid_square_size) / 3 - j / 3;
 			i_max = float(window_width / grid_square_size) - i_shift;
 
-			//float started_row = false;
-
 			for (float i = i_shift; i < i_max; i += .5)
 			{
 				x_grid = i0 + grid_square_size * (j * sin(theta) - i * cos(theta));
 				y_grid = j0 + grid_square_size * (j * cos(theta) + i * sin(theta));
 
-				//int occupied = wall_grid[sq(x_grid)][sq(y_grid)];
-				//if (true || !occupied)
-				//{
-
 				add_exploration_cell = true;
 				if (exploration_grid.at<float>(sq(x_grid), sq(y_grid)) < 1.0 && withinMap(x_grid, y_grid))
 				{
-					//float occupied = basic_grid.at<float>(0, 0);
-					//ROS_INFO("Occupied: %d", occupied);
-					//started_row = true;
-					//ROS_INFO("i %f, j %f, x_grid %f, y_grid %f", i, j, x_grid, y_grid);
-
-					float r0 = distance(x, y, x_grid, y_grid);
-					if (r0 > .1)
+					float min_distance = distance(x, y, x_grid, y_grid);
+					if (min_distance > .1)
 					{
 						float x_ray = x;
 						float y_ray = y;
 						float x_diff = float(x_grid - x);
 						float y_diff = float(y_grid - y);
-						// float theta_ray = std::atan2(y_diff, x_diff);
-						// float theta_ray2 = std::atan2(y - y_grid, x - x_grid);
-						// float theta_ray3 = std::atan2(0.000060, -0.075000);
 						int n = std::max(sq(x_diff), sq(y_diff));
 
 						//ROS_INFO("x %f x_grid %f  y %f y_grid %f  x_diff/n %f  y_diff/n %f", x, x_grid, y, y_grid, x_diff / n, y_diff / n);
@@ -239,36 +224,17 @@ class MappingGridsServer
 								break;
 							}
 						}
-
-						/*
-						// theta_ray = pi/2 - theta_ray + theta;
-						ROS_INFO("x %f x_grid %f  y %f y_grid %f  x_diff %f  y_diff %f  atan1 %f atan2 %f atan3 %f", x, x_grid, y, y_grid, x_diff, y_diff, theta_ray, theta_ray2, theta_ray3);
-						for (float r = 0.0; r <= distance(x, y, x_grid, y_grid); r += grid_square_size)
-						{
-							ROS_INFO("Ray:  x %f y %f theta %f  r %f  wall_occ %f", x_ray, y_ray, theta_ray, r, wall_grid[sq(x_ray)][sq(y_ray)]);
-							x_ray += grid_square_size * cos(theta_ray);
-							y_ray += grid_square_size * sin(theta_ray);
-							//float cost = occupancy_grid.at<float>(sq(x_ray), sq(y_ray));
-							if (wall_grid[sq(x_ray)][sq(y_ray)] == 1)
-							{
-								ROS_INFO("Not adding this");
-								add_exploration_cell = false;
-								break;
-							}
-						}
-					*/
 					}
-					//ROS_INFO("i %f, j %f, x_grid %f, y_grid %f", i, j, x_grid, y_grid);
 					if (add_exploration_cell)
 					{
-						//ROS_INFO("Okay lets add that");
 						if (j < 1.0 || j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5)
 						{
 
 							float cost = occupancy_grid.at<float>(sq(x_grid), sq(y_grid));
-							if (grid[sq(x_grid)][sq(y_grid)] < .95)
+							//if (grid[sq(x_grid)][sq(y_grid)] < 1.0)
+							if (cost < .9)
 							{
-								node_ptr frontier_node = std::make_shared<Node>(x_grid, y_grid, cost);
+								node_ptr frontier_node = std::make_shared<Node>(x_grid, y_grid, cost, min_distance);
 								frontier_nodes.push_back(frontier_node);
 								all_frontiers_nodes.push_back(frontier_node);
 								exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = -1.0;
@@ -279,17 +245,11 @@ class MappingGridsServer
 							exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = 1.0;
 						}
 					}
-					//else
-					//	ROS_INFO("Not happening");
 				}
-				// }
-				// else if (started_row)
-				// {
-				// 	break;
-				// }
 			}
 		}
-		ROS_INFO("Frontier sizes %d ", (int)frontier_nodes.size());
+		ROS_INFO("Frontier size %d ", (int)frontier_nodes.size());
+		ROS_INFO("All frontiers size %d ", (int)all_frontiers_nodes.size());
 
 		grid_matrix_msg = publishExplorationGrid();
 

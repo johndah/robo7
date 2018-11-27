@@ -29,6 +29,7 @@ class OccupancyGrid
     {
         //occupancy_grid_sub = nh.subscribe("/mapping_grids_server/wall_occupancy_matrix", 1000, &OccupancyGrid::occupancyCallback, this);
         occupancy_grid_sub = nh.subscribe("/heuristic_grids_server/occupancy_matrix", 1000, &OccupancyGrid::occupancyCallback, this);
+        //occupancy_grid_sub = nh.subscribe("/mapping_grids_server/occupancy_matrix", 1000, &OccupancyGrid::occupancyCallback, this);
         distance_grid_sub = nh.subscribe("/heuristic_grids_server/distance_matrix", 1000, &OccupancyGrid::distanceCallback, this);
         exploration_grid_sub = nh.subscribe("/mapping_grids_server/exploration_matrix", 1000, &OccupancyGrid::explorationCallback, this);
         this->occupancy_grid_pub = occupancy_grid_pub;
@@ -78,6 +79,7 @@ class OccupancyGrid
         occupancy_grid_received = true;
     }
 */
+
     void distanceCallback(const robo7_msgs::occupancy_matrix::ConstPtr &distance_matrix_msg)
     {
         distance_array.clear();

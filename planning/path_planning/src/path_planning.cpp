@@ -23,6 +23,7 @@ float pi = 3.14159265358979323846;
 
 float x_target;
 float y_target;
+float exploration;
 
 class Node
 {
@@ -127,9 +128,8 @@ class PathPlanning
 	// Initialisation
 	float goal_radius_tolerance;
 	float x0, y0, theta0, x0_default, y0_default, theta0_default, position_updated;
-	float field_scale;
+	bool field_scale;
 	unsigned int node_id;
-	bool exploring;
 
 	PathPlanning(ros::NodeHandle nh, ros::Publisher paths_pub, ros::Publisher target_pub, ros::Publisher target_path_pub, ros::Publisher trajectory_pub)
 	{
@@ -292,11 +292,16 @@ class PathPlanning
 		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
 		node_target->cost_to_go = 0;
 
-		path_x.clear(); 
-		path_y.clear(); 
+		path_x.clear();
+		path_y.clear();
 		path_theta.clear();
+
+		float theta0_resolution;
 		
-		float theta0_resolution = pi / 2;
+		if (exploration)
+			theta0_resolution = pi / 4;
+		else
+			theta0_resolution = pi / 2;
 
 		for (float t0 = theta0 - pi; t0 < theta0 + pi; t0 += theta0_resolution)
 		{
@@ -318,7 +323,7 @@ class PathPlanning
 
 			node_ptr node_current = alive_nodes[std::distance(alive_nodes.begin(), min_cost_iterator)];
 
-			if (node_current->distanceSquared(node_target) < this->goal_radius_tolerance) // && std::abs(node_current->theta - theta_target) < this->angle_tolerance)
+			if (node_current->distanceSquared(node_target) < this->goal_radius_tolerance)
 				return get_found_path(node_current, node_current, res);
 
 			alive_nodes.erase(min_cost_iterator);
