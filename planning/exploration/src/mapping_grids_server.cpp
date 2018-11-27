@@ -297,7 +297,7 @@ class MappingGridsServer
 			exploration_pub.publish(grid_matrix_msg);
 
 		std::vector<node_ptr>::iterator min_cost_iterator;
-		if (!frontier_nodes.empty())
+		if (false && !frontier_nodes.empty())
 		{
 			min_cost_iterator = std::min_element(frontier_nodes.begin(), frontier_nodes.end(), [](const node_ptr a, const node_ptr b) {
 				return a->getCost() < b->getCost();
