@@ -29,10 +29,10 @@ class ObjectFilter
     n.param<int>("/object_filter/num_classes", num_classes, 14);
 
     // If distance between two objects of the same class is smaller than this, consider them the same obj
-		n.param<float>("/object_filter/dist_same_class_lim", dist_same_class_lim, 0.035);
+		n.param<float>("/object_filter/dist_same_class_lim", dist_same_class_lim, 0.08);
 
     // If distance between two objects of the different classes is smaller than this, consider them the same obj
-		n.param<float>("/object_filter/dist_other_obj_lim", dist_other_class_lim, 0.02);
+		n.param<float>("/object_filter/dist_other_obj_lim", dist_other_class_lim, 0.04);
 
 		obj_sub = n.subscribe("/vision/results", 1, &ObjectFilter::ObjCallback, this);
     robo_pos_sub = n.subscribe("/localization/kalman_filter/position", 1, &ObjectFilter::roboPosCallback, this);
