@@ -32,7 +32,7 @@ public:
 
     depth_image_sub = it_.subscribe("/camera/depth/image_raw", 1, &ObjectDetection::depthImageCallBack, this);
     // obstale_detect_pub = n.advertise<std_msgs::Bool>("/obstacle/flag", 1);
-    obstale_detect_pub = n.advertise<robo7_msgs::detectedObstacle>("vision/obstacle", 1);
+    obstale_detect_pub = n.advertise<robo7_msgs::detectedObstacle>("/vision/obstacle", 1);
 
     // Parameter setting
     num = 0;
