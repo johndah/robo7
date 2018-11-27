@@ -62,9 +62,6 @@ private:
 };
 
 
-
-
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "obj_pos_vis");

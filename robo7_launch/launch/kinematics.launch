@@ -125,6 +125,9 @@
     <param name="use_ransac" type="bool" value="true"/>
   </node>
 
+  <node pkg="object_visualization" type="object_to_robot" name="object_to_robot" output="screen"/>
+>>>>>>> master
+
 
    <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
 

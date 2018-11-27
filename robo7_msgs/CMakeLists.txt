@@ -42,6 +42,8 @@ add_message_files(
   matrix_row.msg
   matrix.msg
   activation_states.msg
+  detectedObstacle.msg
+  classifiedObj.msg
 )
 
 generate_messages(

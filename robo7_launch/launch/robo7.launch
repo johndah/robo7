@@ -9,6 +9,8 @@
 
   <include file="$(find robo7_launch)/launch/kinematics.launch"/>
 
+  <include file="$(find robo7_launch)/launch/vision.launch"/>
+
   <include file="$(find visualization)/launch/rviz_plots.launch"/>
 
 </launch>

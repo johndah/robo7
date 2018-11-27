@@ -28,7 +28,7 @@ public:
       &RecordVideo::saveVideo, this);
     // image_pub_ = it_.advertise("/image_converter/output_image", 1);
 
-    cv::namedWindow(OPENCV_WINDOW);
+    // cv::namedWindow(OPENCV_WINDOW);
 
     dir = "/home/jtao/out.avi";
     n.getParam("record_video/dir", dir);
@@ -67,10 +67,13 @@ public:
     // if (cv_ptr->image.rows > 60 && cv_ptr->image.cols > 60)
     //   cv::circle(cv_ptr->image, cv::Point(50, 50), 10, CV_RGB(255,0,0));
 
-    video.write(cv_ptr->image);
+    if (cv_ptr->image.empty())
+      ROS_INFO("empty image!");
+    else
+      video.write(cv_ptr->image);
 
     // Update GUI Window
-    cv::imshow(OPENCV_WINDOW, cv_ptr->image);
+    // cv::imshow(OPENCV_WINDOW, cv_ptr->image);
 
     // ROS_INFO("width: %d", cv_ptr->image.cols);
     // ROS_INFO("height: %d", cv_ptr->image.rows);

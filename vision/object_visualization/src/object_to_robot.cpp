@@ -17,6 +17,7 @@ using Eigen::MatrixXd;
 
 // Control @ 10 Hz
 double control_frequency = 100.0;
+float pi = 3.14159265359;
 
 class objectToRobot
 {
@@ -30,7 +31,7 @@ public:
   objectToRobot()
   {
     //The camera angle
-    n.param<float>("/object_to_robot/camera_angle", camera_angle, 0);
+    n.param<float>("/object_to_robot/camera_angle", camera_angle, ((2*pi)/3));
 
     //Initialize all the matrices
     matrices_initializations();
@@ -47,9 +48,9 @@ public:
 
     forward_transform();
 
-    object_robot_position_vector = rotation_matrix_1 * rotation_matrix_2 * rotation_matrix_3 * object_camera_position_vector + translation_vector;
+    object_robot_position_vector = (rotation_matrix_1 * rotation_matrix_2 * object_camera_position_vector) + translation_vector;
 
-    object_map_position_vector = rotation_matrix_map * object_robot_position_vector + translation_vector2;
+    object_map_position_vector = rotation_matrix_map * object_robot_position_vector + translation_vector_map;
 
     back_transform();
 
@@ -83,7 +84,7 @@ private:
   Eigen::Vector3f translation_vector;
   //From robot frame to map frame
   Eigen::Matrix3f rotation_matrix_map;
-  Eigen::Vector3f translation_vector2;
+  Eigen::Vector3f translation_vector_map;
 
   float pi;
 
@@ -102,9 +103,9 @@ private:
     rotation_matrix_map(1,1) = cos(robot_angle);
     rotation_matrix_map(2,2) = 1;
 
-    translation_vector2(0) = robot_position.linear.x;
-    translation_vector2(1) = robot_position.linear.y;
-    translation_vector2(2) = robot_position.linear.z;
+    translation_vector_map(0) = robot_position.linear.x;
+    translation_vector_map(1) = robot_position.linear.y;
+    translation_vector_map(2) = robot_position.linear.z;
   }
 
   void back_transform()
@@ -124,24 +125,20 @@ private:
     rotation_matrix_1 = Eigen::Matrix3f::Zero(3,3);
     rotation_matrix_2 = Eigen::Matrix3f::Zero(3,3);
     rotation_matrix_3 = Eigen::Matrix3f::Zero(3,3);
-    rotation_matrix_1(0,0) = 1;
-    rotation_matrix_1(1,1) = cos(camera_angle);
-    rotation_matrix_1(1,2) = -sin(camera_angle);
+
+    // Around robot frame y axis
+    rotation_matrix_1(0,0) = cos(camera_angle);
+    rotation_matrix_1(0,2) = sin(camera_angle);
+    rotation_matrix_1(1,1) = 1;
+    rotation_matrix_1(2,0) = -sin(camera_angle);
     rotation_matrix_1(2,2) = cos(camera_angle);
-    rotation_matrix_1(2,1) = sin(camera_angle);
 
-    rotation_matrix_2(0,0) = 1;
-    rotation_matrix_2(1,1) = cos(pi/2);
-    rotation_matrix_2(1,2) = -sin(pi/2);
-    rotation_matrix_2(2,2) = cos(pi/2);
-    rotation_matrix_2(2,1) = sin(pi/2);
-
-    rotation_matrix_3(0,0) = cos(pi);
-    rotation_matrix_3(0,2) = sin(pi);
-    rotation_matrix_3(1,1) = 1;
-    rotation_matrix_3(2,0) = -sin(pi);
-    rotation_matrix_3(2,2) = cos(pi);
-
+    // Around robot frame z axis
+    rotation_matrix_2(0,0) = cos(-pi/2);
+    rotation_matrix_2(0,1) = -sin(-pi/2);
+    rotation_matrix_2(1,0) = sin(-pi/2);
+    rotation_matrix_2(1,1) = cos(-pi/2);
+    rotation_matrix_2(2,2) = 1;
 
     //Translation vector intialization
     translation_vector(0) = 0.116;
