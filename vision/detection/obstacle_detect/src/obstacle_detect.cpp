@@ -27,7 +27,11 @@ public:
   ObjectDetection()
       : it_(nh_)
   {
-    namedWindow("Filtered image");
+    n.param<bool>("/obstacle_detect/open_visualisation_window", open_window, false);
+    if(open_window)
+    {
+      namedWindow("Filtered image");
+    }
     frame_acc = 0;
 
     depth_image_sub = it_.subscribe("/camera/depth/image_raw", 1, &ObjectDetection::depthImageCallBack, this);
@@ -156,8 +160,8 @@ public:
     // if ((right - left) > distThre)
     //   ROS_INFO("Obstacle in front!!");
 
-    if (num < numThre)
-      ROS_INFO("Black side in front!!");
+    // if (num < numThre)
+      // ROS_INFO("Black side in front!!");
 
     // publish msg
     robo7_msgs::detectedObstacle msg_pub;
@@ -191,7 +195,10 @@ public:
       circle(falseColorsMap, Point(right, 270), 2, Scalar(255,255,255), 2, 8, 0);
     }
 
-    cv::imshow("Filtered image", falseColorsMap);
+    if(open_window)
+    {
+      cv::imshow("Filtered image", falseColorsMap);
+    }
     waitKey(2);
 
   }
@@ -207,6 +214,8 @@ private:
   int numThre;
   float distThre;
   float scale;
+
+  bool open_window;
 };
 
 int main(int argc, char **argv)

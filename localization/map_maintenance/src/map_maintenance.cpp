@@ -1,4 +1,8 @@
 #include <ros/ros.h>
+#include <stdlib.h>
+#include <string>
+#include <vector>
+#include <Eigen/Geometry>
 
 //The messages
 #include <geometry_msgs/Twist.h>
@@ -11,13 +15,13 @@
 #include <robo7_msgs/mapping_grid.h>
 #include <robo7_msgs/matrix.h>
 #include <robo7_msgs/matrix_row.h>
+#include <robo7_msgs/detectedObstacle.h>
+#include <robo7_msgs/allObstacles.h>
 
 //The services
 #include <robo7_srvs/scanCoord.h>
 
-#include <stdlib.h>
-#include <string>
-#include <vector>
+
 
 float control_frequency = 10.0;
 
@@ -30,10 +34,13 @@ public:
 	ros::Subscriber the_robot_pose_sub;
 	ros::Subscriber state_activation_sub;
 	ros::Subscriber wall_XY_sub;
+	ros::Subscriber obstacle_sub;
 	//Services client
 	ros::ServiceClient scan_to_coord_srv;
 	//Publishers
   ros::Publisher occupancy_grid_pub;
+	ros::Publisher new_point_pub;
+	ros::Publisher obstacle_pub;
 
 	MapMaintenance()
 	{
@@ -41,6 +48,8 @@ public:
 		n.param<float>("/map_maintenance/distance_between_two_measures", dist_threshold, 0.10);
 		n.param<float>("/map_maintenance/cell_size", cell_size, 0.10);
 		n.param<float>("/map_maintenance/free_space_around_a_cell", free_threshold, 0.10);
+		n.param<float>("/map_maintenance/free_space_around_an_obstacle", obstacle_threshold, 0.20);
+		n.param<float>("/map_maintenance/obstacle_width", obstacle_width, 0.10);
 		n.param<bool>("/map_maintenance/use_mapping_algorithm", use_mapping, false);
 		n.param<bool>("/map_maintenance/use_ransac", use_ransac, false);
 
@@ -48,19 +57,25 @@ public:
 		state_activated.mapping = false;
 		condition_respected = true;
 		occupied = 2;
+		obstacle = 3;
 		points_received = false;
 		occupancy_initialized = false;
+		obstacle_vect.clear();
+		all_obstacles_msg.obstacle_size = obstacle_width;
 
 		//Subscribers
 		the_robot_pose_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &MapMaintenance::robot_pose_callBack, this);
 		state_activation_sub = n.subscribe("/robot_state/activation_states", 1, &MapMaintenance::state_callBack, this);
 		wall_XY_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &MapMaintenance::walls_callBack, this);
+		obstacle_sub = n.subscribe("/vision/obstacle", 1, &MapMaintenance::obstacle_callBack, this);
 
 		//Service Clients
 		scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
 
 		//Publishers
 		occupancy_grid_pub = n.advertise<robo7_msgs::mapping_grid>("/localization/mapping/the_occupancy_grid", 1);
+		new_point_pub = n.advertise<robo7_msgs::wallPoint>("/localization/mapping/the_new_points", 1);
+		obstacle_pub = n.advertise<robo7_msgs::allObstacles>("/localization/mapping/the_obstacles", 1);
 	}
 
 	void walls_callBack(const robo7_msgs::cornerList::ConstPtr &msg)
@@ -84,6 +99,11 @@ public:
 			state_activated = *msg;
 		}
   }
+
+	void obstacle_callBack(const robo7_msgs::detectedObstacle::ConstPtr &msg)
+	{
+		obstacle_msg = *msg;
+	}
 
 	void updateMap()
 	{
@@ -113,21 +133,21 @@ public:
 			//Save when/where was the last update
 			previous_update_pose = the_robot_pose;
 
-			//Look at the batteries
-			update_the_occupancy_grid_with_battery();
-
-			//Check if the map changed because of the lidar.
-			if(new_change)
-			{
-				//Publish the occupancy grid
-				occupancy_grid_pub.publish(the_occupancy_grid);
-
-				//Then turn back the change value to false
-				new_change = false;
-			}
-
 			//Turn back the condition to false
 			condition_respected = false;
+		}
+
+		//Look at the batteries
+		update_the_occupancy_grid_with_battery();
+
+		//Check if the map changed because of the lidar.
+		if(new_change)
+		{
+			//Publish the occupancy grid
+			occupancy_grid_pub.publish(the_occupancy_grid);
+
+			//Then turn back the change value to false
+			new_change = false;
 		}
 
 		//Definition pf the condition
@@ -141,9 +161,13 @@ private:
 	//Subsribers values
 	robo7_msgs::the_robot_position the_robot_pose;
 	robo7_msgs::the_robot_position previous_update_pose;
+	robo7_msgs::detectedObstacle obstacle_msg;
 
 	//The occupancy grid msg
 	robo7_msgs::mapping_grid the_occupancy_grid;
+	std::vector<geometry_msgs::Vector3> obstacle_vect;
+	robo7_msgs::allObstacles all_obstacles_msg;
+	robo7_msgs::wallPoint the_new_points_msg;
 
 	//The discretized map
 	robo7_msgs::wallPoint discretized_map;
@@ -154,10 +178,10 @@ private:
 	//Conditions triggers
 	bool condition_respected, occupancy_initialized, points_received, new_change;
 	float dist_threshold; float cell_size;
-	float occupied, unoccupied, unknown;
+	float occupied, unoccupied, unknown, obstacle;
 	bool use_mapping, use_ransac;
 	float x_max, x_min, y_max, y_min;
-	float free_threshold;
+	float free_threshold, obstacle_threshold, obstacle_width;
 
 	//State of the robot
 	robo7_msgs::activation_states state_activated;
@@ -191,8 +215,14 @@ private:
 						{
 							the_occupancy_grid.occupancy_grid.rows[the_cell[0]].cols[the_cell[1]] = occupied;
 							new_change = true;
+							the_new_points_msg.number++;
+							the_new_points_msg.the_points.push_back(map_lidar_scan.the_points[i]);
 						}
 					}
+		}
+		if(new_change)
+		{
+			new_point_pub.publish( the_new_points_msg );
 		}
 	}
 
@@ -207,7 +237,110 @@ private:
 
 	void update_the_occupancy_grid_with_battery()
 	{
+		if(obstacle_msg.flag.data)
+		{
+			geometry_msgs::Vector3 obstacle_position = from_robot_to_map_frame(obstacle_msg);
+			// ROS_INFO("The obstacle map position : (x, y) = (%lf, %lf)", obstacle_position.x, obstacle_position.y);
+			std::vector<int> the_obstacle_cell = corresponding_cell(obstacle_position.x, obstacle_position.y);
+			if(check_free_around_it(the_obstacle_cell[0], the_obstacle_cell[1]))
+			{
+				// ROS_INFO("The cell around are free");
+				bool already_in = false;
+				for(int i=0; i < static_cast<int>(obstacle_vect.size()); i++)
+				{
+					geometry_msgs::Vector3 previously_detected_obstacle = obstacle_vect[i];
+					//If the obstacle is too close of an existing obstacle, then don't add it
+					if(check_distance_between_obstacles(obstacle_position, previously_detected_obstacle))
+					{
+						already_in = true;
+					}
+				}
+				if(!already_in)
+				{
+					// ROS_INFO("New obstacle has been detected");
+					//Update the grid with a battery
+					update_grid_with_square( obstacle_position );
 
+					//Add this battery to the obstacle vector
+					obstacle_vect.push_back(obstacle_position);
+
+					//The obstacle message
+					all_obstacles_msg.number++;
+					all_obstacles_msg.the_obstacles.push_back( obstacle_position );
+					//Then publish it
+					obstacle_pub.publish(all_obstacles_msg);
+
+					//New update has been done
+					new_change = true;
+				}
+			}
+
+		}
+	}
+
+	geometry_msgs::Vector3 from_robot_to_map_frame(robo7_msgs::detectedObstacle anObstacle)
+	{
+		float robot_radius = 0.13;
+		//Matrices definition
+		Eigen::Vector3f obstacle_robot_position_vector;
+		obstacle_robot_position_vector(0) = robot_radius + obstacle_width/2 + anObstacle.dist;
+    obstacle_robot_position_vector(1) = -(anObstacle.x2 + anObstacle.x1)/2;
+    obstacle_robot_position_vector(2) = 0;
+
+		Eigen::Matrix3f rotation_matrix_map = Eigen::Matrix3f::Zero(3,3);
+    float robot_angle = the_robot_pose.position.angular.z;
+    rotation_matrix_map(0,0) = cos(robot_angle);
+    rotation_matrix_map(0,1) = -sin(robot_angle);
+    rotation_matrix_map(1,0) = sin(robot_angle);
+    rotation_matrix_map(1,1) = cos(robot_angle);
+    rotation_matrix_map(2,2) = 1;
+
+		Eigen::Vector3f translation_vector_map;
+    translation_vector_map(0) = the_robot_pose.position.linear.x;
+    translation_vector_map(1) = the_robot_pose.position.linear.y;
+    translation_vector_map(2) = the_robot_pose.position.linear.z;
+
+		Eigen::Vector3f obstacle_map_position_vector;
+		obstacle_map_position_vector = rotation_matrix_map * obstacle_robot_position_vector + translation_vector_map;
+
+		geometry_msgs::Vector3 obstacle_in_map;
+		obstacle_in_map.x = obstacle_map_position_vector(0);
+		obstacle_in_map.y = obstacle_map_position_vector(1);
+		obstacle_in_map.z = obstacle_map_position_vector(2);
+
+		return obstacle_in_map;
+	}
+
+	bool check_distance_between_obstacles(geometry_msgs::Vector3 obstacle_1, geometry_msgs::Vector3 obstacle_2)
+	{
+		if(sqrt(pow(obstacle_1.x-obstacle_2.x,2) + pow(obstacle_1.y-obstacle_2.y,2)) < obstacle_threshold)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	void update_grid_with_square(geometry_msgs::Vector3 anObstacle)
+	{
+		int cell_around = (int)(obstacle_width/cell_size);
+		std::vector<int> the_obstacle_cell = corresponding_cell(anObstacle.x, anObstacle.y);
+		for(int i=-cell_around+1; i<cell_around; i++)
+		{
+			for(int j=-cell_around+1; j<cell_around; j++)
+			{
+				std::vector<int> local_cell(2.0);
+				local_cell[0] = the_obstacle_cell[0] + i;
+				local_cell[1] = the_obstacle_cell[1] + j;
+				if((local_cell[0] >= 0)&&(local_cell[0] < the_occupancy_grid.occupancy_grid.nb_rows)
+						&&(local_cell[1] >= 0)&&(local_cell[1] < the_occupancy_grid.occupancy_grid.nb_cols))
+						{
+							the_occupancy_grid.occupancy_grid.rows[local_cell[0]].cols[local_cell[1]] = obstacle;
+						}
+			}
+		}
 	}
 
 	bool check_free_around_it(int i_ind, int j_ind)
@@ -223,7 +356,7 @@ private:
 				if((local_cell[0] >= 0)&&(local_cell[0] < the_occupancy_grid.occupancy_grid.nb_rows)
 						&&(local_cell[1] >= 0)&&(local_cell[1] < the_occupancy_grid.occupancy_grid.nb_cols))
 						{
-							if(the_occupancy_grid.occupancy_grid.rows[local_cell[0]].cols[local_cell[1]] >= 1)
+							if(the_occupancy_grid.occupancy_grid.rows[local_cell[0]].cols[local_cell[1]] == occupied)
 							{
 								return false;
 							}
