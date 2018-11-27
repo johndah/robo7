@@ -38,7 +38,9 @@ add_message_files(
   wallPoint.msg
   aWall.msg
   the_robot_position.msg
+  detectedObstacle.msg
   classifiedObj.msg
+
 )
 
 generate_messages(
