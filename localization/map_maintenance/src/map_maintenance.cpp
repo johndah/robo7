@@ -38,11 +38,11 @@ public:
 	MapMaintenance()
 	{
 		//Parameters input
-		n.param<float>("/mapping/distance_between_two_measures", dist_threshold, 0.10);
-		n.param<float>("/mapping/cell_size", cell_size, 0.10);
-		n.param<float>("/mapping/free_space_around_a_cell", free_threshold, 0.10);
-		n.param<bool>("/mapping/use_mapping_algorithm", use_mapping, false);
-		n.param<bool>("/mapping/use_ransac", use_ransac, false);
+		n.param<float>("/map_maintenance/distance_between_two_measures", dist_threshold, 0.10);
+		n.param<float>("/map_maintenance/cell_size", cell_size, 0.10);
+		n.param<float>("/map_maintenance/free_space_around_a_cell", free_threshold, 0.10);
+		n.param<bool>("/map_maintenance/use_mapping_algorithm", use_mapping, false);
+		n.param<bool>("/map_maintenance/use_ransac", use_ransac, false);
 
 		//Initialize state
 		state_activated.mapping = false;
@@ -88,14 +88,11 @@ public:
 	void updateMap()
 	{
 		//Initialize the occupancy grid
-		if(points_received&&!occupancy_initialized)
+		if(points_received&&!occupancy_initialized&&state_activated.mapping)
 		{
-			ROS_INFO("Point received");
-			ROS_INFO("%d", the_wall_points.number);
 			occupancy_initialisation();
 
 			occupancy_initialized = true;
-			ROS_INFO("Treated");
 		}
 
 		//If the condition is respected
