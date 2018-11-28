@@ -71,11 +71,11 @@ class ObjectFilter
       publishSpeaker(-1);
       return;
     }
-    ROS_INFO("Object filter: new object position in robot x: %f", srv_resp.object_in_robot_frame.x);
-    ROS_INFO("Object filter: new object position in robot y: %f", srv_resp.object_in_robot_frame.y);
-    ROS_INFO("Object filter: new object position in robot z: %f", srv_resp.object_in_robot_frame.z);
-    ROS_INFO("Object filter: new object position in map x: %f", srv_resp.object_in_map_frame.x);
-    ROS_INFO("Object filter: new object position in map y: %f", srv_resp.object_in_map_frame.y);
+    // ROS_INFO("Object filter: new object position in robot x: %f", srv_resp.object_in_robot_frame.x);
+    // ROS_INFO("Object filter: new object position in robot y: %f", srv_resp.object_in_robot_frame.y);
+    // ROS_INFO("Object filter: new object position in robot z: %f", srv_resp.object_in_robot_frame.z);
+    // ROS_INFO("Object filter: new object position in map x: %f", srv_resp.object_in_map_frame.x);
+    // ROS_INFO("Object filter: new object position in map y: %f", srv_resp.object_in_map_frame.y);
 
     std::vector<int> init_weigh(num_classes, 0);
 
