@@ -40,4 +40,7 @@
   <node pkg="visualization" type="slam_visualization" name="slam_visualization" output="screen"/>
 
   <node pkg="visualization" type="map_maintenance_visu" name="map_maintenance_visu" output="screen"/>
+
+  <node pkg="visualization" type="all_objects" name="all_objects" output="screen"/>
+
 </launch>
