@@ -126,6 +126,7 @@ class classifier:
                 cv2.imwrite(dir, origImg)
                 self.objNum = self.objNum + 1
                 self.frame = 0
+                print(self.objNum)
             else:
                 self.frame = self.frame + 1
 
