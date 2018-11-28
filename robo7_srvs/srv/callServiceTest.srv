@@ -1,4 +1,5 @@
 # request
 int32 which_service
+geometry_msgs/Point destination
 ---
 bool success  # True if the sequence was successful

@@ -72,7 +72,7 @@ public:
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
     map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &test_server::maze_map_callBack, this);
 
-    path_planning_srv = n.serviceClient<robo7_srvs::path_planning>("/path_planning/path_testing");
+    path_planning_srv = n.serviceClient<robo7_srvs::path_planning>("/path_planning/path_service");
 
     mapping_srv = n.serviceClient<robo7_srvs::update_map>("/localization/mapping/update_map");
 
@@ -108,6 +108,7 @@ public:
          robo7_srvs::callServiceTest::Response &res)
   {
     done = false;
+    destination_pose = req.destination;
 
     ROS_INFO("%d, %d", (int)-9.2, (int)9.8);
 
@@ -195,15 +196,16 @@ public:
       robo7_srvs::path_planning::Request req1;
       robo7_srvs::path_planning::Response res1;
       req1.robot_position = robot_position;
+      req1.destination_position = destination_pose;
       path_planning_srv.call(req1, res1);
       done = res1.success;
 
-      robo7_srvs::PathFollowerSrv::Request req2;
-      robo7_srvs::PathFollowerSrv::Response res2;
-      req2.req = true;
-      req2.trajectory = res1.path_planned;
-      path_follower_srv.call(req2, res2);
-      done = res1.success;
+      // robo7_srvs::PathFollowerSrv::Request req2;
+      // robo7_srvs::PathFollowerSrv::Response res2;
+      // req2.req = true;
+      // req2.trajectory = res1.path_planned;
+      // path_follower_srv.call(req2, res2);
+      // done = res1.success;
     }
 
     //Move the robot to another position
@@ -249,7 +251,7 @@ public:
 private:
   sensor_msgs::LaserScan the_lidar_scan;
   geometry_msgs::Twist robot_position;
-  geometry_msgs::Twist destination_pose;
+  geometry_msgs::Point destination_pose;
 
   robo7_msgs::cornerList all_wall_points;
 

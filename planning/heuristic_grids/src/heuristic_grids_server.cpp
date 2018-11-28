@@ -416,6 +416,8 @@ class HeuristicGridsServer
 	{
     //Call back the variable
     // the_occupancy_grid_msg = req.current_occupancy_grid;
+    new_point_list_msg = req.new_points;
+    the_obstacles_msg = req.the_obstacles;
 
     // Set up sizes
     if(false)
@@ -485,8 +487,8 @@ class HeuristicGridsServer
   {
     std::vector<int> the_local_cell(2,0);
 
-    the_local_cell[0] = (int)(x/grid_square_size + grid_square_size/2);
-    the_local_cell[1] = (int)(y/grid_square_size + grid_square_size/2);
+    the_local_cell[0] = (int)(x/grid_square_size + 1/2);
+    the_local_cell[1] = (int)(y/grid_square_size + 1/2);
 
     return the_local_cell;
   }

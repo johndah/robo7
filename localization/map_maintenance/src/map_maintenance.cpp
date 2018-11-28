@@ -20,6 +20,7 @@
 
 //The services
 #include <robo7_srvs/scanCoord.h>
+#include <robo7_srvs/UpdateOccupancyGridFiltered.h>
 
 
 
@@ -37,6 +38,7 @@ public:
 	ros::Subscriber obstacle_sub;
 	//Services client
 	ros::ServiceClient scan_to_coord_srv;
+	ros::ServiceClient update_occupancy_grid_srv;
 	//Publishers
   ros::Publisher occupancy_grid_pub;
 	ros::Publisher new_point_pub;
@@ -71,6 +73,7 @@ public:
 
 		//Service Clients
 		scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
+		update_occupancy_grid_srv = n.serviceClient<robo7_srvs::UpdateOccupancyGridFiltered>("/occupancy_grid/update_occupancy_grid");
 
 		//Publishers
 		occupancy_grid_pub = n.advertise<robo7_msgs::mapping_grid>("/localization/mapping/the_occupancy_grid", 1);
@@ -145,6 +148,9 @@ public:
 		{
 			//Publish the occupancy grid
 			occupancy_grid_pub.publish(the_occupancy_grid);
+
+			//Update configuration space
+			callUpdateService();
 
 			//Then turn back the change value to false
 			new_change = false;
@@ -376,8 +382,8 @@ private:
 		the_occupancy_grid.window_width = (int)((x_max - x_min)/cell_size + 1) * cell_size;
 		the_occupancy_grid.window_height = (int)((y_max - y_min)/cell_size + 1) * cell_size;
 		//Top left corner
-		the_occupancy_grid.top_left_corner.x = x_min;
-		the_occupancy_grid.top_left_corner.y = y_min;
+		the_occupancy_grid.top_left_corner.x = x_min - cell_size/2;
+		the_occupancy_grid.top_left_corner.y = y_min - cell_size/2;
 		//Define the occupancy matrix
 		robo7_msgs::matrix the_matrix;
 		the_matrix.nb_rows = (int)(the_occupancy_grid.window_width / the_occupancy_grid.cell_size);
@@ -418,7 +424,15 @@ private:
 				if(the_wall_points.corners[i].y < y_min){y_min = the_wall_points.corners[i].y;}
 			}
 		}
+	}
 
+	void callUpdateService()
+	{
+		robo7_srvs::UpdateOccupancyGridFiltered::Request req2;
+		robo7_srvs::UpdateOccupancyGridFiltered::Response res2;
+		req2.new_points = the_new_points_msg;
+		req2.the_obstacles = all_obstacles_msg;
+		update_occupancy_grid_srv.call(req2, res2);
 	}
 };
 

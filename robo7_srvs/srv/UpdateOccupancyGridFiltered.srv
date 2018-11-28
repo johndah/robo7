@@ -3,6 +3,8 @@
 # joined with the corresponding lidar scan (aka the_robot_position)
 
 robo7_msgs/mapping_grid current_occupancy_grid
+robo7_msgs/wallPoint new_points
+robo7_msgs/allObstacles the_obstacles
 
 ---
 

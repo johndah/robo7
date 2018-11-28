@@ -10,7 +10,6 @@ add_service_files(
   PickupAt.srv
   RansacWall.srv
   ICPAlgorithm.srv
-  callServiceTest.srv
   IsGridOccupied.srv
   PathFollowerSrv.srv
   scanCoord.srv
@@ -24,6 +23,7 @@ add_service_files(
   UpdateOccupancyGrid.srv
   UpdateOccupancyGridFiltered.srv
   UpdateDiscretizedMap.srv
+  callServiceTest.srv
 )
 
 
