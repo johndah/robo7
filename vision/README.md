@@ -151,6 +151,23 @@ rosrun
 
 
 
+## Obstacle Detector
+
+geometry of depth image
+
+| Real size / cm | image size | depth | Real size / image size / depth |
+| -------------- | ---------- | ----- | ------------------------------ |
+| 4              | 90         | 207   | 0.000214                       |
+| 6.5            | 161        | 190   | 0.000212                       |
+| 7.8            | 178        | 205   | 0.000213                       |
+| 2.2            | 178        | 198   | 0.000202                       |
+
+ Thus, we can estimate the obstacle size based on image size, distance
+$$
+Real size = 0.000213 \times imageSize \times depth
+$$
+
+
 
 
 ## Log
@@ -216,6 +233,20 @@ Remove some unclear images
 
 
 
+### 2018-11-23
 
+Ball, 2
+
+Cube 3
+
+Cylinder 2
+
+Hollow Cube 2
+
+Cross 2
+
+Star 2
+
+Triangle 1
 
 

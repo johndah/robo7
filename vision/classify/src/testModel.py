@@ -9,12 +9,14 @@ import numpy as np
 import sys
 
 from std_msgs.msg import Int16
+from std_msgs.msg import FLoat32
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
 from mobilenet_v2 import mobilenetv2
 from acfDetector.msg import detectedObj
 from classify.msg import classifiedObj
+from phidgets.msg import motor_encoder
 
 # Parameter setting
 ckpt_dir ='../checkpoints/160_11_23/'
@@ -59,8 +61,16 @@ class classifier:
 
         self.bridge = CvBridge()
 
+        # Subscribe the speed of motors
+        l_encoder_sub = rospy.Subscriber("/l_motor/estimated_vel", Flost32, self.l_velCallback, queue_size=1)
+        r_encoder_sub = rospy.Subscriber("/r_motor/estimated_vel", Flost32, self.r_velCallback, queue_size=1)
+        self.l_vel = 100
+        self.r_vel = 100
+
         self.detectedObj_sub = rospy.Subscriber("/vision/object", detectedObj, self.applyModel, queue_size=1)
         self.result_pub = rospy.Publisher("/vision/results", classifiedObj, queue_size=1)
+
+
 
         # self.image_sub = rospy.Subscriber("/vision/object/img", Image, self.applyModel)
         # self.obj_class_pub = rospy.Publisher("/vision/object/class", Int16, queue_size=1)
@@ -89,46 +99,54 @@ class classifier:
 
     #     self.obj_class_pub.publish(result_class)
 
+    def l_velCallback(self, data):
+        self.l_vel = data.data
+
+    def r_velCallback(self, data):
+        self.r_vel = data.data
 
     def applyModel(self, data):
-        origImg = self.bridge.imgmsg_to_cv2(data.img, "bgr8")
 
-        origImg = cv2.resize(origImg, (width, height))
+        if self.l_vel <= 0.1 and self.r_vel <= 0.1:
 
-        feddImg = origImg.astype(np.float32)
+            origImg = self.bridge.imgmsg_to_cv2(data.img, "bgr8")
 
-        feed_dict = {self.inputs: [feddImg]}
-        res = self.sess.run([self.pred], feed_dict=feed_dict)
-        res = res[0]
-        result_class = res.argmax()
+            origImg = cv2.resize(origImg, (width, height))
 
-        # put resulting text on image
-        visImg = origImg.copy()
-        cv2.putText(visImg, self.objClass[result_class], (30, 20),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        cv2.putText(visImg, str(round(res.max(), 2)), (30, 40),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            feddImg = origImg.astype(np.float32)
 
-        cv2.imshow("object image", visImg)
-        cv2.waitKey(2)
+            feed_dict = {self.inputs: [feddImg]}
+            res = self.sess.run([self.pred], feed_dict=feed_dict)
+            res = res[0]
+            result_class = res.argmax()
 
-        # publish result
-        msg = classifiedObj()
-        msg.objClass = result_class
-        msg.pos = data.pos
-        self.result_pub.publish(msg)
+            # put resulting text on image
+            visImg = origImg.copy()
+            cv2.putText(visImg, self.objClass[result_class], (30, 20),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            cv2.putText(visImg, str(round(res.max(), 2)), (30, 40),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-        # collect data
-        if mode == "collect data":
-            # key = cv2.waitKey(1000)
-            if self.frame == 1:
-                dir = "/home/ras17/data/collect/" + self.objName + str(self.objNum) + ".png"
-                cv2.imwrite(dir, origImg)
-                self.objNum = self.objNum + 1
-                self.frame = 0
-                print(self.objNum)
-            else:
-                self.frame = self.frame + 1
+            cv2.imshow("object image", visImg)
+            cv2.waitKey(2)
+
+            # publish result
+            msg = classifiedObj()
+            msg.objClass = result_class
+            msg.pos = data.pos
+            self.result_pub.publish(msg)
+
+            # collect data
+            if mode == "collect data":
+                # key = cv2.waitKey(1000)
+                if self.frame == 1:
+                    dir = "/home/ras17/data/collect/" + self.objName + str(self.objNum) + ".png"
+                    cv2.imwrite(dir, origImg)
+                    self.objNum = self.objNum + 1
+                    self.frame = 0
+                    print(self.objNum)
+                else:
+                    self.frame = self.frame + 1
 
 
 def main():
