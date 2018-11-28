@@ -86,6 +86,8 @@ private:
   Eigen::Matrix3f rotation_matrix_map;
   Eigen::Vector3f translation_vector_map;
 
+  float pi;
+
 
   void forward_transform()
   {

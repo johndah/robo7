@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>robo7_launch</name>
+  <name>map_maintenance</name>
   <version>0.0.0</version>
-  <description>The robo7_launch package</description>
+  <description>The map_maintenance package</description>
 
-  <maintainer email="johndah@kth.se">John Dahlberg</maintainer>
+  <maintainer email="matgau@kth.se">ras</maintainer>
 
   <license>BSD</license>
 
@@ -19,6 +19,7 @@
   <build_depend>pcl_ros</build_depend>
   <build_depend>pcl_conversions</build_depend>
   <build_depend>robo7_srvs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
 
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
@@ -28,6 +29,7 @@
   <build_export_depend>pcl_ros</build_export_depend>
   <build_export_depend>pcl_conversions</build_export_depend>
   <build_export_depend>robo7_srvs</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
 
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
@@ -38,6 +40,8 @@
   <exec_depend>pcl_ros</exec_depend>
   <exec_depend>pcl_conversions</exec_depend>
   <exec_depend>robo7_srvs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+
 
   <export>
 

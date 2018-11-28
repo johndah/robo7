@@ -2,7 +2,7 @@
 
 <!-- The kinematics nodes -->
    <node pkg="own_map" type="own_map" name="own_map"
-         args="_map_file:=$(find own_map)/maps/lab_maze_2018.txt">
+         args="_map_file:=$(find own_map)/maps/lab_maze_2018_2_missing.txt">
          <param name="discretization_step" type="double" value="0.01"/>
    </node>
 
@@ -22,42 +22,18 @@
 
    <node pkg="twist_interpreter" type="twist_interpreter" name="twist_interpreter" output="screen"/>
 
-<<<<<<< HEAD
-=======
 
 <!-- The localization nodes -->
->>>>>>> 70f5a958bbe8613c85dce6bfd5a7eb2b1e4fde35
    <node pkg="ransac" type="lidar_map_coordinates" name="lidar_map_coordinates" output="screen">
      <param name="lidar_angle" type="double" value="3.14"/>
    </node>
 
    <node pkg="icp" type="icp" name="icp" output="screen"/>
 
-   <!-- <node pkg="kalman_filter" type="kalman_filter" name="kalman_filter" output="screen">
-
-     <param name="initial_x_pos" type="double" value="1.65"/>
-     <param name="initial_y_pos" type="double" value="1.07"/>
-     <param name="initial_z_angle" type="double" value="1.57"/>
-
-     <param name="linear_adjustment" type="double" value="0.0481"/>
-     <param name="angular_adjustment" type="double" value="0.0217"/>
-
-     <param name="which_method" type="int" value="2"/>
-     <param name="use_measure" type="bool" value="true"/>
-     <param name="trust_lidar_and_dead_reckoning" type="bool" value="true"/>
-     <param name="time_between_two_measure" type="double" value="0.1"/>
-
-     <param name="sigma_x" type="double" value="10.0"/>
-     <param name="sigma_y" type="double" value="10.0"/>
-     <param name="sigma_angle" type="double" value="5"/>
-
-     <param name="time_adjustment" type="double" value="-0.01"/>
-   </node> -->
-
    <node pkg="kalman_filter" type="kalman_filter_v2" name="kalman_filter" output="screen">
 
-     <param name="initial_x_pos" type="double" value="1.2"/>
-     <param name="initial_y_pos" type="double" value="1.6"/>
+     <param name="initial_x_pos" type="double" value="0.2"/>
+     <param name="initial_y_pos" type="double" value="0.215"/>
      <param name="initial_z_angle" type="double" value="1.57"/>
 
      <param name="linear_adjustment" type="double" value="0.0481"/>
@@ -70,19 +46,13 @@
      <param name="sigma_angle" type="double" value="10.0"/>
      <param name="sigma_distance_lidar" type="double" value="0.01"/>
      <param name="sigma_angle_lidar" type="double" value="0.1"/>
+
+     <param name="slam_mode" type="bool" value="false"/>
    </node>
 
-   <!-- <node pkg="kalman_filter" type="meas_update" name="meas_update" output="screen">
-      <param name="sigma_x" type="double" value="0.05"/>
-      <param name="sigma_y" type="double" value="0.05"/>
-      <param name="sigma_angle" type="double" value="0.05"/>
-   </node> -->
 
-
-
-  <!-- The path_planner nodes -->
+<!-- The path_planner nodes -->
     <node pkg="own_map" type="discretize_the_map" name="discretize_the_map" output="screen"/>
-
 
     <node pkg="heuristic_grids" type="heuristic_grids_server" name="heuristic_grids_server"
         output="screen">
@@ -98,11 +68,11 @@
 
 <!-- The path_follower nodes -->
    <node pkg="path_follower" type="destination_point" name="destination_point" output="screen">
-     <param name="x_destination" type="double" value="1.2"/>
-     <param name="y_destination" type="double" value="1.6"/>
+     <param name="x_destination" type="double" value="2"/>
+     <param name="y_destination" type="double" value="0.215"/>
    </node>
 
-   <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
+   <!-- <node pkg="path_follower" type="point_follower" name="point_follower" output="screen">
      <param name="angle_P" type="double" value="2"/>
      <param name="angle_I" type="double" value="2"/>
      <param name="angle_D" type="double" value="0"/>
@@ -110,7 +80,7 @@
      <param name="angular_velocity_saturation_threshold" type="double" value="2"/>
      <param name="linear_speed" type="double" value="0.15"/>
      <param name="drive_backward" type="bool" value="false"/>
-   </node>
+   </node> -->
 
    <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
      <param name="distance_to_destination_threshold" type="double" value="0.05"/>
@@ -124,28 +94,53 @@
 
 <!-- The mapping nodes -->
   <node pkg="ransac" type="ransac" name="ransac" output="screen">
+    <!-- launch-prefix="valgrind"> -->
      <param name="threshold" type="double" value="0.02"/>
      <param name="maximum_distance_between_points" type="double" value="0.25"/>
-     <param name="minimum_point_for_a_wall" type="int" value="20"/>
+     <param name="minimum_point_for_a_wall" type="int" value="10"/>
      <param name="minimum_point_for_a_gap" type="int" value="0"/>
   </node>
 
-   <node pkg="mapping" type="update_map" name="update_map" output="screen">
-     <param name="choose_method" type="int" value="1"/>
-   </node>
+  <!-- <node pkg="mapping" type="update_occupancy_grid" name="update_occupancy_grid" output="screen">
+    <param name="local_window_size" type="double" value="2"/>
+    <param name="cell_size" type="double" value="0.02"/>
+  </node>
 
-<<<<<<< HEAD
-   <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
+  <node pkg="mapping" type="update_discretized_map" name="update_discretized_map" output="screen">
+    <param name="cell_size" type="double" value="0.02"/>
+  </node>
 
-   <node pkg="object_visualization" type="object_to_robot" name="object_to_robot" output="screen"/>
-   <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
-=======
->>>>>>> 70f5a958bbe8613c85dce6bfd5a7eb2b1e4fde35
+  <node pkg="mapping" type="mapping" name="mapping" output="screen">
+    <param name="cell_size" type="double" value="0.02"/>
+    <param name="distance_between_two_measures" type="double" value="0.1"/>
+    <param name="use_mapping_algorithm" type="bool" value="true"/>
+    <param name="use_ransac" type="bool" value="true"/>
+  </node> -->
+
+  <node pkg="object_visualization" type="object_to_robot" name="object_to_robot" output="screen"/>
+
+  <node pkg="obstacle_detect" type="obstacle_detect" name="obstacle_detect" output="screen">
+    <param name="open_visualisation_window" type="bool" value="false"/>
+  </node>
+
+  <node pkg="map_maintenance" type="map_maintenance" name="map_maintenance" output="screen">
+    <param name="cell_size" type="double" value="0.02"/>
+    <param name="free_space_around_a_cell" type="double" value="0.1"/>
+    <param name="distance_between_two_measures" type="double" value="0.1"/>
+    <param name="use_mapping_algorithm" type="bool" value="true"/>
+    <param name="use_ransac" type="bool" value="true"/>
+    <param name="obstacle_width" type="double" value="0.09"/>
+    <param name="free_space_around_an_obstacle" type="double" value="0.1"/>
+  </node>
+
+
 
 
    <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
 
 <!-- The testing services node -->
-   <node pkg="test_service" type="test_service" name="test_service" output="screen"/>
+   <node pkg="test_service" type="test_service" name="test_service" output="screen">
+     <param name="cell_size" type="double" value="0.02"/>
+   </node>
 
 </launch>

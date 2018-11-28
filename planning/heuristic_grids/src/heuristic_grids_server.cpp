@@ -5,6 +5,7 @@
 #include "std_msgs/Bool.h"
 #include "robo7_srvs/IsGridOccupied.h"
 #include "robo7_srvs/distanceTo.h"
+#include "robo7_srvs/UpdateOccupancyGridFiltered.h"
 #include "robo7_msgs/XY_coordinates.h"
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -15,6 +16,8 @@
 #include "robo7_msgs/occupancy_row.h"
 #include "robo7_msgs/grid_matrix.h"
 #include "robo7_msgs/grid_row.h"
+#include "robo7_msgs/wallPoint.h"
+#include "robo7_msgs/allObstacles.h"
 
 typedef std::vector<double> Array;
 typedef std::vector<Array> Matrix;
@@ -23,11 +26,12 @@ class HeuristicGridsServer
 {
   public:
 	ros::NodeHandle n;
-	ros::Subscriber map_sub;
+	ros::Subscriber map_sub, new_point_sub, obstacle_sub, current_occupancy_sub;
 	ros::Publisher occupancy_pub, distance_pub;
 	robo7_msgs::occupancy_matrix occupancy_matrix_msg, distance_matrix_msg;
 	ros::ServiceServer is_occupied_service;
 	ros::ServiceServer distance_to_service;
+  ros::ServiceServer update_occupancy_service;
 	Matrix grid;
 
 	HeuristicGridsServer()
@@ -38,9 +42,16 @@ class HeuristicGridsServer
 		n.param<int>("/heuristic_grids_server/smoothing_kernel_size", smoothing_kernel_size, 15);
 		n.param<int>("/heuristic_grids_server/smoothing_kernel_sd", smoothing_kernel_sd, 3);
 
+    //The different subscribes
 		map_sub = n.subscribe("/own_map/wall_coordinates", 1, &HeuristicGridsServer::mapCallback, this);
-		is_occupied_service = n.advertiseService("/occupancy_grid/is_occupied", &HeuristicGridsServer::occupancyGridRequest, this);
+    new_point_sub = n.subscribe("/localization/mapping/the_new_points", 1, &HeuristicGridsServer::newpointCallback, this);
+    obstacle_sub = n.subscribe("/localization/mapping/the_obstacles", 1, &HeuristicGridsServer::obstacleCallback, this);
+    current_occupancy_sub = n.subscribe("/localization/mapping/the_occupancy_grid", 1, &HeuristicGridsServer::occupancyCallback, this);
+
+    is_occupied_service = n.advertiseService("/occupancy_grid/is_occupied", &HeuristicGridsServer::occupancyGridRequest, this);
 		distance_to_service = n.advertiseService("/distance_grid/distance", &HeuristicGridsServer::distanceGridRequest, this);
+
+    update_occupancy_service = n.advertiseService("/occupancy_grid/update_occupancy_grid", &HeuristicGridsServer::occupancyGridUpdateRequest, this);
 
 		occupancy_pub = n.advertise<robo7_msgs::occupancy_matrix>("/heuristic_grids_server/occupancy_matrix", 1);
 		distance_pub = n.advertise<robo7_msgs::occupancy_matrix>("/heuristic_grids_server/distance_matrix", 1);
@@ -54,11 +65,26 @@ class HeuristicGridsServer
 		}
 	}
 
-	void mapCallback(const robo7_msgs::XY_coordinates::ConstPtr &msg)
+  void mapCallback(const robo7_msgs::XY_coordinates::ConstPtr &msg)
 	{
 		X_wall_coordinates = msg->X_coordinates;
 		Y_wall_coordinates = msg->Y_coordinates;
 	}
+
+  void newpointCallback(const robo7_msgs::wallPoint::ConstPtr &msg)
+	{
+		new_point_list_msg = *msg;
+	}
+
+  void obstacleCallback(const robo7_msgs::allObstacles::ConstPtr &msg)
+	{
+		the_obstacles_msg = *msg;
+	}
+
+  void occupancyCallback(const robo7_msgs::mapping_grid::ConstPtr &msg)
+  {
+    the_occupancy_grid_msg = *msg;
+  }
 
 	int sq(double coord)
 	{
@@ -151,6 +177,7 @@ class HeuristicGridsServer
 			grid[i].resize(num_grid_squares_y);
 
 		updateBasicGrid();
+    updateFilteredGrid( grid );
 	}
 
 	double distance_points(int x, int y, int a, int b)
@@ -194,23 +221,26 @@ class HeuristicGridsServer
 				}
 			}
 		}
+  }
 
+  void updateFilteredGrid(Matrix grid_instant)
+  {
 		// Setting the filtered grid
 
-		cv::Mat basic_grid(grid.size(), grid.at(0).size(), CV_64FC1);
+		cv::Mat basic_grid(grid_instant.size(), grid_instant.at(0).size(), CV_64FC1);
 
 		for (int i = 0; i < basic_grid.rows; ++i)
 		{
 			for (int j = 0; j < basic_grid.cols; ++j)
 			{
-				basic_grid.at<double>(i, j) = grid[i][j];
+				basic_grid.at<double>(i, j) = grid_instant[i][j];
 			}
 		}
 
-		occupancy_grid = gaussFilter(basic_grid, smoothing_kernel_size, smoothing_kernel_sd);
+		occupancy_grid = gaussFilter(basic_grid, smoothing_kernel_size, smoothing_kernel_sd, grid_instant);
 	}
 
-	cv::Mat gaussFilter(cv::Mat grid_in, int kernel_size, int sigma)
+	cv::Mat gaussFilter(cv::Mat grid_in, int kernel_size, int sigma, Matrix grid_instant)
 	{
 		cv::Mat grid_filtered;
 
@@ -226,7 +256,7 @@ class HeuristicGridsServer
 			for (int j = 0; j < normalized_grid.cols; ++j)
 			{
 				// if(unfiltered_grid[i][j] >= 1){
-				if (grid[i][j] >= 1)
+				if (grid_instant[i][j] >= 1)
 				{
 					normalized_grid_ones.at<float>(i, j) = 1;
 				}
@@ -379,6 +409,119 @@ class HeuristicGridsServer
 		return distance_matrix_msg;
 	}
 
+  //Here stands an updated version of the occupancy grid that is recomputed
+  //everytime we need to do it (new detection)
+  bool occupancyGridUpdateRequest(robo7_srvs::UpdateOccupancyGridFiltered::Request &req,
+							  robo7_srvs::UpdateOccupancyGridFiltered::Response &res)
+	{
+    //Call back the variable
+    // the_occupancy_grid_msg = req.current_occupancy_grid;
+    new_point_list_msg = req.new_points;
+    the_obstacles_msg = req.the_obstacles;
+
+    // Set up sizes
+    if(false)
+    {
+  		grid_mapping.resize(the_occupancy_grid_msg.occupancy_grid.nb_rows);
+  		for (int i = 0; i < the_occupancy_grid_msg.occupancy_grid.nb_rows; ++i)
+  			grid_mapping[i].resize(the_occupancy_grid_msg.occupancy_grid.nb_cols);
+
+      for(int i=0; i<the_occupancy_grid_msg.occupancy_grid.nb_rows; i++)
+      {
+        for(int j=0; j<the_occupancy_grid_msg.occupancy_grid.nb_rows; j++)
+        {
+          grid_mapping[i][j] = the_occupancy_grid_msg.occupancy_grid.rows[i].cols[j];
+        }
+      }
+    }
+    else
+    {
+      grid_mapping = grid;
+      int cell_around = (int)(min_distance/grid_square_size)+2;
+      float dist = min_distance;
+      //Add the new points
+      for(int k=0; k < new_point_list_msg.number; k++)
+      {
+        float x_loc = new_point_list_msg.the_points[k].x;
+        float y_loc = new_point_list_msg.the_points[k].y;
+        fill_local_cells(x_loc, y_loc, dist, cell_around);
+      }
+
+      //Add the obstacles
+      cell_around = (int)(min_distance/grid_square_size)+2;
+      for(int k=0; k < the_obstacles_msg.number; k++)
+      {
+        float x_loc = the_obstacles_msg.the_obstacles[k].x;
+        float y_loc = the_obstacles_msg.the_obstacles[k].y;
+        float o_size = the_obstacles_msg.obstacle_size/2;
+        for(float y_spec = y_loc - o_size; y_spec < y_loc + o_size; y_spec += grid_square_size)
+        {
+          float x_spec = x_loc - o_size;
+          fill_local_cells(x_spec, y_spec, dist, cell_around);
+          x_spec = x_loc + o_size;
+          fill_local_cells(x_spec, y_spec, dist, cell_around);
+        }
+        for(float x_spec = x_loc - o_size; x_spec < x_loc + o_size; x_spec += grid_square_size)
+        {
+          float y_spec = y_loc - o_size;
+          fill_local_cells(x_spec, y_spec, dist, cell_around);
+          y_spec = y_loc + o_size;
+          fill_local_cells(x_spec, y_spec, dist, cell_around);
+        }
+      }
+    }
+
+    updateFilteredGrid( grid_mapping );
+
+    //then publish this new blured grid
+    robo7_msgs::occupancy_matrix occupancy_matrix_msg;
+    occupancy_matrix_msg = publishOccupancyGrid();
+
+    occupancy_pub.publish( occupancy_matrix_msg );
+
+    res.success = true;
+		return true;
+	}
+
+  std::vector<int> find_index(float x, float y)
+  {
+    std::vector<int> the_local_cell(2,0);
+
+    the_local_cell[0] = (int)(x/grid_square_size + 1/2);
+    the_local_cell[1] = (int)(y/grid_square_size + 1/2);
+
+    return the_local_cell;
+  }
+
+  void fill_local_cells(float x_pos, float y_pos, float dist, int cell_around)
+  {
+    std::vector<int> the_cell_index = find_index(x_pos, y_pos);
+    for(int i=-cell_around+1; i<cell_around; i++)
+    {
+      for(int j=-cell_around+1; j<cell_around; j++)
+      {
+        int local_i = the_cell_index[0] + i;
+        int local_j = the_cell_index[1] + j;
+        if(distance_lower(x_pos, y_pos, local_i, local_j, dist))
+        {
+          if((local_i>0)&&(local_i < static_cast<int>(grid_mapping.size()))
+              &&(local_j>0)&&(local_j < static_cast<int>(grid_mapping[0].size())))
+              {
+                grid_mapping[local_i][local_j] = 1.0;
+              }
+        }
+      }
+    }
+  }
+
+  bool distance_lower(float x1, float y1, int ind_i, int ind_j, float dist)
+  {
+    float x = (ind_i + 1/2) * grid_square_size;
+    float y = (ind_j + 1/2) * grid_square_size;
+
+    return (sqrt(pow(x-x1,2)+pow(y-y1,2)) < dist);
+  }
+
   private:
 	double min_distance;
 	int num_min_distance_squares;
@@ -394,6 +537,10 @@ class HeuristicGridsServer
 	cv::Mat distance_grid;
 	float current_x_to, current_y_to;
 	bool occupancy_grid_init, distance_grid_init;
+  Matrix grid_mapping;
+  robo7_msgs::wallPoint new_point_list_msg;
+  robo7_msgs::allObstacles the_obstacles_msg;
+  robo7_msgs::mapping_grid the_occupancy_grid_msg;
 };
 
 int main(int argc, char **argv)
@@ -402,13 +549,14 @@ int main(int argc, char **argv)
 
 	HeuristicGridsServer heuristic_grids_server;
 
-	ros::Rate loop_rate(5000);
+	ros::Rate loop_rate(10);
 
 	ROS_INFO("Heuristic grids server running");
 
 	heuristic_grids_server.updateBasicGridSize();
 
-	/*
+  robo7_msgs::occupancy_matrix occupancy_matrix_msg;
+  robo7_msgs::occupancy_matrix distance_matrix_msg;
 	while (ros::ok())
 	{
 		occupancy_matrix_msg = heuristic_grids_server.publishOccupancyGrid();
@@ -420,8 +568,8 @@ int main(int argc, char **argv)
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
-		*/
-	ros::spin();
+
+  ros::spin();
 
 	return 0;
 }
