@@ -9,7 +9,7 @@ import numpy as np
 import sys
 
 from std_msgs.msg import Int16
-from std_msgs.msg import FLoat32
+from std_msgs.msg import Float32
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
@@ -23,7 +23,7 @@ ckpt_dir ='../checkpoints/160_11_23/'
 width = 160
 height = 160
 proThred = 0.9
-mode = "collect data..."
+mode = "collect data"
 
 class classifier:
     def __init__(self):
@@ -62,15 +62,15 @@ class classifier:
         self.bridge = CvBridge()
 
         # Subscribe the speed of motors
-        l_encoder_sub = rospy.Subscriber("/l_motor/estimated_vel", Flost32, self.l_velCallback, queue_size=1)
-        r_encoder_sub = rospy.Subscriber("/r_motor/estimated_vel", Flost32, self.r_velCallback, queue_size=1)
+        if not mode == "collect data":
+            l_encoder_sub = rospy.Subscriber("/l_motor/estimated_vel", Float32, self.l_velCallback, queue_size=1)
+            r_encoder_sub = rospy.Subscriber("/r_motor/estimated_vel", Float32, self.r_velCallback, queue_size=1)
         self.l_vel = 100
         self.r_vel = 100
 
+
         self.detectedObj_sub = rospy.Subscriber("/vision/object", detectedObj, self.applyModel, queue_size=1)
         self.result_pub = rospy.Publisher("/vision/results", classifiedObj, queue_size=1)
-
-
 
         # self.image_sub = rospy.Subscriber("/vision/object/img", Image, self.applyModel)
         # self.obj_class_pub = rospy.Publisher("/vision/object/class", Int16, queue_size=1)
@@ -107,7 +107,7 @@ class classifier:
 
     def applyModel(self, data):
 
-        if self.l_vel <= 0.1 and self.r_vel <= 0.1:
+        if self.l_vel <= 0.1 and self.r_vel <= 0.1 or mode == "collect data":
 
             origImg = self.bridge.imgmsg_to_cv2(data.img, "bgr8")
 
@@ -139,7 +139,7 @@ class classifier:
             # collect data
             if mode == "collect data":
                 # key = cv2.waitKey(1000)
-                if self.frame == 1:
+                if self.frame == 0:
                     dir = "/home/ras17/data/collect/" + self.objName + str(self.objNum) + ".png"
                     cv2.imwrite(dir, origImg)
                     self.objNum = self.objNum + 1

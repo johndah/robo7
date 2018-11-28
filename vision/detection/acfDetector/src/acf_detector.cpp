@@ -61,7 +61,7 @@ public:
       obj_detected_pub = n.advertise<acfDetector::detectedObj>("/vision/object", 1);
 
       std::string acfModel;
-      n.param<string>("/acf_detector/acfModel", acfModel, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb");
+      n.param<string>("/acf_detector/acfModel", acfModel, "/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb");
       detector = std::make_shared<acf::Detector>(acfModel);
 
       if (detector.get() && detector->good()) {
@@ -69,6 +69,15 @@ public:
       }
 
       n.param<double>("/acf_detector/scoreThre", scoreThre, 50);
+
+
+      // record a Video
+      // video.open("/home/ras17/detected_result.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 20, Size(640, 480));
+      // if (video.isOpened())
+      //   ROS_INFO("Initialize successfully!");
+      // else
+      //   ROS_INFO("Initializion fail!");
+
     }
 
   	~ACFdetector()
@@ -208,7 +217,7 @@ public:
       {
         // Threshold of scores
         if (scores[ind] < scoreThre){
-          ROS_INFO("skip the bbx with %f", scores[ind]);
+          // ROS_INFO("skip the bbx with %f", scores[ind]);
           ind++;
           continue;
         }
@@ -235,9 +244,10 @@ public:
           // waitKey(5);
 
           // put the score and color on the bbx
-          ss << (int)scores[ind];
+          ss << scores[ind];
+          // std::cout << ss.str() << endl;
           // cout << scores[ind] << endl;
-          cv::putText(resultImg, ss.str() + ", " + colorVec[response], cv::Point(o.x, o.y), CV_FONT_HERSHEY_SIMPLEX, 0.8, {255, 255, 255});
+          cv::putText(resultImg, ss.str().substr(0, 4) + ", " + colorVec[response], cv::Point(o.x, o.y), CV_FONT_HERSHEY_SIMPLEX, 0.8, {255, 255, 255});
           ind++;
 
           // Crop the image with enlarged bbx
@@ -313,6 +323,9 @@ public:
 
         imshow("Detected image", resultImg);
         cv::waitKey(5);
+
+        // video
+        // video.write(resultImg);
       }
 
   	}
@@ -325,6 +338,9 @@ private:
 
   cv::Mat resultImg;
   double scoreThre;
+
+  // cv::VideoWriter video;
+
 
 };
 
