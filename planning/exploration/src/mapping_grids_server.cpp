@@ -16,6 +16,8 @@
 
 typedef std::vector<float> Array;
 typedef std::vector<Array> Matrix;
+float window_width;
+float window_height;
 
 class Node;
 
@@ -25,7 +27,7 @@ float pi = 3.14159265358979323846;
 class Node
 {
   public:
-	float x, y, cost, distance_cost;
+	float x, y, occupancy_cost, theta_diff, frontier_distance;
 	//float angular_velocity, time, dt;
 	//float path_cost, path_length;
 	//float steering_angle_max, angular_velocity_resolution;
@@ -33,23 +35,39 @@ class Node
 	//unsigned int node_id;
 	//std::vector<float> path_x, path_y, path_theta;
 
-	Node(float x, float y, float cost, float distance_cost)
+	Node(float x, float y, float occupancy_cost, float theta_diff, float frontier_distance)
 	{
 		this->x = x;
 		this->y = y;
-		this->cost = cost;
-		this->distance_cost = distance_cost;
+		this->occupancy_cost = occupancy_cost;
+		this->theta_diff = theta_diff;
+		this->frontier_distance = frontier_distance;
 	}
 
 	float getCost()
 	{
-		ROS_INFO("cost %f distance %f", cost, 1 / (2 * distance_cost));
-		return cost; // + 1/(2*distance_cost);
+		//ROS_INFO("Costs: occ %f, dist %f, dist_cost %f.  theta_diff %f", occupancy_cost, frontier_distance, getDistanceCost(frontier_distance, window_height), theta_diff / (4 * pi));
+
+		return occupancy_cost + getDistanceCost(frontier_distance, window_height) + theta_diff / (4 * pi);
+	}
+
+	float getDistanceCost(float distance, float threshold)
+	{
+		if (distance < threshold)
+			return 1 - gaussian(distance, threshold, threshold);
+		else
+			return 1 - std::exp(-(distance - threshold) * threshold);
+	}
+
+	float gaussian(float x, float mean, float var)
+	{
+		float diff = (x - mean) / var;
+		return std::exp(-pow(diff, 2) / 2);
 	}
 
 	bool inCollision()
 	{
-		return cost >= 1.0;
+		return occupancy_cost >= 1.0;
 	}
 };
 
@@ -66,6 +84,7 @@ class MappingGridsServer
 
 	std::vector<node_ptr> all_frontiers_nodes;
 	Matrix grid, wall_grid;
+	int frontier_window_size, unexplored_threshold;
 
 	MappingGridsServer()
 	{
@@ -97,18 +116,20 @@ class MappingGridsServer
 
 		window_width = .45;
 		window_height = .45;
+		frontier_window_size = 4;
+		unexplored_threshold = 20;
 	}
 
-	bool explorationGridRequest(robo7_srvs::explore::Request &req,
-								robo7_srvs::explore::Response &res)
+	bool explorationGridRequest(robo7_srvs::explore::Request &req, robo7_srvs::explore::Response &res)
 	{
 		ROS_DEBUG("New grid exploration request recieved");
 
 		float x = req.x;
 		float y = req.y;
 		float theta = req.theta;
+		bool get_frontier = req.get_frontier;
 
-		geometry_msgs::Twist frontier_destination_pose = getFrontier(x, y, theta);
+		geometry_msgs::Twist frontier_destination_pose = getFrontier(x, y, theta, get_frontier, res);
 
 		res.frontier_destination_pose = frontier_destination_pose;
 		res.success = true;
@@ -153,7 +174,7 @@ class MappingGridsServer
 		return true;
 	}
 
-	geometry_msgs::Twist getFrontier(float x, float y, float theta)
+	geometry_msgs::Twist getFrontier(float x, float y, float theta, bool get_frontier, robo7_srvs::explore::Response &res)
 	{
 
 		std::vector<node_ptr> frontier_nodes;
@@ -180,13 +201,36 @@ class MappingGridsServer
 		float j_max = float(window_height / grid_square_size);
 		float x_grid, y_grid, i_shift, i_max;
 
-		float frontier_x, frontier_y;
+		float x_frontier, y_frontier, frontier_distance, x_diff, y_diff, theta_diff;
 		for (int i = 0; i < all_frontiers_nodes.size(); i++)
 		{
-			frontier_x = all_frontiers_nodes[i]->x;
-			frontier_y = all_frontiers_nodes[i]->y;
-			if (exploration_grid.at<float>(sq(frontier_x), sq(frontier_y)) == 1.0)
+			int number_unexplored = 0;
+			x_frontier = all_frontiers_nodes[i]->x;
+			y_frontier = all_frontiers_nodes[i]->y;
+
+			for (int i_frontier = sq(x_frontier) - frontier_window_size; i_frontier < sq(x_frontier) + frontier_window_size; i_frontier++)
+			{
+				for (int j_frontier = sq(y_frontier) - frontier_window_size; j_frontier < sq(y_frontier) + frontier_window_size; j_frontier++)
+				{
+					if (exploration_grid.at<float>(i_frontier, j_frontier) == 0.0)
+					{
+						number_unexplored++;
+					}
+				}
+			}
+			ROS_INFO("Number unexplored %d", number_unexplored);
+			if (exploration_grid.at<float>(sq(x_frontier), sq(y_frontier)) == 1.0 || number_unexplored < unexplored_threshold)
 				all_frontiers_nodes.erase(all_frontiers_nodes.begin() + i);
+			else
+			{
+				frontier_distance = distance(x, y, x_frontier, y_frontier);
+				all_frontiers_nodes[i]->frontier_distance = frontier_distance;
+
+				x_diff = float(x_grid - x);
+				y_diff = float(y_grid - y);
+				theta_diff = std::abs(std::fmod(theta - atan2(y_diff, x_diff) + pi, 2 * pi) - pi);
+				all_frontiers_nodes[i]->theta_diff = theta_diff;
+			}
 		}
 
 		bool add_exploration_cell;
@@ -203,13 +247,14 @@ class MappingGridsServer
 				add_exploration_cell = true;
 				if (exploration_grid.at<float>(sq(x_grid), sq(y_grid)) < 1.0 && withinMap(x_grid, y_grid))
 				{
-					float min_distance = distance(x, y, x_grid, y_grid);
-					if (min_distance > .1)
+					float frontier_distance = distance(x, y, x_grid, y_grid);
+					if (frontier_distance > .1)
 					{
 						float x_ray = x;
 						float y_ray = y;
-						float x_diff = float(x_grid - x);
-						float y_diff = float(y_grid - y);
+						x_diff = float(x_grid - x);
+						y_diff = float(y_grid - y);
+						theta_diff = std::abs(std::fmod(theta - atan2(y_diff, x_diff) + pi, 2 * pi) - pi);
 						int n = std::max(sq(x_diff), sq(y_diff));
 
 						//ROS_INFO("x %f x_grid %f  y %f y_grid %f  x_diff/n %f  y_diff/n %f", x, x_grid, y, y_grid, x_diff / n, y_diff / n);
@@ -227,55 +272,66 @@ class MappingGridsServer
 					}
 					if (add_exploration_cell)
 					{
-						if (j < 1.0 || j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5)
+						//if (j < 1.0 || j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5)
+						if (j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5)
 						{
-
 							float cost = occupancy_grid.at<float>(sq(x_grid), sq(y_grid));
 							//if (grid[sq(x_grid)][sq(y_grid)] < 1.0)
-							if (cost < .9)
+							if (cost < .6)
 							{
-								node_ptr frontier_node = std::make_shared<Node>(x_grid, y_grid, cost, min_distance);
+								node_ptr frontier_node = std::make_shared<Node>(x_grid, y_grid, cost, theta_diff, frontier_distance);
 								frontier_nodes.push_back(frontier_node);
 								all_frontiers_nodes.push_back(frontier_node);
 								exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = -1.0;
 							}
 						}
 						else
-						{
 							exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = 1.0;
-						}
 					}
 				}
 			}
 		}
-		ROS_INFO("Frontier size %d ", (int)frontier_nodes.size());
-		ROS_INFO("All frontiers size %d ", (int)all_frontiers_nodes.size());
 
 		grid_matrix_msg = publishExplorationGrid();
+
+		geometry_msgs::Twist frontier_destination_pose;
 
 		for (int i = 0; i < 10; i++)
 			exploration_pub.publish(grid_matrix_msg);
 
-		std::vector<node_ptr>::iterator min_cost_iterator;
-		if (false && !frontier_nodes.empty())
+		node_ptr frontier_destination_node;
+		if (get_frontier)
 		{
-			min_cost_iterator = std::min_element(frontier_nodes.begin(), frontier_nodes.end(), [](const node_ptr a, const node_ptr b) {
-				return a->getCost() < b->getCost();
-			});
+			std::vector<node_ptr>::iterator min_cost_iterator;
+
+			ROS_INFO("Frontier size %d ", (int)frontier_nodes.size());
+			ROS_INFO("All frontiers size %d ", (int)all_frontiers_nodes.size());
+			if (false && !frontier_nodes.empty())
+			{
+				min_cost_iterator = std::min_element(frontier_nodes.begin(), frontier_nodes.end(), [](const node_ptr a, const node_ptr b) {
+					return a->getCost() < b->getCost();
+				});
+				frontier_destination_node = frontier_nodes[std::distance(frontier_nodes.begin(), min_cost_iterator)];
+			}
+			else if (!all_frontiers_nodes.empty())
+			{
+				min_cost_iterator = std::min_element(all_frontiers_nodes.begin(), all_frontiers_nodes.end(), [](const node_ptr a, const node_ptr b) {
+					return a->getCost() < b->getCost();
+				});
+				frontier_destination_node = all_frontiers_nodes[std::distance(all_frontiers_nodes.begin(), min_cost_iterator)];
+			}
+			else
+			{
+				ROS_INFO("Everything explored!");
+				res.success = true;
+				return frontier_destination_pose;
+			}
+
+			frontier_destination_pose.linear.x = frontier_destination_node->x;
+			frontier_destination_pose.linear.y = frontier_destination_node->y;
 		}
 		else
-		{
-			min_cost_iterator = std::min_element(all_frontiers_nodes.begin(), all_frontiers_nodes.end(), [](const node_ptr a, const node_ptr b) {
-				return a->getCost() < b->getCost();
-			});
-		}
-
-		node_ptr frontier_destination_node = frontier_nodes[std::distance(frontier_nodes.begin(), min_cost_iterator)];
-
-		geometry_msgs::Twist frontier_destination_pose;
-
-		frontier_destination_pose.linear.x = frontier_destination_node->x;
-		frontier_destination_pose.linear.y = frontier_destination_node->y;
+			return frontier_destination_pose;
 
 		return frontier_destination_pose;
 	}
@@ -475,7 +531,7 @@ class MappingGridsServer
 		return grid_matrix_msg;
 	}
 	/*
-*/
+	*/
 	robo7_msgs::grid_matrix publishWallGrid()
 	{
 		robo7_msgs::grid_row grid_row_msg;
@@ -526,8 +582,6 @@ class MappingGridsServer
 	int smoothing_kernel_sd;
 	int num_grid_squares_x;
 	int num_grid_squares_y;
-	float window_width;
-	float window_height;
 	std::vector<float> X_wall_coordinates;
 	std::vector<float> Y_wall_coordinates;
 	cv::Mat occupancy_grid;

@@ -83,6 +83,7 @@ public:
       explore_srv.request.x = x;
       explore_srv.request.y = y;
       explore_srv.request.theta = theta;
+      explore_srv.request.get_frontier = true;
 
       exploration_client.call(explore_srv);
 
@@ -107,14 +108,15 @@ public:
       partial_theta = theta;
       for (int j = 0; j < trajectory_array.trajectory_points.size(); j++)
       {
-          partial_x = trajectory_array.trajectory_points[j].pose.linear.x;
-          partial_y = trajectory_array.trajectory_points[j].pose.linear.y;
-          partial_theta = trajectory_array.trajectory_points[j].pose.angular.z;
-          explore_srv.request.x = partial_x;
-          explore_srv.request.y = partial_y;
-          explore_srv.request.theta = partial_theta;
+        partial_x = trajectory_array.trajectory_points[j].pose.linear.x;
+        partial_y = trajectory_array.trajectory_points[j].pose.linear.y;
+        partial_theta = trajectory_array.trajectory_points[j].pose.angular.z;
+        explore_srv.request.x = partial_x;
+        explore_srv.request.y = partial_y;
+        explore_srv.request.theta = partial_theta;
+        explore_srv.request.get_frontier = false;
 
-          exploration_client.call(explore_srv);
+        exploration_client.call(explore_srv);
       }
 
       robot_pose.linear.x = partial_x;

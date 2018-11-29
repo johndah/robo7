@@ -55,7 +55,11 @@ class Node
 		this->dt = 0.05;
 
 		this->path_length = 0.3;
-		this->steering_angle_max = pi / (10.0 * this->dt);
+		if (exploration)
+			this->steering_angle_max = pi / (5.0 * this->dt);
+		else
+			this->steering_angle_max = pi / (10.0 * this->dt);
+			
 		this->angular_velocity_resolution = pi / 2;
 
 		this->tolerance_radius = 3e-2;
@@ -268,7 +272,7 @@ class PathPlanning
 		geometry_msgs::Point destination_position = req.destination_position;
 
 		if (req.exploring)
-			field_scale = 0.8;
+			field_scale = 0.6;
 		else
 			field_scale = 1.0;
 
@@ -297,7 +301,7 @@ class PathPlanning
 		path_theta.clear();
 
 		float theta0_resolution;
-		
+
 		if (exploration)
 			theta0_resolution = pi / 4;
 		else

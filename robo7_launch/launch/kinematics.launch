@@ -91,7 +91,7 @@
 
     <node pkg="exploration" type="mapping_grids_server" name="mapping_grids_server"
         output="screen">
-      <param name="grid_square_size" type="double" value="0.01"/>
+      <param name="grid_square_size" type="double" value="0.02"/>
       <param name="min_distance" type="double" value="0.13"/>
       <param name="wall_thickness" type="double" value="0.01"/>
       <param name="smoothing_kernel_size" type="int" value="21"/>
