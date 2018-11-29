@@ -250,3 +250,22 @@ Star 2
 Triangle 1
 
 
+
+### 2018-11-28
+
+| Class             | # Class |                                            |       | acc   |
+| ----------------- | ------- | ------------------------------------------ | ----- | ----- |
+| Yellow Ball       | 273     | OK                                         | +1205 | 100   |
+| Yellow Cube       | 250     | OK                                         | +1121 | 97.48 |
+| Green Cube        | 401     | OK                                         | +1122 | 100   |
+| Green Cylinder    | 341     | often g_hollow                             | +1216 | 63.25 |
+| Green Hollow Cube | 116     | OK                                         | +1633 | 95.53 |
+| Orange Cross      | 16      | sometimes                                  | +1646 | 83.58 |
+| Orange Star       | 329     | not good enough when it stand and fas away | +1063 | 96.84 |
+| Red Cylinder      | 133     |                                            | +1498 | 73.52 |
+| Red Hollow Cube   | 147     | Bad                                        | +1342 | 86.15 |
+| Red Ball          | 307     | OK                                         | +1273 | 99.47 |
+| Blue Cube         | 84      | Bad                                        | +1583 | 58.33 |
+| Blue Triangle     | 272     | OK                                         | +1306 | 99.80 |
+| Purple Cross      | 390     | Sometimes                                  | +1238 | 99.55 |
+| Purple Star       | 313     | Sometimes                                  | +1300 | 95.25 |
