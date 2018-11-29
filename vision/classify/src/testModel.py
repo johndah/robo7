@@ -19,11 +19,11 @@ from classify.msg import classifiedObj
 from phidgets.msg import motor_encoder
 
 # Parameter setting
-ckpt_dir ='../checkpoints/160_11_23/'
+ckpt_dir ='../checkpoints/160_11_29/'
 width = 160
 height = 160
 proThred = 0.9
-mode = "collect data"
+mode = "not collect data"
 
 class classifier:
     def __init__(self):
