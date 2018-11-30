@@ -37,15 +37,16 @@
 // ROS includes.
 #include <ros/ros.h>
 #include <ros/time.h>
+#include <tf/tf.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <geometry_msgs/Point.h>
-#include <tf/tf.h>
 #include <geometry_msgs/Point32.h>
+#include <geometry_msgs/Vector3.h>
 #include <sensor_msgs/PointCloud.h>
 #include <robo7_msgs/XY_coordinates.h>
 #include <robo7_msgs/cornerList.h>
-#include <geometry_msgs/Vector3.h>
+#include <robo7_msgs/allObstacles.h>
 
 // Boost includes
 #include <stdio.h>
@@ -74,6 +75,10 @@ int main(int argc, char **argv)
     string _map_topic = "/maze_map";
     n.param<string>("map_file", _map_file, "maze_map.txt");
     n.param<float>("/own_map/discretization_step", discretisation_step, 0.05);
+
+    string obss_file;
+    n.param<std::string>("/own_map/obss_file", obss_file, "obss.txt");
+
 //    n.param<string>("map_frame", _map_frame, "/map");
 //    n.param<string>("map_topic", _map_topic, "/maze_map");
 
@@ -90,6 +95,7 @@ int main(int argc, char **argv)
     ros::Publisher wall_coordinates = n.advertise<robo7_msgs::XY_coordinates>("wall_coordinates", 1);
     ros::Publisher corners_coordinates_pub = n.advertise<robo7_msgs::cornerList>("map_corners", 1);
     ros::Publisher walls_coordinates_pub = n.advertise<robo7_msgs::cornerList>("/ras_maze/maze_map/walls_coord_for_icp", 1);
+    ros::Publisher obstacles_pub = n.advertise<robo7_msgs::allObstacles>("/TESTOBSTACLES/", 1);
 
     vector<float> X_wall_coordinates = vector<float>(1, 0);
     vector<float> Y_wall_coordinates = vector<float>(1, 0);
@@ -101,6 +107,64 @@ int main(int argc, char **argv)
     geometry_msgs::Vector3 corner;
 
     string line;
+
+// obstacle code starts here
+
+    ifstream obstacle_fs;
+    obstacle_fs.open(obss_file.c_str());
+
+    robo7_msgs::allObstacles obss_msg;
+    std::vector<geometry_msgs::Vector3> obstacles;
+
+    bool publish_obss = true;
+
+    if (!obstacle_fs.is_open()){
+        ROS_WARN("Could not read obstacles file, exploration mode?");
+        publish_obss = false;
+    } else{
+      ROS_INFO("Reading obstacles from file");
+      int num_obss = 0;
+      float obss_size = 0;
+
+      while (getline(obstacle_fs, line)){
+          if (line[0] == '#') {
+            // comment -> skip
+            continue;
+          }
+          num_obss++;
+
+
+          float max_num = std::numeric_limits<float>::max();
+
+          float obs_size = max_num,
+                 obs_x = max_num,
+                 obs_y = max_num;
+
+          std::istringstream line_stream(line);
+
+          line_stream >> obs_size >> obs_x >> obs_y;
+
+          if ((obs_size == max_num) || ( obs_x == max_num) || (obs_y == max_num)){
+              ROS_WARN("Segment error in obss file. Skipping line: %s",line.c_str());
+              continue;
+          }
+
+          obss_size = obs_size;
+          geometry_msgs::Vector3 a_obstacle;
+          a_obstacle.x = obs_x;
+          a_obstacle.y = obs_y;
+
+          obstacles.push_back(a_obstacle);
+      }
+
+      obss_msg.number = num_obss;
+      obss_msg.obstacle_size = obss_size;
+      obss_msg.the_obstacles = obstacles;
+
+    }
+// obstacle code ends here
+
+
     int wall_id = 0;
     while (getline(map_fs, line)){
 
@@ -170,6 +234,11 @@ int main(int argc, char **argv)
         wall_coordinates.publish( point_XY );
         corners_coordinates_pub.publish( all_corners );
         walls_coordinates_pub.publish( map_points );
+
+        if(publish_obss){
+          obstacles_pub.publish( obss_msg );
+        }
+
         ros::spinOnce();
         r.sleep();
     }

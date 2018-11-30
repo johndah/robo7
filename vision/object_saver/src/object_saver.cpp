@@ -27,8 +27,8 @@ class ObjectSaver
 	ObjectSaver()
 	{
 		// Parameters
-    n.param<std::string>("objs_file", objs_file, "objs.txt");
-    n.param<std::string>("obss_file", obss_file, "obss.txt");
+    n.param<std::string>("/object_saver/objs_file", objs_file, "objs.txt");
+    n.param<std::string>("/object_saver/obss_file", obss_file, "obss.txt");
 
 		objs_sub = n.subscribe("/vision/all_objects", 1, &ObjectSaver::ObjsCallback, this);
 		obss_sub = n.subscribe("/vision/all_obstacles", 1, &ObjectSaver::ObssCallback, this);
