@@ -15,6 +15,7 @@
 #include <robo7_srvs/replaceExplorationPoints.h>
 #include <robo7_srvs/distanceTo.h>
 #include <robo7_srvs/moveToNextPoint.h>
+#include <robo7_srvs/GoTo.h>
 
 float control_frequency = 30.0;
 
@@ -25,12 +26,13 @@ public:
 	ros::Subscriber the_robot_pose_sub;
 	ros::ServiceServer path_exploration_service, move_to_next_point_service;
   ros::Publisher the_unexplored_points_pub, the_explored_points_pub, the_aimed_point_pub;
-	ros::ServiceClient is_cell_occupied_srv, distance_to_srv;
+	ros::ServiceClient is_cell_occupied_srv, distance_to_srv, go_to_srv;
 
 	PathExplorer()
 	{
 		//The initial parameters
 		n.param<float>("/path_exploration_test/dist_between_points", dist_between_points, 0.50);
+		n.param<float>("/path_exploration_test/close_enough_to_goal", close_enough_threshold, 0.25);
 
 		//Define the subscribers
 		the_robot_pose_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &PathExplorer::robot_pose_callBack, this);
@@ -42,6 +44,7 @@ public:
 		//Subscribe the services
 		is_cell_occupied_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
 		distance_to_srv = n.serviceClient<robo7_srvs::distanceTo>("/distance_grid/distance");
+		go_to_srv = n.serviceClient<robo7_srvs::GoTo>("/kinematics/go_to");
 
 		//Define the publishers
 		the_unexplored_points_pub = n.advertise<robo7_msgs::wallPoint>("/path_planning/exploration/the_unexplored_points", 1);
@@ -76,9 +79,9 @@ public:
 		geometry_msgs::Vector3 onePoint;
 		float x_step = x_max/nb_x;
 		float y_step = y_max/nb_y;
-		for(int i=0; i<nb_x+1; i++)
+		for(int i=0; i < nb_x+1; i++)
 		{
-			for(int j=0; j<nb_y+1; j++)
+			for(int j=0; j < nb_y+1; j++)
 			{
 				if((i>0)||(j>0))
 				{
@@ -234,12 +237,63 @@ public:
 
 		the_aimed_point_pub.publish( point_to_follow );
 
+		geometry_msgs::Twist destination;
+		destination.linear.x = point_to_follow.x;
+		destination.linear.y = point_to_follow.y;
+		destination.linear.z = point_to_follow.z;
+		destination.angular.z = -1;
+
 		//Do go_To service and see what it does return
+		robo7_srvs::GoTo::Request req2;
+		robo7_srvs::GoTo::Response res2;
+		req2.robot_pose = the_robot_pose.position;
+		req2.destination_pose = destination;
+		go_to_srv.call(req2, res2);
+
+		if(res2.success||distanceToGoal(destination))
+		{
+			move_unexplored_point_to_explored_point( point_index );
+		}
+
+		publishPoints();
 
 		res.mapping_over = false;
 		return true;
 	}
 
+	bool distanceToGoal(geometry_msgs::Twist destination)
+	{
+		ros::spinOnce();
+		float x1 = the_robot_pose.position.linear.x;
+		float y1 = the_robot_pose.position.linear.y;
+		float x2 = destination.linear.x;
+		float y2 = destination.linear.y;
+
+		float dist = sqrt(pow(x1-x2,2) + pow(y1-y2,2));
+
+		return (dist < close_enough_threshold);
+	}
+
+	void move_unexplored_point_to_explored_point(int point_index)
+	{
+		robo7_msgs::wallPoint copyUnexplored = allUnexploredPoints;
+		allUnexploredPoints.number = 0;
+		allUnexploredPoints.the_points.clear();
+
+		for(int i=0; i < copyUnexplored.number; i++)
+		{
+			if( i == point_index )
+			{
+				allExploredPoints.number++;
+				allExploredPoints.the_points.push_back( copyUnexplored.the_points[i] );
+			}
+			else
+			{
+				allUnexploredPoints.number++;
+				allUnexploredPoints.the_points.push_back( copyUnexplored.the_points[i] );
+			}
+		}
+	}
 
 private:
 	//Subscribers variables
@@ -256,6 +310,7 @@ private:
 
   //Variables definition
 	float x_max, y_max;
+	float close_enough_threshold;
 
 	//
 

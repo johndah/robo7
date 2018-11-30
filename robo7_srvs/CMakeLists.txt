@@ -26,6 +26,7 @@ add_service_files(
   callServiceTest.srv
   replaceExplorationPoints.srv
   moveToNextPoint.srv
+  PureRotation.srv
 )
 
 

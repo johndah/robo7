@@ -82,6 +82,12 @@
      <param name="drive_backward" type="bool" value="false"/>
    </node> -->
 
+   <node pkg="path_follower" type="pure_rotation" name="pure_rotation" output="screen">
+     <param name="angle_P" type="double" value="1"/>
+     <param name="margins_acceptance" type="double" value="0.3"/>
+     <param name="angular_velocity_saturation_threshold" type="double" value="2"/>
+   </node>
+
    <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
      <param name="distance_to_destination_threshold" type="double" value="0.05"/>
      <param name="distance_to_jump_to_next_point" type="double" value="0.1"/>
@@ -101,7 +107,7 @@
      <param name="minimum_point_for_a_gap" type="int" value="0"/>
   </node>
 
-  <node pkg="object_visualization" type="object_to_robot" name="object_to_robot" output="screen"/>
+  <!-- <node pkg="object_visualization" type="object_to_robot" name="object_to_robot" output="screen"/> -->
 
   <node pkg="obstacle_detect" type="obstacle_detect" name="obstacle_detect" output="screen">
     <param name="open_visualisation_window" type="bool" value="false"/>
