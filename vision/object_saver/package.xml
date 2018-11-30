@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>object_saver</name>
+  <version>0.0.0</version>
+  <description>The object_saver package</description>
+
+  <maintainer email="jacobbj@kth.se">Jacob</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>robo7_msgs</build_depend>
+  <build_depend>robo7_srvs</build_depend>
+
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>robo7_msgs</build_export_depend>
+  <build_export_depend>robo7_srvs</build_export_depend>
+
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>robo7_msgs</exec_depend>
+  <exec_depend>robo7_srvs</exec_depend>
+
+  <export>
+
+  </export>
+</package>
