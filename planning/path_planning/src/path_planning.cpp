@@ -59,7 +59,7 @@ class Node
 			this->steering_angle_max = pi / (5.0 * this->dt);
 		else
 			this->steering_angle_max = pi / (10.0 * this->dt);
-			
+
 		this->angular_velocity_resolution = pi / 2;
 
 		this->tolerance_radius = 3e-2;
@@ -165,12 +165,12 @@ class PathPlanning
 		position_updated = true;
 	}
 
-	std::vector<node_ptr> getSuccessorNodes(node_ptr node)
+	std::vector<node_ptr> getSuccessorNodes(node_ptr node, node_ptr node_target)
 	{
 		float angle_diff_tol, cost_to_come, cost, path_length_max;
 		std::vector<node_ptr> successors;
 		std::vector<float> path_x, path_y, path_theta;
-		node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
+		// node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
 
 		angle_diff_tol = 1e-1;
 
@@ -235,11 +235,11 @@ class PathPlanning
 				if (successor_node->distanceSquared(node_target) < this->goal_radius_tolerance)
 					break;
 
-				this->occupancy_srv.request.x = x;
-				this->occupancy_srv.request.y = y;
+				occupancy_srv.request.x = x;
+				occupancy_srv.request.y = y;
 
-				if (this->occupancy_client.call(this->occupancy_srv))
-					path_cost = this->occupancy_srv.response.occupancy * node->path_length * penalty_factor;
+				if (occupancy_client.call(occupancy_srv))
+					path_cost = occupancy_srv.response.occupancy * node->path_length * penalty_factor;
 				else
 				{
 					add_node = false;
@@ -258,6 +258,117 @@ class PathPlanning
 		}
 
 		return successors;
+	}
+
+	node_ptr getDirectTarget(node_ptr node, float x_diff, float y_diff)
+	{
+		std::vector<float> path_x, path_y, path_theta;
+		// node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
+		float path_length, angular_velocity, cost_to_come, penalty_factor;
+
+		path_length = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
+
+		float x, y, theta, path_cost, t, dt;
+		x = node->x;
+		y = node->y;
+		theta = std::abs(std::fmod(atan2(y_diff, x_diff) + pi, 2 * pi) - pi);
+		// ROS_INFO("Theta %f, path_length %f", theta, path_length);
+		angular_velocity = 0;
+		penalty_factor = 0.4;
+		t = 0.0;
+		dt = node->dt;
+
+		path_cost = 0.0;
+		cost_to_come = node->cost_to_come;
+
+		// add_node = true;
+
+		while (t < path_length)
+		{
+			x += cos(theta) * dt;
+			y += sin(theta) * dt;
+			theta += angular_velocity * dt;
+
+			t += dt;
+			path_x.push_back(x);
+			path_y.push_back(y);
+			path_theta.push_back(theta);
+
+			// ROS_INFO("x %f  y %f   theta %f   t %f", x, y, theta, t);
+
+			// node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
+			// successor_node->cost_to_go = successor_node->getHeuristicCost();
+
+			// if (successor_node->inCollision())
+			// {
+			// 	add_node = false;
+			// 	break;
+			// }
+
+			// if (successor_node->distanceSquared(node_target) < this->goal_radius_tolerance)
+			// 	break;
+
+			occupancy_srv.request.x = x;
+			occupancy_srv.request.y = y;
+
+			if (occupancy_client.call(occupancy_srv))
+				path_cost = occupancy_srv.response.occupancy * path_length * penalty_factor;
+			// else
+			// {
+			// 	add_node = false;
+			// 	break;
+			// }
+		}
+
+		cost_to_come += path_cost;
+		node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
+		successor_node->cost_to_go = successor_node->getHeuristicCost();
+
+		return successor_node;
+	}
+
+	bool targetInSight(node_ptr node_current, node_ptr node_target, robo7_srvs::path_planning::Response &res)
+	{
+		float x_diff, y_diff, x_ray, y_ray, path_length;
+
+		x_diff = float(node_target->x - node_current->x);
+		y_diff = float(node_target->y - node_current->y);
+		
+		int n = floor(200 * std::max(std::abs(x_diff), std::abs(y_diff)));
+		//ROS_INFO("n %d  xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", n,  node_current->x,  node_current->y, node_target->x, node_target->y, x_diff, y_diff);
+		bool visable = true;
+
+		x_ray =  node_current->x;
+		y_ray =  node_current->y;
+
+		for (int i_ray = 0; i_ray < n; i_ray++)
+		{
+			x_ray += x_diff / n;
+			y_ray += y_diff / n;
+
+			occupancy_srv.request.x = x_ray;
+			occupancy_srv.request.y = y_ray;
+			if (occupancy_client.call(occupancy_srv))
+			{
+				//ROS_INFO("Ray:  x %f y %f  occ %f", x_ray, y_ray, occupancy_srv.response.occupancy);
+				if (occupancy_srv.response.occupancy == 1.0)
+				{
+					visable = false;
+					break;
+				}
+			}
+		}
+
+		if (visable)
+		{
+			ROS_INFO("Going directly to target");
+			node_ptr node_successor = getDirectTarget(node_current, x_diff, y_diff);
+			node_successor->parent = node_current;
+
+			get_found_path(node_successor, node_successor, res);
+		}
+
+		return visable;
 	}
 
 	bool getPath(robo7_srvs::path_planning::Request &req, robo7_srvs::path_planning::Response &res)
@@ -327,13 +438,16 @@ class PathPlanning
 
 			node_ptr node_current = alive_nodes[std::distance(alive_nodes.begin(), min_cost_iterator)];
 
+			if (targetInSight(node_current, node_target, res))
+				return true;
+
 			if (node_current->distanceSquared(node_target) < this->goal_radius_tolerance)
 				return get_found_path(node_current, node_current, res);
 
 			alive_nodes.erase(min_cost_iterator);
 			dead_nodes.push_back(node_current);
 
-			successors = getSuccessorNodes(node_current);
+			successors = getSuccessorNodes(node_current, node_target);
 
 			for (int i = 0; i < successors.size(); i++)
 			{

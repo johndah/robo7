@@ -90,6 +90,7 @@ public:
       x = explore_srv.response.frontier_destination_pose.linear.x;
       y = explore_srv.response.frontier_destination_pose.linear.y;
 
+      ROS_INFO("rx %f  ry %f  dx %f  dy %f", robot_pose.linear.x, robot_pose.linear.y, x, y);
       path_req.exploring = true;
       path_req.robot_position = robot_pose;
       path_req.destination_position.x = x;
