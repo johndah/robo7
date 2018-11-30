@@ -306,7 +306,10 @@ Visualization Manager:
       Marker Topic: /Paths
       Name: Paths
       Namespaces:
-        {}
+        Curves: true
+        Target: true
+        Trajectory: true
+        Trajectory nodes: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -341,12 +344,12 @@ Visualization Manager:
       Class: rviz/Map
       Color Scheme: map
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: Map
       Topic: /visualization/mapping/the_occupancy_grid
       Unreliable: false
       Use Timestamp: false
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -437,16 +440,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.24509192
+      Distance: 5.11385107
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.16385984
-        Y: 1.68844676
-        Z: 0.0456428863
+        X: 1.11419594
+        Y: 1.46326017
+        Z: 0.0458676182
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
