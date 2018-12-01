@@ -1,0 +1,6 @@
+model_checkpoint_path: "mobilenetv2-400"
+all_model_checkpoint_paths: "mobilenetv2-50"
+all_model_checkpoint_paths: "mobilenetv2-60"
+all_model_checkpoint_paths: "mobilenetv2-70"
+all_model_checkpoint_paths: "mobilenetv2-80"
+all_model_checkpoint_paths: "mobilenetv2-400"

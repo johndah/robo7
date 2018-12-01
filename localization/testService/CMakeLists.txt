@@ -10,17 +10,17 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   pcl_ros
   robo7_srvs
+  sensor_msgs
 )
 
 catkin_package(
- CATKIN_DEPENDS roscpp std_msgs geometry_msgs robo7_msgs phidgets pcl_conversions pcl_ros robo7_srvs
+ CATKIN_DEPENDS roscpp std_msgs geometry_msgs robo7_msgs phidgets pcl_conversions pcl_ros robo7_srvs sensor_msgs
 )
 
 
 include_directories(
  ${catkin_INCLUDE_DIRS}
 )
-
 
 add_executable(test_service src/test_service.cpp)
 target_link_libraries(test_service ${catkin_LIBRARIES})

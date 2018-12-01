@@ -24,6 +24,8 @@ add_message_files(
   MeasureRequest.msg
   trajectory_point.msg
   trajectory.msg
+  target_trajectory_point.msg
+  target_trajectory.msg
   destination_point.msg
   MeasureFeedback.msg
   occupancy_matrix.msg
@@ -38,6 +40,13 @@ add_message_files(
   wallPoint.msg
   aWall.msg
   the_robot_position.msg
+  mapping_grid.msg
+  matrix_row.msg
+  matrix.msg
+  activation_states.msg
+  detectedObstacle.msg
+  classifiedObj.msg
+  allObstacles.msg
 )
 
 generate_messages(

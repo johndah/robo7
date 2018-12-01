@@ -39,7 +39,7 @@ class Speaker
     std::stringstream ss;
 
     if(0 <= obj && obj < 14){
-      ss << "I see " << obj_classes[obj];
+      ss << "I found " << obj_classes[obj];
     }
     else{
       ss << "I am confused";

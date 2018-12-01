@@ -1,18 +1,12 @@
-// #include <iostream>
-#include <pcl/console/parse.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-#include <pcl/sample_consensus/ransac.h>
-#include <pcl/sample_consensus/sac_model_plane.h>
-#include <pcl/sample_consensus/sac_model_sphere.h>
-#include <pcl/sample_consensus/sac_model_line.h>
-// #include <pcl/visualization/pcl_visualizer.h>
-// #include <boost/thread/thread.hpp>
-
+#include <ros/ros.h>
+#include <stdlib.h>
+#include <string>
+#include <vector>
+#include <memory>
+#include <iostream>
 #include <unistd.h>
 
-#include <ros/ros.h>
+//The messages
 #include <robo7_msgs/XY_coordinates.h>
 #include <robo7_msgs/aWall.h>
 #include <robo7_msgs/wallList.h>
@@ -21,26 +15,18 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
 
-#include <stdlib.h>
+//RANSAC library
+#include <pcl/console/parse.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/io/boost.h>
+#include <pcl/point_types.h>
+#include <pcl/sample_consensus/ransac.h>
+#include <pcl/sample_consensus/sac_model_plane.h>
+#include <pcl/sample_consensus/sac_model_sphere.h>
+#include <pcl/sample_consensus/sac_model_line.h>
 
-#include <string>
-#include <vector>
 
-// boost::shared_ptr<pcl::visualization::PCLVisualizer>
-//
-// simpleVis (pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud)
-// {
-//   // --------------------------------------------
-//   // -----Open 3D viewer and add point cloud-----
-//   // --------------------------------------------
-//   boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
-//   viewer->setBackgroundColor (0, 0, 0);
-//   viewer->addPointCloud<pcl::PointXYZ> (cloud, "sample cloud");
-//   viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
-//   //viewer->addCoordinateSystem (1.0, "global");
-//   viewer->initCameraParameters ();
-//   return (viewer);
-// }
 
 class RansacServer
 {
@@ -63,6 +49,12 @@ public:
 
 		ransac_service = n.advertiseService("/localization/ransac", &RansacServer::ransacSequence, this);
 
+		// ROS_INFO("Died ?");
+		// cloud_init.clear();
+		// cloud = cloud_init.makeShared();
+		// model_p =  pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr(new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
+		// ROS_INFO("No");
+
 		//Publishers
 		model_pub = n.advertise<geometry_msgs::Twist>("/localization/ransac/modelLine", 1);
 		wall_list = n.advertise<robo7_msgs::wallList>("/localization/ransac/walls", 1);
@@ -72,47 +64,43 @@ public:
 	bool ransacSequence(robo7_srvs::RansacWall::Request &req,
          robo7_srvs::RansacWall::Response &res)
 	{
+		ROS_INFO("Start RANSAC");
 		the_cloud = req.the_cloud;
-		// ROS_INFO("Number of points : %d, %lf", the_cloud.number, the_cloud.the_points[0].x);
+		ROS_INFO("Number of points : %d, %lf", the_cloud.number, the_cloud.the_points[0].x);
 		robo7_msgs::wallList all_the_walls;
     robo7_msgs::cornerList all_corners;
 
 		wall_full_list.clear();
     the_corners_list.clear();
 
-
     // initialize PointClouds
-		cloud_init = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
-    cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
-    final_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+		// ROS_INFO("Cloud declaration");
+		cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ> >();
+		// ROS_INFO("Cloud declared");
 
 		//Initialize the wall extraction algorithm
 		still_walls = true;
 
-		bool copy = true;
-
     clean_the0points();
     wall_nb = 1;
 
+		ROS_INFO("Extraction of the walls");
 		//Extraction of all the walls
 		while(still_walls)
 		{
-
+			ROS_INFO("Update cloud");
       updateCloud();
 
-			if(copy)
-			{
-				pcl::copyPointCloud<pcl::PointXYZ>(*cloud, *cloud_init);
-				copy = false;
-			}
-
+			ROS_INFO("Solve RANSAC");
+			ROS_INFO("Cloud size %d, %d", cloud->width, cloud->height);
 			//Find the line model that fit this new point cloud
-			if(cloud->width > 2) {
+			if((cloud->width > 2)&&(cloud->width > min_point)) {
 				solveRansac();
 			} else {
 				still_walls = false;
 			}
 
+			ROS_INFO("Add the walls, nb inliers = %d", static_cast<int>(inliers.size()));
 			if( (static_cast<int>(inliers.size()) < min_point) || !still_walls )
 			{
 				still_walls = false;
@@ -124,11 +112,9 @@ public:
 
 				//Remove the inliers from the previously used point cloud in order
 				//to look for another model (wall)
-        updateInliers();
+        // updateInliers();
 				updatePoints();
 			}
-
-      wall_nb++;
 		}
 
 		all_the_walls.walls = wall_full_list;
@@ -143,6 +129,8 @@ public:
 		res.all_corners = all_corners;
 		res.ransac_walls = all_the_walls;
 		res.success = true;
+
+		ROS_INFO("RANSAC done \n");
     return true;
 	}
 
@@ -183,25 +171,19 @@ public:
 
 	void solveRansac()
 	{
-		pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr
-      model_p (new pcl::SampleConsensusModelLine<pcl::PointXYZ> (cloud));
+		model_p = boost::make_shared<pcl::SampleConsensusModelLine<pcl::PointXYZ> >(cloud);
 
     pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (model_p);
+		ROS_INFO("ransac declared");
     ransac.setDistanceThreshold (ransac_threshold);
+		ROS_INFO("threshold declared");
     ransac.computeModel();
+		ROS_INFO("Model solved");
     ransac.getInliers(inliers);
     ransac.getModelCoefficients( model_param_ );
 
-		// mod.linear.x = model_param_(0);
-		// mod.linear.y = model_param_(1);
-		// mod.linear.z = model_param_(2);
-		// mod.angular.x = inliers[0];
-		// mod.angular.y = inliers[inliers.size()];
-		// mod.angular.z = model_param_(5);
-		//
-		// model_pub.publish( mod );
-		ROS_INFO("inliers : %d", static_cast<int>(inliers.size()));
-		printInliers();
+		// ROS_INFO("inliers : %d", static_cast<int>(inliers.size()));
+		// printInliers();
 
 		x0 = model_param_(0); y0 = model_param_(1); z0 = model_param_(2);
 		a = model_param_(3); b = model_param_(4); c = model_param_(5);
@@ -283,6 +265,68 @@ public:
 
     tot_inliers = static_cast<int>(inliers.size());
 
+		//Extract the index we should start with
+		extract_start_index();
+
+    index1 = index;
+
+    wall_done = true;
+    wall_pts_nb = 0;
+    for(int i=0; i<tot_inliers; i++)
+    {
+      if(x_diff > y_diff)
+      {
+        x_ext = cloud->points[inliers[index%tot_inliers]].x;
+        y_ext = compute_y(x_ext);
+        x_ext1 = cloud->points[inliers[(index+1)%tot_inliers]].x;
+        y_ext1 = compute_y(x_ext1);
+      }
+      else
+      {
+        y_ext = cloud->points[inliers[index%tot_inliers]].y;
+        x_ext = compute_x(y_ext);
+        y_ext1 = cloud->points[inliers[(index+1)%tot_inliers]].y;
+        x_ext1 = compute_x(y_ext1);
+      }
+
+      dist = sqrt(pow(x_ext - x_ext1, 2) + pow(y_ext - y_ext1, 2));
+      if(wall_done)
+      {
+        single_wall.init_point.x = x_ext;
+        single_wall.init_point.y = y_ext;
+        single_wall.init_point.z = 0;
+        wall_done = false;
+        wall_pts_nb = 0;
+      }
+      if(i == tot_inliers - 1)
+      {
+        single_wall.end_point.x = x_ext;
+        single_wall.end_point.y = y_ext;
+        single_wall.end_point.z = 0;
+        wall_done = true;
+        wall_pts_nb++;
+				single_wall.nb_inliers = wall_pts_nb;
+				// ROS_INFO("wall inliers : %d", wall_pts_nb);
+        add_wall_to_list();
+      }
+      else if((dist > maximum_space_between_points)&&(std::abs(inliers[index%tot_inliers] - inliers[(index+1)%tot_inliers]) > gap_threshold))
+      {
+        single_wall.end_point.x = x_ext;
+        single_wall.end_point.y = y_ext;
+        single_wall.end_point.z = 0;
+        wall_done = true;
+        wall_pts_nb++;
+				single_wall.nb_inliers = wall_pts_nb;
+				// ROS_INFO("wall inliers : %d", wall_pts_nb);
+        add_wall_to_list();
+      }
+      wall_pts_nb++;
+      index++;
+    }
+	}
+
+	void extract_start_index()
+	{
 		if(x_diff > y_diff)
 		{
       if(x_min_ind != 0)
@@ -327,62 +371,6 @@ public:
         index = y_min_ind;
       }
     }
-
-    index1 = index;
-
-    wall_done = true;
-    wall_pts_nb = 0;
-    for(int i=0; i<tot_inliers; i++)
-    {
-      if(x_diff > y_diff)
-      {
-        x_ext = cloud->points[inliers[index%tot_inliers]].x;
-        y_ext = compute_y(x_ext);
-        x_ext1 = cloud->points[inliers[(index+1)%tot_inliers]].x;
-        y_ext1 = compute_y(x_ext1);
-      }
-      else
-      {
-        y_ext = cloud->points[inliers[index%tot_inliers]].y;
-        x_ext = compute_x(y_ext);
-        y_ext1 = cloud->points[inliers[(index+1)%tot_inliers]].y;
-        x_ext1 = compute_x(y_ext1);
-      }
-
-      dist = sqrt(pow(x_ext - x_ext1, 2) + pow(y_ext - y_ext1, 2));
-      if(wall_done)
-      {
-        single_wall.init_point.x = x_ext;
-        single_wall.init_point.y = y_ext;
-        single_wall.init_point.z = 0;
-        wall_done = false;
-        wall_pts_nb = 0;
-      }
-      if(i == tot_inliers - 1)
-      {
-        single_wall.end_point.x = x_ext;
-        single_wall.end_point.y = y_ext;
-        single_wall.end_point.z = 0;
-        wall_done = true;
-        wall_pts_nb++;
-				single_wall.nb_inliers = wall_pts_nb;
-				ROS_INFO("wall inliers : %d", wall_pts_nb);
-        add_wall_to_list();
-      }
-      else if((dist > maximum_space_between_points)&&(std::abs(inliers[index%tot_inliers] - inliers[(index+1)%tot_inliers]) > gap_threshold))
-      {
-        single_wall.end_point.x = x_ext;
-        single_wall.end_point.y = y_ext;
-        single_wall.end_point.z = 0;
-        wall_done = true;
-        wall_pts_nb++;
-				single_wall.nb_inliers = wall_pts_nb;
-				ROS_INFO("wall inliers : %d", wall_pts_nb);
-        add_wall_to_list();
-      }
-      wall_pts_nb++;
-      index++;
-    }
 	}
 
 	float compute_y(float x)
@@ -402,7 +390,13 @@ public:
 			wall_full_list.push_back(single_wall);
       the_corners_list.push_back(single_wall.init_point);
       the_corners_list.push_back(single_wall.end_point);
+			wall_nb++;
 		}
+	}
+
+	void sort_datas()
+	{
+
 	}
 
 private:
@@ -432,6 +426,7 @@ private:
 	robo7_msgs::aWall single_wall;
 	std::vector<robo7_msgs::aWall> wall_full_list;
   std::vector<geometry_msgs::Vector3> the_corners_list;
+	pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr model_p;
 
 	//Model parameters Extraction
 	float x0; float y0; float z0; //point on line
@@ -439,9 +434,9 @@ private:
 	float x_ext, y_ext;
   float x_ext1, y_ext1;
 
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_init;
+	pcl::PointCloud<pcl::PointXYZ> cloud_init;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr final_cloud;
+	// pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr	model_p;
 
 	geometry_msgs::Twist mod;
 	float ransac_threshold;

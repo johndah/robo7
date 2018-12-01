@@ -11,9 +11,12 @@
 #include <robo7_msgs/paths.h>
 #include <robo7_msgs/trajectory.h>
 #include <robo7_msgs/trajectory_point.h>
+#include <robo7_msgs/target_trajectory.h>
+#include <robo7_msgs/target_trajectory_point.h>
 #include "robo7_srvs/IsGridOccupied.h"
 #include "robo7_srvs/distanceTo.h"
 #include <robo7_srvs/path_planning.h>
+#include <Eigen/Dense>
 
 class Node;
 class PathPlanning;
@@ -123,7 +126,7 @@ class PathPlanning
   public:
 	ros::NodeHandle nh;
 	ros::ServiceServer path_service;
-	ros::Publisher paths_pub, target_pub, goal_path_pub, target_path_pub, trajectory_pub;
+	ros::Publisher paths_pub, target_pub, goal_path_pub, target_path_pub, trajectory_pub, target_trajectory_pub;
 	ros::Subscriber robot_position;
 	ros::ServiceClient occupancy_client, distance_client;
 	robo7_srvs::IsGridOccupied occupancy_srv;
@@ -135,13 +138,14 @@ class PathPlanning
 	bool field_scale;
 	unsigned int node_id;
 
-	PathPlanning(ros::NodeHandle nh, ros::Publisher paths_pub, ros::Publisher target_pub, ros::Publisher target_path_pub, ros::Publisher trajectory_pub)
+	PathPlanning(ros::NodeHandle nh, ros::Publisher paths_pub, ros::Publisher target_pub, ros::Publisher target_path_pub, ros::Publisher trajectory_pub, ros::Publisher target_trajectory_pub)
 	{
 		this->nh = nh;
 		this->paths_pub = paths_pub;
 		this->target_pub = target_pub;
 		this->target_path_pub = target_path_pub;
 		this->trajectory_pub = trajectory_pub;
+		this->target_trajectory_pub = target_trajectory_pub;
 
 		//robot_position = nh.subscribe("localization/kalman_filter/position_timed", 1000, &PathPlanning::getPositionCallBack, this);
 		robot_position = nh.subscribe("/localization/kalman_filter/position", 1000, &PathPlanning::getPositionCallBack, this);
@@ -490,7 +494,9 @@ class PathPlanning
 		robo7_msgs::path target_path_msg;
 		robo7_msgs::paths target_paths_msg;
 		robo7_msgs::trajectory_point trajectory_point_msg;
+		robo7_msgs::target_trajectory_point target_trajectory_point_msg;
 		robo7_msgs::trajectory trajectory_msg;
+		robo7_msgs::target_trajectory target_trajectory_msg;
 		bool search_done;
 
 		ROS_INFO("Path found!");
@@ -581,6 +587,37 @@ class PathPlanning
 				trajectory_point_msg.speed = .15 - .05 * partitions;
 				trajectory_point_msg.distance = node->path_length / (partitions + 1);
 				trajectory_msg.trajectory_points.push_back(trajectory_point_msg);
+
+				if (node->parent != NULL)
+				{
+
+					target_trajectory_point_msg.id_number = i;
+
+					float x, y, theta, x_successor, y_successor, theta_successor, theta_diff;
+
+					x = node->parent->path_x[node->parent->path_x.size() - 1];
+					y = node->parent->path_y[node->parent->path_y.size() - 1];
+					theta = node->parent->path_theta[node->parent->path_theta.size() - 1];
+
+					x_successor = node->path_x[node->path_x.size() - 1];
+					y_successor = node->path_y[node->path_y.size() - 1];
+					theta_successor = node->path_theta[node->path_theta.size() - 1];
+
+					target_trajectory_point_msg.starting_point.linear.x = x;
+					target_trajectory_point_msg.starting_point.linear.y = y;
+					target_trajectory_point_msg.starting_point.angular.z = theta;
+
+					target_trajectory_point_msg.end_point.linear.x = x_successor;
+					target_trajectory_point_msg.end_point.linear.y = y_successor;
+					target_trajectory_point_msg.end_point.angular.z = theta_successor;
+
+					theta_diff = std::abs(std::fmod(theta_successor - theta + pi, 2 * pi) - pi);
+
+
+					target_trajectory_point_msg.curve_radius = sqrt(node->distanceSquared(node->parent)) / (2 * sin(theta_diff / 2));
+
+					target_trajectory_msg.target_trajectory_points.push_back(target_trajectory_point_msg);
+				}
 			}
 		}
 
@@ -588,6 +625,7 @@ class PathPlanning
 		{
 			target_path_pub.publish(target_paths_msg);
 			trajectory_pub.publish(trajectory_msg);
+			target_trajectory_pub.publish(target_trajectory_msg);
 		}
 		geometry_msgs::Twist destination_pose;
 		destination_pose.linear.x = target_nodes[target_nodes.size() - 1]->x;
@@ -615,10 +653,11 @@ int main(int argc, char **argv)
 	ros::Publisher target_pub = nh.advertise<geometry_msgs::Point>("target", 1000);
 	ros::Publisher target_path_pub = nh.advertise<robo7_msgs::paths>("target_path", 1000);
 	ros::Publisher trajectory_pub = nh.advertise<robo7_msgs::trajectory>("trajectory", 1000);
+	ros::Publisher target_trajectory_pub = nh.advertise<robo7_msgs::target_trajectory>("target_trajectory", 1000);
 
 	ROS_INFO("Init path_planning");
 
-	PathPlanning path_planning = PathPlanning(nh, paths_pub, target_pub, target_path_pub, trajectory_pub);
+	PathPlanning path_planning = PathPlanning(nh, paths_pub, target_pub, target_path_pub, trajectory_pub, target_trajectory_pub);
 
 	ros::Rate loop_rate(control_frequency);
 

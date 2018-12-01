@@ -16,15 +16,22 @@ catkin_package(
   CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge image_transport
 )
 
-include_directories(include 
-	${catkin_INCLUDE_DIRS} 
+include_directories(include
+	${catkin_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS})
 
 add_executable(record_video src/record_video.cpp)
 
-target_link_libraries(record_video 
-${catkin_LIBRARIES} 
+target_link_libraries(record_video
+${catkin_LIBRARIES}
 ${OpenCV_LIBRARIES})
 
-add_dependencies(record_video ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS}) 
+add_dependencies(record_video ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_executable(record_depth_video src/record_depth_video.cpp)
+
+target_link_libraries(record_depth_video
+${catkin_LIBRARIES}
+${OpenCV_LIBRARIES})
+
+add_dependencies(record_depth_video ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

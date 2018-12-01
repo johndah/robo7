@@ -26,3 +26,7 @@ include_directories(
 add_executable(path_testing src/path_testing.cpp)
 target_link_libraries(path_testing ${catkin_LIBRARIES})
 add_dependencies(path_testing ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(path_exploration_test src/path_exploration_test.cpp)
+target_link_libraries(path_exploration_test ${catkin_LIBRARIES})
+add_dependencies(path_exploration_test ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

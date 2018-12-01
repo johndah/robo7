@@ -47,17 +47,19 @@ class OccupancyGrid
 
         occupancy_grid_width = occupancy_matrix_msg->occupancy_rows.size();
         occupancy_grid_height = occupancy_matrix_msg->occupancy_rows[0].occupancy_row.size();
-        ROS_INFO("Received occupancy");
+        // ROS_INFO("Received occupancy, %d, %d", occupancy_grid_width, occupancy_grid_height);
 
-        for (int j = 0; j < occupancy_grid_height; j++)
+        for (int j = 0; j < static_cast<int>(occupancy_grid_height); j++)
         {
-            for (int i = 0; i < occupancy_grid_width; i++)
+            for (int i = 0; i < static_cast<int>(occupancy_grid_width); i++)
             {
-                occupancy_array.push_back(occupancy_matrix_msg->occupancy_rows[i].occupancy_row[j]);
+              // ROS_INFO("(%d, %d) : (%d, %d)", occupancy_grid_width, occupancy_grid_height, i, j);
+              occupancy_array.push_back(occupancy_matrix_msg->occupancy_rows[i].occupancy_row[j]);
             }
         }
 
         occupancy_grid_received = true;
+        // ROS_INFO("done");
     }
     /*
     void occupancyCallback(const robo7_msgs::grid_matrix::ConstPtr &occupancy_matrix_msg)
@@ -83,10 +85,15 @@ class OccupancyGrid
     void distanceCallback(const robo7_msgs::occupancy_matrix::ConstPtr &distance_matrix_msg)
     {
         distance_array.clear();
-
         distance_grid_width = distance_matrix_msg->occupancy_rows.size();
-        distance_grid_height = distance_matrix_msg->occupancy_rows[0].occupancy_row.size();
-        // ROS_INFO("Received distance");
+        if(distance_grid_width > 0)
+        {
+          distance_grid_height = distance_matrix_msg->occupancy_rows[0].occupancy_row.size();
+        }
+        else
+        {
+          distance_grid_height = 0;
+        }
 
         for (int j = 0; j < distance_grid_height; j++)
         {
@@ -123,7 +130,6 @@ class OccupancyGrid
 
         if (this->occupancy_grid_received)
         {
-
             nav_msgs::OccupancyGrid occupancy_grid;
 
             occupancy_grid.header.frame_id = "/map";
@@ -141,7 +147,6 @@ class OccupancyGrid
                 int grid_value = (int)100 * occupancy_array[i];
                 occupancy_grid.data.push_back(grid_value);
             }
-
             occupancy_grid_pub.publish(occupancy_grid);
         }
     }

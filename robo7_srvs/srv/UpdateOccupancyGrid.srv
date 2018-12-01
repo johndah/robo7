@@ -1,0 +1,14 @@
+# Request
+# Take as input both previous occupancy grid and the robot_pose timed
+# joined with the corresponding lidar scan (aka the_robot_position)
+
+robo7_msgs/mapping_grid occupancy_grid
+robo7_msgs/the_robot_position the_robot_pose
+
+---
+
+# Response
+# The response is an updated version of the occupancy grid
+
+robo7_msgs/mapping_grid updated_occupancy_grid
+bool success 

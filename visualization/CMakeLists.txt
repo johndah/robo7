@@ -68,3 +68,19 @@ add_dependencies(the_map_update_plot ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_
 add_executable(occupancy src/occupancy.cpp)
 target_link_libraries(occupancy ${catkin_LIBRARIES})
 add_dependencies(occupancy ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(slam_visualization src/slam_visualization.cpp)
+target_link_libraries(slam_visualization ${catkin_LIBRARIES})
+add_dependencies(slam_visualization ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(map_maintenance_visu src/map_maintenance_visu.cpp)
+target_link_libraries(map_maintenance_visu ${catkin_LIBRARIES})
+add_dependencies(map_maintenance_visu ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(plot_exploration_points src/plot_exploration_points.cpp)
+target_link_libraries(plot_exploration_points ${catkin_LIBRARIES})
+add_dependencies(plot_exploration_points ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(all_objects src/all_objects.cpp)
+target_link_libraries(all_objects ${catkin_LIBRARIES})
+add_dependencies(all_objects ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

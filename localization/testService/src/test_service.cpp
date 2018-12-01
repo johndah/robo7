@@ -11,6 +11,7 @@
 #include <robo7_msgs/MeasureFeedback.h>
 #include <robo7_msgs/cornerList.h>
 #include <robo7_msgs/former_position.h>
+#include <robo7_msgs/the_robot_position.h>
 
 //The services
 #include <robo7_srvs/scanCoord.h>
@@ -21,6 +22,8 @@
 #include <robo7_srvs/path_planning.h>
 #include <robo7_srvs/update_map.h>
 #include <robo7_srvs/GoTo.h>
+#include <robo7_srvs/UpdateOccupancyGrid.h>
+#include <robo7_srvs/UpdateDiscretizedMap.h>
 
 
 
@@ -43,11 +46,17 @@ public:
   ros::ServiceClient path_planning_srv;
   ros::ServiceClient mapping_srv;
   ros::ServiceClient go_to_srv;
+  ros::ServiceClient update_occupancy_grid_srv;
+  ros::ServiceClient update_discretized_map_srv;
   //Server
   ros::ServiceServer to_test_service;
 
   test_server()
   {
+    n.param<float>("/test_service/cell_size", cell_size, 0.05);
+
+    saver_grid_initialisation();
+
     //The service definition
     to_test_service = n.advertiseService("/localization/test_service", &test_server::test_Sequence, this);
 
@@ -55,6 +64,7 @@ public:
     scan_to_coord_srv = n.serviceClient<robo7_srvs::scanCoord>("/localization/scan_service");
     laser_scan = n.subscribe("/scan", 1, &test_server::laser_scan_callBack, this);
     position_sub = n.subscribe("/localization/kalman_filter/position", 1, &test_server::robot_position_callBack, this);
+    position_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &test_server::the_robot_pose_callBack, this);
 
     path_follower_srv = n.serviceClient<robo7_srvs::PathFollowerSrv>("/kinematics/path_follower/path_follower");
 
@@ -62,30 +72,30 @@ public:
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
     map_point_sub = n.subscribe("/ras_maze/maze_map/walls_coord_for_icp", 1, &test_server::maze_map_callBack, this);
 
-    path_planning_srv = n.serviceClient<robo7_srvs::path_planning>("/path_planning/path_testing");
+    path_planning_srv = n.serviceClient<robo7_srvs::path_planning>("/path_planning/path_service");
 
     mapping_srv = n.serviceClient<robo7_srvs::update_map>("/localization/mapping/update_map");
 
     go_to_srv = n.serviceClient<robo7_srvs::GoTo>("/kinematics/go_to");
+
+    update_occupancy_grid_srv = n.serviceClient<robo7_srvs::UpdateOccupancyGrid>("/localization/mapping/update_occupancy_grid");
+
+    update_discretized_map_srv = n.serviceClient<robo7_srvs::UpdateDiscretizedMap>("/localization/mapping/update_discretized_map");
   }
 
   void laser_scan_callBack(const sensor_msgs::LaserScan::ConstPtr &msg)
   {
-      the_lidar_scan.header = msg->header;
-      the_lidar_scan.angle_min = msg->angle_min;
-      the_lidar_scan.angle_max = msg->angle_max;
-      the_lidar_scan.angle_increment = msg->angle_increment;
-      the_lidar_scan.time_increment = msg->time_increment;
-      the_lidar_scan.scan_time = msg->scan_time;
-      the_lidar_scan.range_min = msg->range_min;
-      the_lidar_scan.range_max = msg->range_max;
-      the_lidar_scan.ranges = msg->ranges;
-      the_lidar_scan.intensities = msg->intensities;
+      the_lidar_scan = *msg;
   }
 
   void robot_position_callBack(const geometry_msgs::Twist::ConstPtr &msg)
   {
     robot_position = *msg;
+  }
+
+  void the_robot_pose_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
+  {
+    the_robot_pose = *msg;
   }
 
   void maze_map_callBack(const robo7_msgs::cornerList::ConstPtr &msg)
@@ -97,8 +107,10 @@ public:
   bool test_Sequence(robo7_srvs::callServiceTest::Request &req,
          robo7_srvs::callServiceTest::Response &res)
   {
-    destination_pose = req.destination_pose;
     done = false;
+    destination_pose = req.destination;
+
+    ROS_INFO("%d, %d", (int)-9.2, (int)9.8);
 
     //Plot the lidar scan in the map frame
     if(req.which_service == 0)
@@ -184,43 +196,52 @@ public:
       robo7_srvs::path_planning::Request req1;
       robo7_srvs::path_planning::Response res1;
       req1.robot_position = robot_position;
+      req1.destination_position = destination_pose;
       path_planning_srv.call(req1, res1);
       done = res1.success;
 
-      robo7_srvs::PathFollowerSrv::Request req2;
-      robo7_srvs::PathFollowerSrv::Response res2;
-      req2.req = true;
-      req2.trajectory = res1.path_planned;
-      path_follower_srv.call(req2, res2);
-      done = res1.success;
+      // robo7_srvs::PathFollowerSrv::Request req2;
+      // robo7_srvs::PathFollowerSrv::Response res2;
+      // req2.req = true;
+      // req2.trajectory = res1.path_planned;
+      // path_follower_srv.call(req2, res2);
+      // done = res1.success;
     }
 
     //Move the robot to another position
     else if(req.which_service == 6)
     {
-      ROS_INFO("Start service go to");
-      robo7_srvs::GoTo::Request req1;
-      robo7_srvs::GoTo::Response res1;
-      req1.robot_pose = robot_position;
-      req1.destination_pose = destination_pose;
-      go_to_srv.call(req1, res1);
+      // ROS_INFO("Start service go to");
+      // robo7_srvs::GoTo::Request req1;
+      // robo7_srvs::GoTo::Response res1;
+      // req1.robot_pose = robot_position;
+      // req1.destination_pose = destination_pose;
+      // go_to_srv.call(req1, res1);
+      // done = res1.success;
+    }
+
+    //Test service for the update occupancy grid
+    else if(req.which_service == 7)
+    {
+      robo7_srvs::UpdateOccupancyGrid::Request req1;
+      robo7_srvs::UpdateOccupancyGrid::Response res1;
+      req1.the_robot_pose = the_robot_pose;
+      req1.occupancy_grid = the_grid_saved;
+      update_occupancy_grid_srv.call(req1, res1);
+      the_grid_saved = res1.updated_occupancy_grid;
       done = res1.success;
     }
 
-    //Test service for the mapping
-    else if(req.which_service == 7)
+    //Test service for the update discretized map
+    else if(req.which_service == 8)
     {
-      robo7_srvs::update_map::Request req1;
-      robo7_srvs::update_map::Response res1;
-      robo7_msgs::former_position robot_pos;
-      robot_pos.position = robot_position;
-      req1.robot_position = robot_pos;
-      req1.the_lidar_scan = the_lidar_scan;
-      req1.map_walls = map_walls;
-      mapping_srv.call(req1, res1);
-      map_walls = res1.updated_map_walls;
-      done = res1.success;
+      robo7_srvs::UpdateDiscretizedMap::Request req1;
+      robo7_srvs::UpdateDiscretizedMap::Response res1;
+      req1.occupancy_grid = the_grid_saved;
+      update_discretized_map_srv.call(req1, res1);
+      the_walls_discretized = res1.discretized_walls;
     }
+
 
     res.success = done;
     return true;
@@ -230,7 +251,7 @@ public:
 private:
   sensor_msgs::LaserScan the_lidar_scan;
   geometry_msgs::Twist robot_position;
-  geometry_msgs::Twist destination_pose;
+  geometry_msgs::Point destination_pose;
 
   robo7_msgs::cornerList all_wall_points;
 
@@ -238,6 +259,31 @@ private:
 
   robo7_msgs::wallList map_walls;
   robo7_msgs::former_position robot_pos;
+  robo7_msgs::the_robot_position the_robot_pose;
+
+  robo7_msgs::mapping_grid the_grid_saved;
+  robo7_msgs::matrix initial_grid;
+  robo7_msgs::matrix_row one_row;
+  float cell_size;
+
+  robo7_msgs::wallPoint the_walls_discretized;
+
+  void saver_grid_initialisation()
+  {
+    the_grid_saved.header.seq = 0;
+    the_grid_saved.header.stamp = ros::Time::now();
+    the_grid_saved.window_width = cell_size;
+    the_grid_saved.window_height = cell_size;
+    the_grid_saved.cell_size = cell_size;
+    the_grid_saved.top_left_corner.x = cell_size * (int)(the_robot_pose.position.linear.x/cell_size);
+    the_grid_saved.top_left_corner.y = cell_size * (int)(the_robot_pose.position.linear.y/cell_size);
+    one_row.cols.clear();
+    one_row.cols.push_back(0);
+    initial_grid.nb_rows = 1;
+    initial_grid.nb_cols = 1;
+    initial_grid.rows.push_back(one_row);
+    the_grid_saved.occupancy_grid = initial_grid;
+  }
 
 };
 
