@@ -1,0 +1,8 @@
+# request
+# the input is the desired distance and the way
+
+float32 desired_distance
+bool move_backward
+
+---
+bool success  # True if the roation sequence was sucsessful
