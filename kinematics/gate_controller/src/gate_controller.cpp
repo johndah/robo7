@@ -72,6 +72,7 @@ public:
 	  ROS_DEBUG("Pickup sequence started");
 
 		geometry_msgs::Twist obejct_pos_robot = req.object_pos;
+		bool drop_mode = req.drop;
 
 		openGate();
 		// placeholder sleep

@@ -6,6 +6,8 @@
 #include "robo7_msgs/allObjects.h"
 #include "robo7_srvs/distanceTo.h"
 #include "robo7_srvs/IsGridOccupied.h"
+#include "robo7_srvs/GoTo.h"
+#include "robo7_srvs/PickupAt.h"
 #include "geometry_msgs/Vector3.h"
 #include "geometry_msgs/Twist.h"
 
@@ -19,6 +21,9 @@ public:
 	ros::Subscriber e_break_sub;
 	ros::Subscriber robo_pos_sub;
 	ros::ServiceClient distance_srv;
+	ros::ServiceClient occupancy_srv;
+	ros::ServiceClient go_to_srv;
+	ros::ServiceClient pickup_at_srv;
 	static int objs_values[];
 
 
@@ -29,12 +34,16 @@ public:
     n.param<std::string>("/brain/objs_file", objs_file, "objs.txt");
 
 		distance_srv = n.serviceClient<robo7_srvs::distanceTo>("/distance_grid/distance");
-		distance_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
+		occupancy_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
+		go_to_srv = n.serviceClient<robo7_srvs::GoTo>("/kinematics/go_to");
+		pickup_at_srv = n.serviceClient<robo7_srvs::PickupAt>("/gate_controller/pickup_at");
 		robo_pos_sub = n.subscribe("/localization/kalman_filter/position", 1, &Brain::roboPosCallback, this);
 
 		robot_position_set = false;
 		go_to_pose.linear.x == -1;
 
+		stop_seq = false;
+		got_obj_dest = false;
 		carrying_object = false;
 		e_break = false;
 		at_home = false;
@@ -151,20 +160,45 @@ public:
 		srv_req.x = x;
 		srv_req.y = y;
 
-		distance_srv.call(srv_req, srv_resp);
+		occupancy_srv.call(srv_req, srv_resp);
 
 		return srv_resp.occupancy;
 	}
 
-	int sgn(float v)
-	{
+
+	bool callGoTo( geometry_msgs::Twist to_pose ){
+		robo7_srvs::GoTo::Request srv_req;
+		robo7_srvs::GoTo::Response srv_resp;
+
+		srv_req.robot_pose = robo_pos;
+		srv_req.destination_pose = to_pose;
+
+		occupancy_srv.call(srv_req, srv_resp);
+
+		return srv_resp.success;
+	}
+
+
+	bool callPickupAt( geometry_msgs::Twist pickup_pose ) {
+		robo7_srvs::PickupAt::Request srv_req;
+		robo7_srvs::PickupAt::Response srv_resp;
+
+		srv_req.object_pos = pickup_pose;
+
+		pickup_at_srv.call(srv_req, srv_resp);
+
+		return srv_resp.success;
+	}
+
+
+	int sgn(float v) {
 	  if (v < 0) return -1;
 	  else if (v > 0) return 1;
 	  else return 0;
 	}
 
 
-	float findAngle(float x_obj, float y_obj, float x_rob, float y_rob){
+	float findAngle(float x_obj, float y_obj, float x_rob, float y_rob) {
 		float x = x_obj - x_rob;
 		float y = y_obj - y_rob;
 
@@ -204,12 +238,11 @@ public:
 	}
 
 
-	geometry_msgs::Twist getDestPose(float x_dest, float y_dest){
+	geometry_msgs::Twist getDestPose(float x_dest, float y_dest) {
 		geometry_msgs::Twist pose;
 		pose.linear.x = -1;
 
 		float lowest_occupancy = 1.0;
-
 
 		// returns a pose that is possible to travel to, given the destination
 		for (float alp = 0 ; alp < 2*pi ; alp = alp+(pi/4)){
@@ -225,10 +258,9 @@ public:
 				pose.linear.x = test_x;
 				pose.linear.y = test_y;
 			}
-
-
-
 		}
+
+		// SET POSE ROTATION!
 
 		return pose;
 
@@ -239,13 +271,22 @@ public:
 	void setStateRun(){
 		ROS_INFO("Setting state");
 
-		if(e_break){
-			state = "ST_HANDLE_E_BREAK";
+		// if(e_break){
+		// 	state = "ST_HANDLE_E_BREAK";
+		// }
+
+		if (stop_seq){
+			// when all is done
+			state = "ST_STOP_SEQ";
 		}
 
-		// if(best_object != NULL &! carrying_object){
-		// 	state = "ST_EVALUATE";
-		// }
+		if(!got_obj_dest &! carrying_object){
+		 	state = "ST_EVALUATE";
+		}
+
+		if(got_obj_dest &! carrying_object){
+		 	state = "ST_GO_TO_OBJECT";
+		}
 
 		if(at_object){
 			state = "ST_PICK_UP_OBJ";
@@ -264,6 +305,7 @@ public:
 
 	void act(){
 			if (state == "ST_EVALUATE"){
+				ROS_INFO("ST_EVALUATE");
 				// Start of the runing  mode
 
 				while (go_to_pose.linear.x == -1 && read_objs.size() > 0){
@@ -274,12 +316,32 @@ public:
 					if(go_to_pose.linear.x == -1){
 						ROS_WARN("Brain: Failed to find robot pose for object, going to next object");
 					}
-
 				}
+
+				if(go_to_pose.linear.x == -1){
+					ROS_WARN("Brain: No more objects, stopping sequence");
+					stop_seq = true;
+				} else{
+					got_destination = true;
+				}
+
 			}
 
+			if (state == "ST_GO_TO_OBJECT"){
+				ROS_INFO("ST_GO_TO_OBJECT");
+
+				if(callGoTo(go_to_pose)){
+					at_object = true;
+				} else{
+					// WHAT TO DO HERE?!
+					ROS_WARN("Brain: we did not reach the object");
+				}
+
+			}
 
 			if (state == "ST_PICK_UP_OBJ"){
+				ROS_INFO("ST_PICK_UP_OBJ");
+
 
 				// if (ros::service::call("/gate_controller/pickup_at", object_pos)){
 				// 	carrying_object = true;
@@ -295,6 +357,8 @@ public:
 
 
 			if (state == "ST_DROP_OBJ"){
+				ROS_INFO("ST_DROP_OBJ");
+
 				// Drop up an object
 
 				// go home after object is picked up
@@ -303,37 +367,23 @@ public:
 
 
 			if (state == "ST_GO_HOME"){
+				ROS_INFO("ST_GO_HOME");
+
 				// Go home to drop of object
 				at_home = true;
 			}
 
 
-			if (state == "ST_GO_TO_OBJECT"){
-
-				/* 1. Get the recorded position of the object
-					 2. Calculate a new position/orientation based on surrounding
-					 walls/obstacles for better pickup of the object
-					 3. Travel to the new position
-					*/
-
-				// wait for callback from travel seobjs_valuesrvice
-				if(true){
-					at_object = true;
-				}
-
-				 // Now pick up the object
-			}
-
-
-			if (state == "ST_HANDLE_E_BREAK"){
-				// The emergency break was triggered!
-				ROS_INFO("Brain sees that the ebreak is triggered");
-
-				// BACK UP?
-
-				e_break = false;
-
-			}
+			// if (state == "ST_HANDLE_E_BREAK"){
+			// 	ROS_INFO("ST_HANDLE_E_BREAK");
+			//
+			// 	// The emergency break was triggered!
+			// 	ROS_INFO("Brain sees that the ebreak is triggered");
+			//
+			//
+			// 	e_break = false;
+			//
+			// }
 
 	}
 
@@ -344,14 +394,16 @@ private:
 	robo7_msgs::aObject best_object;
 	std::vector<robo7_msgs::aObject> read_objs;
 	bool robot_position_set;
+	bool got_destination;
 	bool carrying_object;
+	bool got_obj_dest;
 	bool e_break;
 	bool at_home;
 	bool at_object;
+	bool stop_seq;
 	int weight_thresh;
 	std::string objs_file;
 	float robot_pose_dist;
-	//int objs_values[];
 
 
 };
@@ -366,13 +418,10 @@ int main(int argc, char **argv)
 
 	ros::Rate loop_rate(10);
 
-	// TODO: CHECK TIME HERE
-
-	brain.setBestObject();
-	brain.getDestPose(1.0, 1.0);
-	//brain.act();
-
-	ros::spin();
+	while (ros::ok()){
+		ros::spinOnce();
+		brain.setStateRun();
+	}
 
 	return 0;
 }
