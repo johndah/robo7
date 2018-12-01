@@ -633,7 +633,7 @@ class PathPlanning
 		destination_pose.angular.z = target_nodes[target_nodes.size() - 1]->theta;
 
 		res.path_planned = trajectory_msg;
-		res.path_planned = target_trajectory_msg;
+		res.path = target_trajectory_msg;
 		res.destination_pose = destination_pose;
 		res.success = search_done;
 
