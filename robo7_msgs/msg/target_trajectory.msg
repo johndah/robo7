@@ -1,5 +1,2 @@
-# Message containing all the trajectory points (aka trajectory message)
-
-# Time of the path and the points
-float32 trajectory_time
-trajectory_point[] trajectory_points
+int32 number_of_path
+robo7_msgs/target_trajectory_point[] target_trajectory_points

@@ -18,7 +18,6 @@
 #include <robo7_srvs/path_planning.h>
 #include <Eigen/Dense>
 
-
 class Node;
 class PathPlanning;
 
@@ -493,21 +492,10 @@ class PathPlanning
 					target_trajectory_point_msg.end_point.linear.y = y_successor;
 					target_trajectory_point_msg.end_point.angular.z = theta_successor;
 
-					target_trajectory_point_msg.curve_radius = node->distanceSquared(node->parent)/(2*sin(theta_successor - theta));
-					
-					target_trajectory_point_msg.curve_center.x = 
-					
-					target_trajectory_msg.trajectory_points.push_back(trajectory_point_msg);
-				}
+					target_trajectory_point_msg.curve_radius = sqrt(node->distanceSquared(node->parent)) / (2 * sin((theta_successor - theta) / 2));
 
-				int32 id_number bool is_it_line
-						geometry_msgs /
-					Twist starting_point
-						geometry_msgs /
-					Twist end_point
-						geometry_msgs /
-					Vector3 curve_center
-						float32 curve_radius
+					target_trajectory_msg.target_trajectory_points.push_back(target_trajectory_point_msg);
+				}
 			}
 		}
 
@@ -515,6 +503,7 @@ class PathPlanning
 		{
 			target_path_pub.publish(target_paths_msg);
 			trajectory_pub.publish(trajectory_msg);
+			target_trajectory_pub.publish(target_trajectory_msg);
 		}
 
 		res.path_planned = trajectory_msg;
@@ -537,7 +526,7 @@ int main(int argc, char **argv)
 	ros::Publisher target_pub = nh.advertise<geometry_msgs::Point>("target", 1000);
 	ros::Publisher target_path_pub = nh.advertise<robo7_msgs::paths>("target_path", 1000);
 	ros::Publisher trajectory_pub = nh.advertise<robo7_msgs::trajectory>("trajectory", 1000);
-	ros::Publisher target_trajectory_pub = nh.advertise<robo7_msgs::trajectory>("target_trajectory", 1000);
+	ros::Publisher target_trajectory_pub = nh.advertise<robo7_msgs::target_trajectory>("target_trajectory", 1000);
 
 	ROS_INFO("Init path_planning");
 
