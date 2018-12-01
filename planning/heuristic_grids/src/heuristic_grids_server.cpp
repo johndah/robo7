@@ -18,6 +18,7 @@
 #include "robo7_msgs/grid_row.h"
 #include "robo7_msgs/wallPoint.h"
 #include "robo7_msgs/allObstacles.h"
+#include "robo7_msgs/mapping_grid.h"
 
 typedef std::vector<double> Array;
 typedef std::vector<Array> Matrix;

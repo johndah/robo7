@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     ros::Publisher wall_coordinates = n.advertise<robo7_msgs::XY_coordinates>("wall_coordinates", 1);
     ros::Publisher corners_coordinates_pub = n.advertise<robo7_msgs::cornerList>("map_corners", 1);
     ros::Publisher walls_coordinates_pub = n.advertise<robo7_msgs::cornerList>("/ras_maze/maze_map/walls_coord_for_icp", 1);
-    ros::Publisher obstacles_pub = n.advertise<robo7_msgs::allObstacles>("/TESTOBSTACLES/", 1);
+    ros::Publisher obstacles_pub = n.advertise<robo7_msgs::allObstacles>("/localization/mapping/the_obstacles", 1);
 
     vector<float> X_wall_coordinates = vector<float>(1, 0);
     vector<float> Y_wall_coordinates = vector<float>(1, 0);

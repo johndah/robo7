@@ -31,7 +31,7 @@ class ObjectSaver
     n.param<std::string>("/object_saver/obss_file", obss_file, "obss.txt");
 
 		objs_sub = n.subscribe("/vision/all_objects", 1, &ObjectSaver::ObjsCallback, this);
-		obss_sub = n.subscribe("/vision/all_obstacles", 1, &ObjectSaver::ObssCallback, this);
+		obss_sub = n.subscribe("/localization/mapping/the_obstacles", 1, &ObjectSaver::ObssCallback, this);
     save_all_service = n.advertiseService("/vision/save", &ObjectSaver::saveAllRequest, this);
 
     objs_recieved = false;

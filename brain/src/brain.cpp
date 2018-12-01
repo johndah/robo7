@@ -245,10 +245,10 @@ public:
 		float lowest_occupancy = 1.0;
 
 		// returns a pose that is possible to travel to, given the destination
-		for (float alp = 0 ; alp < 2*pi ; alp = alp+(pi/4)){
+		for (float alp = 0 ; alp < 2*pi ; alp = alp+(pi/8)){
 
-			float test_x = robot_pose_dist * sin(alp);
-			float test_y = robot_pose_dist * sin(alp);
+			float test_x = x_dest + (robot_pose_dist * cos(alp));
+			float test_y = y_dest + (robot_pose_dist * sin(alp));
 
 			float new_occupancy = getOccupancy(test_x, test_y);
 
@@ -257,10 +257,10 @@ public:
 				lowest_occupancy = new_occupancy;
 				pose.linear.x = test_x;
 				pose.linear.y = test_y;
+				pose.angular.z = findAngle(x_dest, y_dest, test_x, test_y);
+
 			}
 		}
-
-		// SET POSE ROTATION!
 
 		return pose;
 
