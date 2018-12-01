@@ -42,7 +42,7 @@ public:
 		robo_pos_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &Brain::roboPosCallback, this);
 
 		robot_position_set = false;
-		go_to_pose.linear.x == -1;
+		go_to_pose.linear.x = -1;
 
 		home_pose.linear.x = 0.215;
 		home_pose.linear.y = 0.2;
@@ -177,7 +177,6 @@ public:
 		robo7_srvs::GoTo::Request srv_req;
 		robo7_srvs::GoTo::Response srv_resp;
 
-		srv_req.robot_pose = robo_pos;
 		srv_req.destination_pose = to_pose;
 
 		occupancy_srv.call(srv_req, srv_resp);
@@ -275,12 +274,7 @@ public:
 
 
 	void setStateRun(){
-		ROS_INFO("Setting state");
-
-		if (stop_seq){
-			// when all is done or something is seriously wrong
-			state = "ST_STOP_SEQ";
-		}
+		ROS_INFO("Brain: setting state");
 
 		if(!got_obj_dest &! carrying_object){
 		 	state = "ST_EVALUATE";
@@ -302,17 +296,23 @@ public:
 			state = "ST_DROP_OBJ";
 		}
 
+		if (stop_seq){
+			// when all is done or something is seriously wrong
+			state = "ST_STOP_SEQ";
+		}
+		act();
+
 	}
 
 
 	void act(){
 			if (state == "ST_EVALUATE"){
 				ROS_INFO("Brain: ST_EVALUATE");
-				// Start of the runing  mode
 
 				while (go_to_pose.linear.x == -1 && read_objs.size() > 0){
 
 					setBestObject();
+					//ROS_INFO("Brain: Best object at : x: %f y: %f", best_object.pos.x, best_object.pos.y);
 					go_to_pose = getDestPose(best_object.pos.x, best_object.pos.y);
 
 					if(go_to_pose.linear.x == -1){
@@ -375,6 +375,15 @@ public:
 
 			}
 
+			if (state == "ST_STOP_SEQ"){
+				ROS_INFO("Brain: ST_STOP_SEQ");
+				ROS_WARN("Brain: STOPPING");
+				return;
+
+			}
+			ros::spinOnce();
+			setStateRun();
+
 	}
 
 private:
@@ -409,10 +418,13 @@ int main(int argc, char **argv)
 
 	ros::Rate loop_rate(10);
 
-	while (ros::ok()){
-		ros::spinOnce();
-		brain.setStateRun();
-	}
+	brain.setStateRun();
+
+
+	// while (ros::ok()){
+	// 	ros::spinOnce();
+	// 	brain.setStateRun();
+	// }
 
 	return 0;
 }

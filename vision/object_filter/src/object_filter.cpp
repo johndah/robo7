@@ -40,6 +40,7 @@ class ObjectFilter
     obj_to_robo_srv = n.serviceClient<robo7_srvs::objectToRobot>("/localization/object_to_robot");
 		all_obj_pub = n.advertise<robo7_msgs::allObjects>("/vision/all_objects", 1);
     speaker_pub = n.advertise<std_msgs::Int16>("/vision/object/class", 1);
+    robot_position_set = false;
 
 	}
 
@@ -197,6 +198,7 @@ class ObjectFilter
     float dist_other_class_lim;
     geometry_msgs::Twist robo_pos;
     bool position_updated;
+    bool robot_position_set;
     std::vector<robo7_msgs::aObject> filtered_objs;
 
 };
