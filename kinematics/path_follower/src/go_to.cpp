@@ -68,10 +68,13 @@ public:
     path_follower2_srv.call(req2, res2);
 
     //Turn on itself to the right direction
-    robo7_srvs::PureRotation::Request req3;
-    robo7_srvs::PureRotation::Response res3;
-    req3.desired_angle = destination_pose.angular.z;
-    pure_rotation_srv.call(req3, res3);
+    if(destination_pose.angular.x != -1)
+    {
+      robo7_srvs::PureRotation::Request req3;
+      robo7_srvs::PureRotation::Response res3;
+      req3.desired_angle = destination_pose.angular.z;
+      pure_rotation_srv.call(req3, res3);
+    }
 
     res.success = res2.success;
   }

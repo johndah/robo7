@@ -31,6 +31,7 @@ add_service_files(
   MoveStraight.srv
   PathFollower2.srv
   GoTo.srv
+  exploreTheMap.srv
 )
 
 

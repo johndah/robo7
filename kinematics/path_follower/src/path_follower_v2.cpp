@@ -11,6 +11,7 @@
 //Services
 #include <robo7_srvs/PathFollower2.h>
 #include <robo7_srvs/PureRotation.h>
+#include <robo7_srvs/IsGridOccupied.h>
 
 float control_frequency = 10.0;
 float pi = 3.14;
@@ -22,7 +23,7 @@ public:
   ros::Subscriber robot_pose_sub;
   ros::Publisher desired_velocity_pub;
   ros::ServiceServer path_follower_server;
-  ros::ServiceClient pure_rotation_srv;
+  ros::ServiceClient pure_rotation_srv, is_cell_occupied_srv;
 
   path_follower_v2()
   {
@@ -35,12 +36,14 @@ public:
     n.param<float>("/path_follower_v2/aver_linear_speed", aver_lin_vel, 0.0);
     n.param<float>("/path_follower_v2/discretization_length", discretize_length, 0.0);
     n.param<bool>("/path_follower_v2/following_point_mode", point_follower_mode, true);
+    n.param<bool>("/path_follower_v2/mapping_mode", mapping_mode, true);
 
     robot_pose_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &path_follower_v2::position_callBack, this);
 
     desired_velocity_pub = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
 
     pure_rotation_srv = n.serviceClient<robo7_srvs::PureRotation>("/kinematics/path_follower/pure_rotation");
+    is_cell_occupied_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
 
     path_follower_server = n.advertiseService("/kinematics/path_follower/path_follower_v2", &path_follower_v2::path_follower_Sequence, this);
   }
@@ -62,7 +65,7 @@ public:
     bool path_ended = false;
 
     // robo7_msgs::wallPoint the_discretized_path = discretize_the_path( the_trajectory , discretize_length );
-    robo7_msgs::wallPoint the_discretized_path = discretize_the_path2( trajectory_array );
+    robo7_msgs::wallPoint the_discretized_path = discretize_the_path2( trajectory_array , discretize_length );
 
     // ROS_INFO("Start moving with %d points", the_discretized_path.number);
 
@@ -89,6 +92,7 @@ public:
       }
 
       geometry_msgs::Twist desire_vel;
+      float time_prev = ros::Time::now().toSec();
 
       //Then make it follow the path
       while(!path_ended)
@@ -102,6 +106,25 @@ public:
         index_point_following = point_to_follow( the_discretized_path , index_point_following );
         point_following = the_discretized_path.the_points[index_point_following];
         // ROS_INFO("point to follow %d over %d", index_point_following, the_discretized_path.number);
+
+        if(mapping_mode&&!free_road( the_discretized_path , index_point_following ))
+        {
+          desire_vel.linear.x = 0;
+          desire_vel.angular.z = 0;
+          desired_velocity_pub.publish( desire_vel );
+          break;
+        }
+
+        float time_n = ros::Time::now().toSec();
+
+        if(mapping_mode&&object_detected&&(time_n - time_prev > 5))
+        {
+          ros::Rate loop_rate(2.0);
+          desire_vel.linear.x = 0;
+          desire_vel.angular.z = 0;
+          desired_velocity_pub.publish( desire_vel );
+          loop_rate.sleep();
+        }
 
         //Extract the angle difference out of this point to follow
         diff_angle = compute_diff_angle( point_following );
@@ -140,7 +163,7 @@ public:
       desired_velocity_pub.publish( desire_vel );
     }
 
-    res.success = true;
+    res.success = path_ended;
   }
 
 
@@ -158,6 +181,8 @@ private:
   float dest_threshold, dest_to_next_point;
   float discretize_length;
   bool point_follower_mode;
+  bool mapping_mode;
+  bool object_detected;
 
   int point_to_follow( robo7_msgs::wallPoint discretized_path_msg, int current_index)
   {
@@ -256,7 +281,7 @@ private:
     return discretized_path;
   }
 
-  robo7_msgs::wallPoint discretize_the_path2( robo7_msgs::trajectory trajectory )
+  robo7_msgs::wallPoint discretize_the_path2( robo7_msgs::trajectory trajectory , float l )
   {
     robo7_msgs::wallPoint discretized_path;
 
@@ -273,11 +298,34 @@ private:
     return discretized_path;
   }
 
+  float distance_point( geometry_msgs::Vector3 point1 , geometry_msgs::Vector3 point2 )
+  {
+    return sqrt(pow(point1.x-point2.x,2)+pow(point1.y-point2.y,2));
+  }
+
   int sgn(float v)
   {
     if (v < 0) return -1;
     else if (v > 0) return 1;
     else return 0;
+  }
+
+  bool free_road( robo7_msgs::wallPoint discretized_path , int index )
+  {
+    robo7_srvs::IsGridOccupied::Request req1;
+		robo7_srvs::IsGridOccupied::Response res1;
+    for(int i=index; i<discretized_path.number; i++)
+    {
+      req1.x = discretized_path.the_points[i].x;
+      req1.y = discretized_path.the_points[i].y;
+      is_cell_occupied_srv.call(req1,res1);
+
+      if(res1.occupancy == 1)
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
 };
