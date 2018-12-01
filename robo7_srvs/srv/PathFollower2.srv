@@ -1,5 +1,5 @@
 # request
 bool req
-robo7_msgs/target_trajectory trajectory
+robo7_msgs/trajectory trajectory
 ---
 bool success  # True if the sequence was successful

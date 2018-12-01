@@ -46,3 +46,7 @@ add_dependencies(pure_rotation ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORT
 add_executable(move_straight src/move_straight.cpp)
 target_link_libraries(move_straight ${catkin_LIBRARIES})
 add_dependencies(move_straight ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(path_follower_v2 src/path_follower_v2.cpp)
+target_link_libraries(path_follower_v2 ${catkin_LIBRARIES})
+add_dependencies(path_follower_v2 ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
