@@ -54,6 +54,7 @@
 <!-- The path_planner nodes -->
     <node pkg="own_map" type="discretize_the_map" name="discretize_the_map" output="screen"/>
 
+    
     <node pkg="heuristic_grids" type="heuristic_grids_server" name="heuristic_grids_server"
         output="screen">
       <param name="grid_square_size" type="double" value="0.02"/>
@@ -61,6 +62,17 @@
       <param name="smoothing_kernel_size" type="int" value="21"/>
       <param name="smoothing_kernel_sd" type="int" value="7"/>
     </node>
+
+    <node pkg="exploration" type="mapping_grids_server" name="mapping_grids_server"
+        output="screen">
+      <param name="grid_square_size" type="double" value="0.02"/>
+      <param name="min_distance" type="double" value="0.13"/>
+      <param name="wall_thickness" type="double" value="0.01"/>
+      <param name="smoothing_kernel_size" type="int" value="21"/>
+      <param name="smoothing_kernel_sd" type="int" value="7"/>
+    </node>
+
+    <node pkg="exploration" type="exploration" name="exploration" output="screen"/>
 
     <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
 

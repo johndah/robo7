@@ -10,4 +10,5 @@ float32 y
 # 0-1 depending on how occupied the position is.
 # 1 means impossible to drive, 0 is absolutely free. 
 
-float32 occupancy
+
+bool occupancy
