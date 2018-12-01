@@ -51,11 +51,11 @@ public:
   bool path_follower_Sequence(robo7_srvs::PathFollower2::Request &req,
          robo7_srvs::PathFollower2::Response &res)
   {
-    trajectory_array = req.trajectory;
+    robo7_msgs::target_trajectory the_trajectory = req.trajectory;
 
     bool path_ended = false;
 
-    robo7_msgs::wallPoint the_discretized_path = discretize_the_path( discretize_length );
+    robo7_msgs::wallPoint the_discretized_path = discretize_the_path( the_trajectory , discretize_length );
 
     if(point_follower_mode)
     {
@@ -136,13 +136,6 @@ private:
     distance_to_destination = sqrt(pow(robot_x-trajectory_array.trajectory_points[current_point_to_follow].point_coord.x, 2) + pow(robot_y-trajectory_array.trajectory_points[current_point_to_follow].point_coord.y, 2));
   }
 
-  robo7_msgs::wallPoint discretize_the_path( float l )
-  {
-    robo7_msgs::wallPoint discretized_path;
-
-    return discretized_path;
-  }
-
   void update_Destination_Point()
   {
 
@@ -197,6 +190,28 @@ private:
     float y = - (to_follow.x - x_r) * sin(a_r) + (to_follow.y - y_r) * cos(a_r);
 
     return findangle(x, y);
+  }
+
+  robo7_msgs::wallPoint discretize_the_path( robo7_msgs::target_trajectory trajectory , float l )
+  {
+    robo7_msgs::wallPoint discretized_path;
+
+    for(int i=0; i<trajectory.number_of_path; i++)
+    {
+      geometry_msgs::Vector3 aPoint;
+      aPoint.x = trajectory.target_trajectory_points[i].end_point.linear.x;
+      aPoint.y = trajectory.target_trajectory_points[i].end_point.linear.y;
+      if(trajectory.target_trajectory_points[i].is_it_line)
+      {
+        aPoint.z = 0.2; //Distance before switching point
+      }
+      else
+      {
+        aPoint.z = 0.1; //Distance before switching for curves
+      }
+    }
+
+    return discretized_path;
   }
 
 };
