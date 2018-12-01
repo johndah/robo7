@@ -27,6 +27,7 @@ add_service_files(
   replaceExplorationPoints.srv
   moveToNextPoint.srv
   PureRotation.srv
+  MoveStraight.srv
 )
 
 

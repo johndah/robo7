@@ -88,6 +88,10 @@
      <param name="angular_velocity_saturation_threshold" type="double" value="2"/>
    </node>
 
+   <node pkg="path_follower" type="move_straight" name="move_straight" output="screen">
+     <param name="linear_vel" type="double" value="0.15"/>
+   </node>
+
    <node pkg="path_follower" type="path_follower" name="path_follower" output="screen">
      <param name="distance_to_destination_threshold" type="double" value="0.05"/>
      <param name="distance_to_jump_to_next_point" type="double" value="0.1"/>
