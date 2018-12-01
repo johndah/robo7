@@ -248,7 +248,7 @@ class MappingGridsServer
 
 				int n = 4 * std::max(std::max(std::abs(sq(x_diff)), std::abs(sq(y_diff))), 20);
 				bool not_visable = false;
-				// ROS_INFO("Mapping n %d", n);
+				ROS_INFO("Mapping n %d", n);
 
 				x_ray = x;
 				y_ray = y;
@@ -296,7 +296,7 @@ class MappingGridsServer
 						theta_diff = std::abs(std::fmod(theta - atan2(y_diff, x_diff) + pi, 2 * pi) - pi);
 						int n = 4 * std::max(std::abs(sq(x_diff)), std::abs(sq(y_diff)));
 
-						// ROS_INFO("x %f x_grid %f  y %f y_grid %f  x_diff/n %f  y_diff/n %f", x, x_grid, y, y_grid, x_diff / n, y_diff / n);
+						ROS_INFO("x %f x_grid %f  y %f y_grid %f  x_diff/n %f  y_diff/n %f", x, x_grid, y, y_grid, x_diff / n, y_diff / n);
 						for (int i_ray = 0; i_ray < n; i_ray++)
 						{
 							x_ray += x_diff / n;
