@@ -1,10 +1,14 @@
 // #include <algorithm>
 #include <stdlib.h>     /* abs */
 #include <ros/ros.h>
+//Messages
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Vector3.h>
 #include <robo7_msgs/destination_point.h>
 #include <robo7_msgs/trajectory.h>
-#include <robo7_srvs/PathFollowerSrv.h>
+//Services
+#include <robo7_srvs/PathFollower2.h>
+#include <robo7_srvs/PureRotation.h>
 
 float control_frequency = 10.0;
 float pi = 3.14;
@@ -56,8 +60,8 @@ public:
     if(point_follower_mode)
     {
       //First align the robot with the path start (aka call service)
-      robo7_srvs::scanCoord::Request req1;
-      robo7_srvs::scanCoord::Response res1;
+      robo7_srvs::PureRotation::Request req1;
+      robo7_srvs::PureRotation::Response res1;
       req1.desired_angle = initial_angle;
       pure_rotation_srv.call(req1, res1);
 
