@@ -615,13 +615,13 @@ class PathPlanning
 
 					if (theta_diff == 0.0)
 					{
+						target_trajectory_point_msg.is_it_line = true;
 						target_trajectory_point_msg.curve_radius = 0;
-						target_trajectory_point_msg.is_it_line = false;
 					}
 					else
 					{
+						target_trajectory_point_msg.is_it_line = false;
 						target_trajectory_point_msg.curve_radius = sqrt(node->distanceSquared(node->parent)) / (2 * sin(theta_diff / 2));
-						target_trajectory_point_msg.is_it_line = true;
 					}
 					target_trajectory_msg.target_trajectory_points.push_back(target_trajectory_point_msg);
 				}
