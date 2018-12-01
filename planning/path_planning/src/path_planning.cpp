@@ -319,13 +319,13 @@ class PathPlanning
 
 		x_diff = float(node_target->x - node_current->x);
 		y_diff = float(node_target->y - node_current->y);
-		
+
 		int n = floor(200 * std::max(std::abs(x_diff), std::abs(y_diff)));
 		// ROS_INFO("n %d  xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", n,  node_current->x,  node_current->y, node_target->x, node_target->y, x_diff, y_diff);
 		bool visable = true;
 
-		x_ray =  node_current->x;
-		y_ray =  node_current->y;
+		x_ray = node_current->x;
+		y_ray = node_current->y;
 
 		for (int i_ray = 0; i_ray < n; i_ray++)
 		{
@@ -613,20 +613,25 @@ class PathPlanning
 
 					theta_diff = std::abs(std::fmod(theta_successor - theta + pi, 2 * pi) - pi);
 
-
-					target_trajectory_point_msg.curve_radius = sqrt(node->distanceSquared(node->parent)) / (2 * sin(theta_diff / 2));
-
+					if (theta_diff == 0.0)
+					{
+						target_trajectory_point_msg.curve_radius = sqrt(node->distanceSquared(node->parent)) / (2 * sin(theta_diff / 2));
+						target_trajectory_point_msg.is_it_line = true;
+					}
+					else
+					{
+						target_trajectory_point_msg.curve_radius = 0;
+						target_trajectory_point_msg.is_it_line = false;
+					}
 					target_trajectory_msg.target_trajectory_points.push_back(target_trajectory_point_msg);
 				}
 			}
 		}
 
-		for (int i = 0; i < 10; i++)
-		{
-			target_path_pub.publish(target_paths_msg);
-			trajectory_pub.publish(trajectory_msg);
-			target_trajectory_pub.publish(target_trajectory_msg);
-		}
+		target_path_pub.publish(target_paths_msg);
+		trajectory_pub.publish(trajectory_msg);
+		target_trajectory_pub.publish(target_trajectory_msg);
+
 		geometry_msgs::Twist destination_pose;
 		destination_pose.linear.x = target_nodes[target_nodes.size() - 1]->x;
 		destination_pose.linear.y = target_nodes[target_nodes.size() - 1]->y;
