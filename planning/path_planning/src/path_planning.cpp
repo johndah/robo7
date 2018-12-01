@@ -474,7 +474,7 @@ class PathPlanning
 
 					target_trajectory_point_msg.id_number = i;
 
-					float x, y, theta, x_successor, y_successor, theta_successor;
+					float x, y, theta, x_successor, y_successor, theta_successor, theta_diff;
 
 					x = node->parent->path_x[node->parent->path_x.size() - 1];
 					y = node->parent->path_y[node->parent->path_y.size() - 1];
@@ -492,7 +492,10 @@ class PathPlanning
 					target_trajectory_point_msg.end_point.linear.y = y_successor;
 					target_trajectory_point_msg.end_point.angular.z = theta_successor;
 
-					target_trajectory_point_msg.curve_radius = sqrt(node->distanceSquared(node->parent)) / (2 * sin((theta_successor - theta) / 2));
+					theta_diff = std::abs(std::fmod(theta_successor - theta + pi, 2 * pi) - pi);
+
+
+					target_trajectory_point_msg.curve_radius = sqrt(node->distanceSquared(node->parent)) / (2 * sin(theta_diff / 2));
 
 					target_trajectory_msg.target_trajectory_points.push_back(target_trajectory_point_msg);
 				}
