@@ -41,6 +41,8 @@
 
   <node pkg="visualization" type="map_maintenance_visu" name="map_maintenance_visu" output="screen"/>
 
+  <node pkg="visualization" type="plot_exploration_points" name="plot_exploration_points" output="screen"/>
+
   <node pkg="visualization" type="all_objects" name="all_objects" output="screen"/>
 
 </launch>
