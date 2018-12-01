@@ -1,0 +1,7 @@
+# request
+# the input is the desired angle
+
+float32 desired_angle
+
+---
+bool success  # True if the roation sequence was sucsessful

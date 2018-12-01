@@ -25,6 +25,9 @@ add_service_files(
   UpdateDiscretizedMap.srv
   callServiceTest.srv
   SaveAll.srv
+  replaceExplorationPoints.srv
+  moveToNextPoint.srv
+  PureRotation.srv
 )
 
 

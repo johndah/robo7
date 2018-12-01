@@ -1,0 +1,2 @@
+int32 number_of_path
+robo7_msgs/target_trajectory_point[] target_trajectory_points

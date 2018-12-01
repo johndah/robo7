@@ -53,7 +53,7 @@ public:
 
       // obj_img_pub = it_.advertise("/vision/object/img", 1);
 
-  		namedWindow("Detected image");
+  		// namedWindow("Detected image");
       // namedWindow("bbx");
       // namedWindow("Cropped object image");
 
@@ -311,7 +311,7 @@ public:
 
         ACFdetector::applyDetector(detector, origImg);
 
-        imshow("Detected image", resultImg);
+        // imshow("Detected image", resultImg);
         cv::waitKey(5);
       }
 

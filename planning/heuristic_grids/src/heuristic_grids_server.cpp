@@ -333,6 +333,7 @@ class HeuristicGridsServer
 
 		if (distance_grid_init)
 		{
+      ROS_INFO("Hey");
 			return distance_grid.at<int>(sq(x_from), sq(y_from));
 		}
 		else
@@ -346,6 +347,7 @@ class HeuristicGridsServer
 			}
 			else
 			{
+        ROS_INFO("heyhey");
 				// To display, uncomment bellow
 				// cv::Mat normalized_dist_grid;
 				// cv::normalize(distance_grid, normalized_dist_grid, 0, 255, cv::NORM_MINMAX, CV_8UC3);
@@ -555,19 +557,19 @@ int main(int argc, char **argv)
 
 	heuristic_grids_server.updateBasicGridSize();
 
-  robo7_msgs::occupancy_matrix occupancy_matrix_msg;
-  robo7_msgs::occupancy_matrix distance_matrix_msg;
-	while (ros::ok())
-	{
-		occupancy_matrix_msg = heuristic_grids_server.publishOccupancyGrid();
-		distance_matrix_msg = heuristic_grids_server.publishDistanceGrid();
-
-		heuristic_grids_server.occupancy_pub.publish(occupancy_matrix_msg);
-		heuristic_grids_server.distance_pub.publish(distance_matrix_msg);
-
-		ros::spinOnce();
-		loop_rate.sleep();
-	}
+  // robo7_msgs::occupancy_matrix occupancy_matrix_msg;
+  // robo7_msgs::occupancy_matrix distance_matrix_msg;
+	// while (ros::ok())
+	// {
+	// 	occupancy_matrix_msg = heuristic_grids_server.publishOccupancyGrid();
+	// 	distance_matrix_msg = heuristic_grids_server.publishDistanceGrid();
+  //
+	// 	heuristic_grids_server.occupancy_pub.publish(occupancy_matrix_msg);
+	// 	heuristic_grids_server.distance_pub.publish(distance_matrix_msg);
+  //
+	// 	ros::spinOnce();
+	// 	loop_rate.sleep();
+	// }
 
   ros::spin();
 
