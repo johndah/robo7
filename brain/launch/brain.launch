@@ -2,7 +2,6 @@
 
    <node pkg="brain" type="brain" name="brain" output="screen">
       <param name="objs_file" type="string" value="$(find robo7_launch)/memory/objs.txt"/>
-      <param name="obss_file" type="string" value="$(find robo7_launch)/memory/obss.txt"/>
    </node>
 
 </launch>
