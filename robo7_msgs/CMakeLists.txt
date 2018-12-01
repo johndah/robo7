@@ -45,6 +45,7 @@ add_message_files(
   detectedObstacle.msg
   classifiedObj.msg
   allObstacles.msg
+  detectedState.msg
 )
 
 generate_messages(

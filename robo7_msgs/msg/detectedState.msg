@@ -2,4 +2,4 @@
 #        2, right,
 #        3, stop,
 
-std_msgs/uint8[] state
+uint8[] state
