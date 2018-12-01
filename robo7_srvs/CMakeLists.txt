@@ -11,10 +11,12 @@ add_service_files(
   RansacWall.srv
   ICPAlgorithm.srv
   IsGridOccupied.srv
+  explore.srv
   PathFollowerSrv.srv
   scanCoord.srv
   objectToRobot.srv
   path_planning.srv
+  exploration.srv
   update_map.srv
   discretize_map.srv
   door_opener.srv
@@ -28,6 +30,7 @@ add_service_files(
   replaceExplorationPoints.srv
   moveToNextPoint.srv
   PureRotation.srv
+  MoveStraight.srv
 )
 
 

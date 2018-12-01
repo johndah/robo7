@@ -21,7 +21,6 @@ include_directories(
  ${OpenCV_INCLUDE_DIRS}
 )
 
-
 add_executable(heuristic_grids_server src/heuristic_grids_server.cpp)
 
 target_link_libraries(heuristic_grids_server
