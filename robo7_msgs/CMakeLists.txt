@@ -24,6 +24,8 @@ add_message_files(
   MeasureRequest.msg
   trajectory_point.msg
   trajectory.msg
+  target_trajectory_point.msg
+  target_trajectory.msg
   destination_point.msg
   MeasureFeedback.msg
   occupancy_matrix.msg
