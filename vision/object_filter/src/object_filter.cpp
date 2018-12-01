@@ -9,6 +9,7 @@
 #include "robo7_msgs/classifiedObj.h"
 #include "robo7_msgs/aObject.h"
 #include "robo7_msgs/allObjects.h"
+#include "robo7_msgs/the_robot_position.h"
 #include "robo7_srvs/objectToRobot.h"
 
 
@@ -35,7 +36,7 @@ class ObjectFilter
 		n.param<float>("/object_filter/dist_other_obj_lim", dist_other_class_lim, 0.04);
 
 		obj_sub = n.subscribe("/vision/results", 1, &ObjectFilter::ObjCallback, this);
-    robo_pos_sub = n.subscribe("/localization/kalman_filter/position", 1, &ObjectFilter::roboPosCallback, this);
+    robo_pos_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &ObjectFilter::roboPosCallback, this);
     obj_to_robo_srv = n.serviceClient<robo7_srvs::objectToRobot>("/localization/object_to_robot");
 		all_obj_pub = n.advertise<robo7_msgs::allObjects>("/vision/all_objects", 1);
     speaker_pub = n.advertise<std_msgs::Int16>("/vision/object/class", 1);
@@ -43,10 +44,10 @@ class ObjectFilter
 	}
 
 
-  void roboPosCallback(const geometry_msgs::Twist::ConstPtr &msg)
+  void roboPosCallback(const robo7_msgs::the_robot_position::ConstPtr &msg)
   {
-    robo_pos = *msg;
-    position_updated = true;
+    robo_pos = msg->position;
+    robot_position_set = true;
   }
 
 
