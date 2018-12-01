@@ -4,6 +4,7 @@
 #include "std_msgs/Bool.h"
 #include "robo7_msgs/aObject.h"
 #include "robo7_msgs/allObjects.h"
+#include "robo7_msgs/the_robot_position.h"
 #include "robo7_srvs/distanceTo.h"
 #include "robo7_srvs/IsGridOccupied.h"
 #include "robo7_srvs/GoTo.h"
@@ -31,16 +32,21 @@ public:
 	{
 		n.param<int>("/brain/weight_thresh", weight_thresh, 5);
 		n.param<float>("/brain/robot_pose_dist", robot_pose_dist, 0.25); // distance avay from the robot center to search for a pose
+		n.param<float>("/brain/robot_pose_object_delta", robot_pose_object_delta, 0.09);  // compensate for the "cave" not beeing at robot center
     n.param<std::string>("/brain/objs_file", objs_file, "objs.txt");
 
 		distance_srv = n.serviceClient<robo7_srvs::distanceTo>("/distance_grid/distance");
 		occupancy_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
 		go_to_srv = n.serviceClient<robo7_srvs::GoTo>("/kinematics/go_to");
 		pickup_at_srv = n.serviceClient<robo7_srvs::PickupAt>("/gate_controller/pickup_at");
-		robo_pos_sub = n.subscribe("/localization/kalman_filter/position", 1, &Brain::roboPosCallback, this);
+		robo_pos_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &Brain::roboPosCallback, this);
 
 		robot_position_set = false;
 		go_to_pose.linear.x == -1;
+
+		home_pose.linear.x = 0.215;
+		home_pose.linear.y = 0.2;
+		home_pose.angular.z = -1.57;
 
 		stop_seq = false;
 		got_obj_dest = false;
@@ -52,6 +58,7 @@ public:
 		readObjsfile();
 
 		ROS_INFO("Read %d objects from file.", (int)read_objs.size());
+
 	}
 
 
@@ -111,9 +118,9 @@ public:
 	}
 
 
-	void roboPosCallback(const geometry_msgs::Twist::ConstPtr &msg)
+	void roboPosCallback(const robo7_msgs::the_robot_position::ConstPtr &msg)
   {
-    robo_pos = *msg;
+    robo_pos = msg->position;
     robot_position_set = true;
   }
 
@@ -179,11 +186,12 @@ public:
 	}
 
 
-	bool callPickupAt( geometry_msgs::Twist pickup_pose ) {
+	bool callPickupAt( float drive_dist, bool drop_mode) {
 		robo7_srvs::PickupAt::Request srv_req;
 		robo7_srvs::PickupAt::Response srv_resp;
 
-		srv_req.object_pos = pickup_pose;
+		srv_req.dist = drive_dist;
+		srv_req.drop = drop_mode;
 
 		pickup_at_srv.call(srv_req, srv_resp);
 
@@ -261,22 +269,16 @@ public:
 
 			}
 		}
-
 		return pose;
 
 	}
 
 
-
 	void setStateRun(){
 		ROS_INFO("Setting state");
 
-		// if(e_break){
-		// 	state = "ST_HANDLE_E_BREAK";
-		// }
-
 		if (stop_seq){
-			// when all is done
+			// when all is done or something is seriously wrong
 			state = "ST_STOP_SEQ";
 		}
 
@@ -284,11 +286,11 @@ public:
 		 	state = "ST_EVALUATE";
 		}
 
-		if(got_obj_dest &! carrying_object){
+		if(got_obj_dest &! at_object &! carrying_object){
 		 	state = "ST_GO_TO_OBJECT";
 		}
 
-		if(at_object){
+		if(at_object &! carrying_object){
 			state = "ST_PICK_UP_OBJ";
 		}
 
@@ -305,7 +307,7 @@ public:
 
 	void act(){
 			if (state == "ST_EVALUATE"){
-				ROS_INFO("ST_EVALUATE");
+				ROS_INFO("Brain: ST_EVALUATE");
 				// Start of the runing  mode
 
 				while (go_to_pose.linear.x == -1 && read_objs.size() > 0){
@@ -322,79 +324,67 @@ public:
 					ROS_WARN("Brain: No more objects, stopping sequence");
 					stop_seq = true;
 				} else{
-					got_destination = true;
+					got_obj_dest = true;
 				}
 
 			}
 
 			if (state == "ST_GO_TO_OBJECT"){
-				ROS_INFO("ST_GO_TO_OBJECT");
+				ROS_INFO("Brain: ST_GO_TO_OBJECT");
 
 				if(callGoTo(go_to_pose)){
 					at_object = true;
 				} else{
-					// WHAT TO DO HERE?!
-					ROS_WARN("Brain: we did not reach the object");
+					stop_seq = true;
+					ROS_WARN("Brain: we did not reach the object, stopping sequence");
 				}
 
 			}
 
 			if (state == "ST_PICK_UP_OBJ"){
-				ROS_INFO("ST_PICK_UP_OBJ");
+				ROS_INFO("Brain: ST_PICK_UP_OBJ");
 
+				callPickupAt((robot_pose_dist - robot_pose_object_delta), false);
 
-				// if (ros::service::call("/gate_controller/pickup_at", object_pos)){
-				// 	carrying_object = true;
-				// 	//best_object = NULL;
-				// 	at_object = false;
-				// }
-				// else {
-				// 	ROS_WARN("PICKUP FAILED!");
-				// 	at_object = false;
-				// }
+				carrying_object = true;
+				at_object = false;
+				got_obj_dest = false;
 
 			}
 
 
 			if (state == "ST_DROP_OBJ"){
-				ROS_INFO("ST_DROP_OBJ");
+				ROS_INFO("Brain: ST_DROP_OBJ");
 
-				// Drop up an object
+				callPickupAt((robot_pose_dist - robot_pose_object_delta), true);
 
-				// go home after object is picked up
 				carrying_object = false;
+				at_home = false;
 		  }
 
 
 			if (state == "ST_GO_HOME"){
-				ROS_INFO("ST_GO_HOME");
+				ROS_INFO("Brain: ST_GO_HOME");
 
-				// Go home to drop of object
-				at_home = true;
+				if(callGoTo(home_pose)){
+					at_home = true;
+				} else{
+					stop_seq = true;
+					ROS_WARN("Brain: we did not reach home, stopping sequence");
+				}
+
 			}
-
-
-			// if (state == "ST_HANDLE_E_BREAK"){
-			// 	ROS_INFO("ST_HANDLE_E_BREAK");
-			//
-			// 	// The emergency break was triggered!
-			// 	ROS_INFO("Brain sees that the ebreak is triggered");
-			//
-			//
-			// 	e_break = false;
-			//
-			// }
 
 	}
 
 private:
 	std::string state;
 	geometry_msgs::Twist robo_pos;
+	geometry_msgs::Twist home_pose;
 	geometry_msgs::Twist go_to_pose;
 	robo7_msgs::aObject best_object;
 	std::vector<robo7_msgs::aObject> read_objs;
 	bool robot_position_set;
-	bool got_destination;
 	bool carrying_object;
 	bool got_obj_dest;
 	bool e_break;
@@ -404,6 +394,7 @@ private:
 	int weight_thresh;
 	std::string objs_file;
 	float robot_pose_dist;
+	float robot_pose_object_delta;
 
 
 };

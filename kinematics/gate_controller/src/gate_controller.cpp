@@ -4,6 +4,7 @@
 #include "geometry_msgs/Twist.h"
 #include "arduino_servo_control/SetServoAngles.h"
 #include "robo7_srvs/PickupAt.h"
+#include "robo7_srvs/MoveStraight.h"
 
 class PickupAtServer
 {
@@ -12,7 +13,9 @@ public:
 	ros::Subscriber robot_pos_sub;
 	ros::Subscriber robot_at_point_sub;
 	ros::Publisher go_to_pub;
-	ros::ServiceServer pickup_at_service;
+	ros::ServiceServer pickup_at_srv_server;
+	ros::ServiceClient move_straight_srv;
+
 
 	PickupAtServer()
 	{
@@ -26,7 +29,10 @@ public:
 		robot_pos_sub = n.subscribe("/dead_reckoning/Pos", 1, &PickupAtServer::robotPosCallback, this);
 		robot_at_point_sub = n.subscribe("/robot_arrived", 1, &PickupAtServer::robotAtPointCallback, this);
 		go_to_pub = n.advertise<geometry_msgs::Twist>("/destination_point", 1);
-		pickup_at_service = n.advertiseService("/gate_controller/pickup_at", &PickupAtServer::pickupSequence, this);
+		pickup_at_srv_server = n.advertiseService("/gate_controller/pickup_at", &PickupAtServer::pickupSequence, this);
+
+		move_straight_srv = n.serviceClient<robo7_srvs::MoveStraight>("/kinematics/path_follower/straight_move");
+
 
 	}
 
@@ -71,32 +77,21 @@ public:
 
 	  ROS_DEBUG("Pickup sequence started");
 
-		geometry_msgs::Twist obejct_pos_robot = req.object_pos;
+		float travel_dist = req.dist;
 		bool drop_mode = req.drop;
 
 		openGate();
-		// placeholder sleep
 
-		ROS_DEBUG("Computing object position");
+		robo7_srvs::MoveStraight::Request srv_move_straight_req;
+		robo7_srvs::MoveStraight::Response srv_move_straight_resp;
 
-		geometry_msgs::Twist object_pos;
-		object_pos.linear.x = (obejct_pos_robot.linear.x * cos(robot_pos_tet) + obejct_pos_robot.linear.y * sin(robot_pos_tet)) + robot_pos_x;
-		object_pos.linear.y = (obejct_pos_robot.linear.x * sin(robot_pos_tet) + obejct_pos_robot.linear.y * cos(robot_pos_tet)) + robot_pos_y;
+		srv_move_straight_req.desired_distance = travel_dist;
+		srv_move_straight_req.desired_distance = drop_mode;
 
-		ROS_DEBUG("Publishing position");
+		move_straight_srv.call(srv_move_straight_req, srv_move_straight_resp);
 
-		usleep(1000000);
-		go_to_pub.publish(object_pos);
-
-		usleep(1000000);
-		ROS_DEBUG("Destination updated");
-
-		while (!at_point){
-		  ros::spinOnce();
-		}
-
-		usleep(2*1000000);
-
+		//usleep(1000000);
+		
 		closeGate();
 
 		// placeholder sleep

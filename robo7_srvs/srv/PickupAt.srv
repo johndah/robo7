@@ -1,5 +1,5 @@
 # request
-geometry_msgs/Twist object_pos    # position of the object to pickup, in the robot frame
-bool drop                         # do we want to run it in drop mode?
+float32 dist        # distance to travel to reach/ avoid the object
+bool drop           # do we want to run it in drop mode?
 ---
 bool success  # True if the pickup sequence was sucsessful
