@@ -209,6 +209,9 @@ private:
       {
         aPoint.z = 0.1; //Distance before switching for curves
       }
+
+      discretized_path.number++;
+      discretized_path.the_points.push_back(aPoint);
     }
 
     return discretized_path;
