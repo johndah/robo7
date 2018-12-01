@@ -235,37 +235,37 @@ Remove some unclear images
 
 ### 2018-11-23
 
-Ball, 2
+Ball, 2, 3053
 
-Cube 3
+Cube 3, 4561
 
-Cylinder 2
+Cylinder 2, 3188
 
-Hollow Cube 2
+Hollow Cube 2, 3238
 
-Cross 2
+Cross 2, 3290
 
-Star 2
+Star 2, 3005
 
-Triangle 1
+Triangle 1, 1578
 
 
 
 ### 2018-11-28
 
-| Class             | # Class |                                            |       | acc   |
-| ----------------- | ------- | ------------------------------------------ | ----- | ----- |
-| Yellow Ball       | 273     | OK                                         | +1205 | 100   |
-| Yellow Cube       | 250     | OK                                         | +1121 | 97.48 |
-| Green Cube        | 401     | OK                                         | +1122 | 100   |
-| Green Cylinder    | 341     | often g_hollow                             | +1216 | 63.25 |
-| Green Hollow Cube | 116     | OK                                         | +1633 | 95.53 |
-| Orange Cross      | 16      | sometimes                                  | +1646 | 83.58 |
-| Orange Star       | 329     | not good enough when it stand and fas away | +1063 | 96.84 |
-| Red Cylinder      | 133     |                                            | +1498 | 73.52 |
-| Red Hollow Cube   | 147     | Bad                                        | +1342 | 86.15 |
-| Red Ball          | 307     | OK                                         | +1273 | 99.47 |
-| Blue Cube         | 84      | Bad                                        | +1583 | 58.33 |
-| Blue Triangle     | 272     | OK                                         | +1306 | 99.80 |
-| Purple Cross      | 390     | Sometimes                                  | +1238 | 99.55 |
-| Purple Star       | 313     | Sometimes                                  | +1300 | 95.25 |
+| Class             | # Class |                                            |       | acc   |      |
+| ----------------- | ------- | ------------------------------------------ | ----- | ----- | ---- |
+| Yellow Ball       | 273     | OK                                         | +1205 | 100   | 1473 |
+| Yellow Cube       | 250     | OK                                         | +1121 | 97.48 | 1371 |
+| Green Cube        | 401     | OK                                         | +1122 | 100   | 1523 |
+| Green Cylinder    | 341     | often g_hollow                             | +1216 | 63.25 | 1557 |
+| Green Hollow Cube | 116     | OK                                         | +1633 | 95.53 | 1749 |
+| Orange Cross      | 16      | sometimes                                  | +1646 | 83.58 | 1662 |
+| Orange Star       | 329     | not good enough when it stand and fas away | +1063 | 96.84 | 1392 |
+| Red Cylinder      | 133     |                                            | +1498 | 73.52 | 1631 |
+| Red Hollow Cube   | 147     | Bad                                        | +1342 | 86.15 | 1489 |
+| Red Ball          | 307     | OK                                         | +1273 | 99.47 | 1580 |
+| Blue Cube         | 84      | Bad                                        | +1583 | 58.33 | 1667 |
+| Blue Triangle     | 272     | OK                                         | +1306 | 99.80 | 1578 |
+| Purple Cross      | 390     | Sometimes                                  | +1238 | 99.55 | 1628 |
+| Purple Star       | 313     | Sometimes                                  | +1300 | 95.25 | 1613 |

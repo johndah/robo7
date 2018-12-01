@@ -51,7 +51,6 @@ public:
   		image_sub_ = it_.subscribe("/camera/rgb/image_rect_color", 1,
   			                       &ACFdetector::detection, this);
 
-      // obj_img_pub = it_.advertise("/vision/object/img", 1);
 
   		namedWindow("Detected image");
       // namedWindow("bbx");
@@ -69,6 +68,9 @@ public:
       }
 
       n.param<double>("/acf_detector/scoreThre", scoreThre, 50);
+      n.param<double>("/acf_detector/sizeThre", sizeThre, 80);
+      n.param<double>("/acf_detector/boundaryThre", boundaryThre, 30);
+      n.param<int>
 
 
       // record a Video
