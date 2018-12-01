@@ -246,7 +246,6 @@ public:
 		//Do go_To service and see what it does return
 		robo7_srvs::GoTo::Request req2;
 		robo7_srvs::GoTo::Response res2;
-		req2.robot_pose = the_robot_pose.position;
 		req2.destination_pose = destination;
 		go_to_srv.call(req2, res2);
 

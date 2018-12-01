@@ -19,6 +19,7 @@
 #include <robo7_srvs/ICPAlgorithm.h>
 #include <robo7_srvs/callServiceTest.h>
 #include <robo7_srvs/PathFollowerSrv.h>
+#include <robo7_srvs/PathFollower2.h>
 #include <robo7_srvs/path_planning.h>
 #include <robo7_srvs/update_map.h>
 #include <robo7_srvs/GoTo.h>
@@ -43,6 +44,7 @@ public:
   ros::ServiceClient ransac_srv;
   ros::ServiceClient icp_srv;
   ros::ServiceClient path_follower_srv;
+  ros::ServiceClient path_follower2_srv;
   ros::ServiceClient path_planning_srv;
   ros::ServiceClient mapping_srv;
   ros::ServiceClient go_to_srv;
@@ -67,6 +69,7 @@ public:
     position_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &test_server::the_robot_pose_callBack, this);
 
     path_follower_srv = n.serviceClient<robo7_srvs::PathFollowerSrv>("/kinematics/path_follower/path_follower");
+    path_follower2_srv = n.serviceClient<robo7_srvs::PathFollower2>("/kinematics/path_follower/path_follower_v2");
 
     ransac_srv = n.serviceClient<robo7_srvs::RansacWall>("/localization/ransac");
     icp_srv = n.serviceClient<robo7_srvs::ICPAlgorithm>("/localization/icp");
@@ -198,14 +201,13 @@ public:
       req1.robot_position = robot_position;
       req1.destination_position = destination_pose;
       path_planning_srv.call(req1, res1);
-      done = res1.success;
 
-      // robo7_srvs::PathFollowerSrv::Request req2;
-      // robo7_srvs::PathFollowerSrv::Response res2;
-      // req2.req = true;
-      // req2.trajectory = res1.path_planned;
-      // path_follower_srv.call(req2, res2);
-      // done = res1.success;
+      robo7_srvs::PathFollower2::Request req2;
+      robo7_srvs::PathFollower2::Response res2;
+      req2.trajectory = res1.path;
+      req2.traject = res1.path_planned;
+      path_follower2_srv.call(req2, res2);
+      done = res1.success;
     }
 
     //Move the robot to another position

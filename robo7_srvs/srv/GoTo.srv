@@ -1,5 +1,4 @@
 # request
-geometry_msgs/Twist robot_pose
 geometry_msgs/Twist destination_pose
 ---
 bool obstacle
