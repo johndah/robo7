@@ -53,7 +53,8 @@ class Frontier
 	{
 		//ROS_INFO("Costs: occ %f, dist %f, dist_cost %f.  theta_diff %f  exp_cost %f", occupancy_cost, frontier_distance, getDistanceCost(frontier_distance, window_height), theta_diff / (4 * pi), getExplorationGainCost());
 
-		return occupancy_cost + theta_diff / (8 * pi) + getExplorationGainCost() + 0 * getDistanceCost(frontier_distance, window_height) + float(not_visable);
+		return occupancy_cost + getExplorationGainCost() + theta_diff / (4 * pi) + .5 * float(not_visable);
+		// return occupancy_cost +  theta_diff / (8 * pi) + getExplorationGainCost() + 0 * getDistanceCost(frontier_distance, window_height) + .5 * float(not_visable);
 	}
 
 	float getExplorationGainCost()
@@ -66,12 +67,12 @@ class Frontier
 
 	float getDistanceCost(float distance, float threshold)
 	{
-		return distance / 6;
+		//return distance / 6;
 
-		// if (distance < threshold)
-		// 	return 1 - gaussian(distance, threshold, threshold);
-		// else
-		// 	return 1 - std::exp(-(distance - threshold) * threshold);
+		if (distance < threshold)
+			return 1 - gaussian(distance, threshold, threshold);
+		else
+			return 1 - std::exp(-(distance - threshold) * threshold);
 	}
 
 	float gaussian(float x, float mean, float var)
@@ -150,8 +151,9 @@ class MappingGridsServer
 		geometry_msgs::Twist frontier_destination_pose = getFrontier(x, y, theta, res);
 
 		res.frontier_destination_pose = frontier_destination_pose;
-		res.success = true;
 
+		res.success = true;
+		
 		return true;
 	}
 
@@ -361,8 +363,8 @@ class MappingGridsServer
 		{
 			std::vector<frontier_ptr>::iterator min_cost_iterator;
 
-			ROS_INFO("Frontier size %d ", (int)frontier_nodes.size());
-			ROS_INFO("All frontiers size %d ", (int)all_frontiers_nodes.size());
+			// ROS_INFO("Frontier size %d ", (int)frontier_nodes.size());
+			// ROS_INFO("All frontiers size %d ", (int)all_frontiers_nodes.size());
 			if (false && !frontier_nodes.empty())
 			{
 				min_cost_iterator = std::min_element(frontier_nodes.begin(), frontier_nodes.end(), [](const frontier_ptr a, const frontier_ptr b) {
@@ -376,22 +378,25 @@ class MappingGridsServer
 					return a->getCost() < b->getCost();
 				});
 				frontier_destination_node = all_frontiers_nodes[std::distance(all_frontiers_nodes.begin(), min_cost_iterator)];
-				ROS_INFO(" ");
-				ROS_INFO("Costs: %f occ %f, dist %f, dist_cost %f.  theta_diff %f  exp_cost %f", frontier_destination_node->getCost(), frontier_destination_node->occupancy_cost, frontier_destination_node->frontier_distance, frontier_destination_node->getDistanceCost(frontier_destination_node->frontier_distance, window_height), frontier_destination_node->theta_diff / (8 * pi), frontier_destination_node->getExplorationGainCost());
-				ROS_INFO(" ");
+				// ROS_INFO(" ");
+				// ROS_INFO("Costs: %f occ %f, theta_diff %f  exp_cost %f  visability %f", frontier_destination_node->getCost(), frontier_destination_node->occupancy_cost, frontier_destination_node->theta_diff / (2 * pi), frontier_destination_node->getExplorationGainCost(),  float(.5*float(frontier_destination_node->not_visable)));
+				// ROS_INFO(" ");
 			}
 			else
 			{
 				ROS_INFO("Everything explored!");
 				res.success = true;
+				res.exploration_done = true;
+
 				return frontier_destination_pose;
 			}
 
 			frontier_destination_pose.linear.x = frontier_destination_node->x;
 			frontier_destination_pose.linear.y = frontier_destination_node->y;
+			res.exploration_done = false;
+			res.success = true;
+			res.frontier_destination_pose = frontier_destination_pose;
 		}
-		else
-			return frontier_destination_pose;
 
 		return frontier_destination_pose;
 	}

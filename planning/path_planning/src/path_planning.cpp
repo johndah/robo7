@@ -191,6 +191,7 @@ class PathPlanning
 			{
 				penalty_factor = 0.3;
 				node->path_length = 0.4 * field_scale;
+				// ROS_INFO("Length %f", node->path_length);
 			}
 			else if (std::abs(angular_velocity) - node->angular_velocity_resolution < 1e-1 || std::abs(angular_velocity) - 2 * node->angular_velocity_resolution < 1e-1)
 			{
@@ -263,7 +264,6 @@ class PathPlanning
 	node_ptr getDirectTarget(node_ptr node, float x_diff, float y_diff)
 	{
 		std::vector<float> path_x, path_y, path_theta;
-		// node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
 		float path_length, angular_velocity, cost_to_come, penalty_factor;
 
 		path_length = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
@@ -271,8 +271,8 @@ class PathPlanning
 		float x, y, theta, path_cost, t, dt;
 		x = node->x;
 		y = node->y;
-		theta = std::abs(std::fmod(atan2(y_diff, x_diff) + pi, 2 * pi) - pi);
-		// ROS_INFO("Theta %f, path_length %f", theta, path_length);
+		theta = std::fmod(atan2(y_diff, x_diff) + pi, 2 * pi) - pi;
+		// ROS_INFO("xdiff, y_diff, theta %f, path_length %f", x_diff, y_diff, theta, path_length);
 		angular_velocity = 0;
 		penalty_factor = 0.4;
 		t = 0.0;
@@ -294,32 +294,14 @@ class PathPlanning
 			path_y.push_back(y);
 			path_theta.push_back(theta);
 
-			// ROS_INFO("x %f  y %f   theta %f   t %f", x, y, theta, t);
-
-			// node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
-			// successor_node->cost_to_go = successor_node->getHeuristicCost();
-
-			// if (successor_node->inCollision())
-			// {
-			// 	add_node = false;
-			// 	break;
-			// }
-
-			// if (successor_node->distanceSquared(node_target) < this->goal_radius_tolerance)
-			// 	break;
-
 			occupancy_srv.request.x = x;
 			occupancy_srv.request.y = y;
 
 			if (occupancy_client.call(occupancy_srv))
 				path_cost = occupancy_srv.response.occupancy * path_length * penalty_factor;
-			// else
-			// {
-			// 	add_node = false;
-			// 	break;
-			// }
 		}
 
+		// ROS_INFO("Adding direct target at x %f  y %f", x, y);
 		cost_to_come += path_cost;
 		node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
 		successor_node->cost_to_go = successor_node->getHeuristicCost();
@@ -335,7 +317,7 @@ class PathPlanning
 		y_diff = float(node_target->y - node_current->y);
 		
 		int n = floor(200 * std::max(std::abs(x_diff), std::abs(y_diff)));
-		//ROS_INFO("n %d  xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", n,  node_current->x,  node_current->y, node_target->x, node_target->y, x_diff, y_diff);
+		// ROS_INFO("n %d  xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", n,  node_current->x,  node_current->y, node_target->x, node_target->y, x_diff, y_diff);
 		bool visable = true;
 
 		x_ray =  node_current->x;
@@ -361,7 +343,6 @@ class PathPlanning
 
 		if (visable)
 		{
-			ROS_INFO("Going directly to target");
 			node_ptr node_successor = getDirectTarget(node_current, x_diff, y_diff);
 			node_successor->parent = node_current;
 
@@ -382,8 +363,9 @@ class PathPlanning
 		geometry_msgs::Twist robot_position = req.robot_position;
 		geometry_msgs::Point destination_position = req.destination_position;
 
+		//ROS_INFO("EC %d", req.exploring);
 		if (req.exploring)
-			field_scale = 0.6;
+			field_scale = 0.4;
 		else
 			field_scale = 1.0;
 

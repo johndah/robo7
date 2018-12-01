@@ -80,7 +80,7 @@ class HeuristicGridsServer
 			distance_grid_init = false;
 			current_x_to = x_to;
 			current_y_to = y_to;
-			ROS_INFO("New target!");
+			// ROS_INFO("New target!");
 		}
 
 		res.distance = getDistanceFromGrid(x_to, y_to, x_from, y_from);

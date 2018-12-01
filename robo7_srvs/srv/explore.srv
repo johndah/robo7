@@ -12,4 +12,5 @@ bool get_frontier
 # true means that the grid cell has been covered by the camera window
 
 bool success  # True if the sequence was successful
+bool exploration_done
 geometry_msgs/Twist frontier_destination_pose

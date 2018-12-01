@@ -77,7 +77,9 @@ public:
     robo7_srvs::path_planning::Request path_req;
     robo7_srvs::path_planning::Response path_res;
 
-    for (int i = 0; i < 100; i++)
+    bool exploration_done = false;
+
+    while (!exploration_done)
     {
 
       explore_srv.request.x = x;
@@ -87,10 +89,13 @@ public:
 
       exploration_client.call(explore_srv);
 
+      if (explore_srv.response.exploration_done)
+        break;
+
       x = explore_srv.response.frontier_destination_pose.linear.x;
       y = explore_srv.response.frontier_destination_pose.linear.y;
 
-      ROS_INFO("rx %f  ry %f  dx %f  dy %f", robot_pose.linear.x, robot_pose.linear.y, x, y);
+      // ROS_INFO("rx %f  ry %f  dx %f  dy %f", robot_pose.linear.x, robot_pose.linear.y, x, y);
       path_req.exploring = true;
       path_req.robot_position = robot_pose;
       path_req.destination_position.x = x;
@@ -124,6 +129,8 @@ public:
       robot_pose.linear.y = partial_y;
       robot_pose.angular.z = partial_theta;
     }
+
+    ROS_INFO("Exploration Done");
 
     res.success = true;
     res.frontier_destination_pose = explore_srv.response.frontier_destination_pose;
