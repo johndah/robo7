@@ -21,7 +21,6 @@ add_service_files(
   discretize_map.srv
   door_opener.srv
   distanceTo.srv
-  GoTo.srv
   UpdateOccupancyGrid.srv
   UpdateOccupancyGridFiltered.srv
   UpdateDiscretizedMap.srv
@@ -30,6 +29,8 @@ add_service_files(
   moveToNextPoint.srv
   PureRotation.srv
   MoveStraight.srv
+  PathFollower2.srv
+  GoTo.srv
 )
 
 

@@ -53,7 +53,7 @@ public:
       ros::spinOnce();
       diff_angle = desire_angle - the_robot_pose.position.angular.z;
 
-      ROS_INFO("diff_angle = %lf", diff_angle);
+      // ROS_INFO("diff_angle = %lf", diff_angle);
 
       if(sgn(diff_angle)*diff_angle > pi)
       {
@@ -67,12 +67,12 @@ public:
         }
       }
 
-      ROS_INFO("diff_angle = %lf", diff_angle);
+      // ROS_INFO("diff_angle = %lf", diff_angle);
 
       desire_vel.linear.x = 0;
       desire_vel.angular.z = P_update( diff_angle );
 
-      ROS_INFO("desire_vel = %lf", desire_vel.angular.z);
+      // ROS_INFO("desire_vel = %lf", desire_vel.angular.z);
 
       desired_velocity.publish( desire_vel );
       loop_rate.sleep();
@@ -159,7 +159,7 @@ private:
     float angular_vel = (a_P * error);
     float angular_sat = desire_angular_sat;
 
-    ROS_INFO("angular vel = %lf and %lf", angular_vel, angular_sat);
+    // ROS_INFO("angular vel = %lf and %lf", angular_vel, angular_sat);
 
     if(angular_vel > angular_sat) { angular_vel = angular_sat; }
     else if(-angular_vel < -angular_sat) { angular_vel = -angular_sat; }
