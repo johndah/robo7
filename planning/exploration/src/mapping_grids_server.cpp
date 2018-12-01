@@ -30,12 +30,6 @@ class Frontier
   public:
 	float x, y, occupancy_cost, theta_diff, frontier_distance, not_visable;
 	int number_unexplored;
-	//float angular_velocity, time, dt;
-	//float path_cost, path_length;
-	//float steering_angle_max, angular_velocity_resolution;
-	//float tolerance_radius, tolerance_angle;
-	//unsigned int node_id;
-	//std::vector<float> path_x, path_y, path_theta;
 
 	Frontier(float x, float y, float occupancy_cost, float theta_diff, float frontier_distance, int number_unexplored)
 	{
@@ -302,12 +296,12 @@ class MappingGridsServer
 						theta_diff = std::abs(std::fmod(theta - atan2(y_diff, x_diff) + pi, 2 * pi) - pi);
 						int n = 4 * std::max(std::abs(sq(x_diff)), std::abs(sq(y_diff)));
 
-						//ROS_INFO("x %f x_grid %f  y %f y_grid %f  x_diff/n %f  y_diff/n %f", x, x_grid, y, y_grid, x_diff / n, y_diff / n);
+						// ROS_INFO("x %f x_grid %f  y %f y_grid %f  x_diff/n %f  y_diff/n %f", x, x_grid, y, y_grid, x_diff / n, y_diff / n);
 						for (int i_ray = 0; i_ray < n; i_ray++)
 						{
 							x_ray += x_diff / n;
 							y_ray += y_diff / n;
-							//ROS_INFO("Ray:  x %f y %f  wall_occ %f", x_ray, y_ray, wall_grid[sq(x_ray)][sq(y_ray)]);
+							// ROS_INFO("Ray:  x %f y %f  wall_occ %f", x_ray, y_ray, wall_grid[sq(x_ray)][sq(y_ray)]);
 							if (wall_grid[sq(x_ray)][sq(y_ray)] == 1.0)
 							{
 								add_exploration_cell = false;
@@ -364,7 +358,7 @@ class MappingGridsServer
 			std::vector<frontier_ptr>::iterator min_cost_iterator;
 
 			// ROS_INFO("Frontier size %d ", (int)frontier_nodes.size());
-			// ROS_INFO("All frontiers size %d ", (int)all_frontiers_nodes.size());
+			ROS_INFO("All frontiers size %d ", (int)all_frontiers_nodes.size());
 			if (false && !frontier_nodes.empty())
 			{
 				min_cost_iterator = std::min_element(frontier_nodes.begin(), frontier_nodes.end(), [](const frontier_ptr a, const frontier_ptr b) {

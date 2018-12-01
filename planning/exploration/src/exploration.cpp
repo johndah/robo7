@@ -41,8 +41,8 @@ public:
 
     path_planning_client = nh.serviceClient<robo7_srvs::path_planning>("/path_planning/path_service");
 
-    //robot_pose_subs = nh.subscribe("localization/kalman_filter/position_timed", 1000, &Exploration::getPositionCallBack, this);
-    robot_pose_subs = nh.subscribe("/localization/kalman_filter/position", 1000, &Exploration::getPositionCallBack, this);
+    robot_pose_subs = nh.subscribe("localization/kalman_filter/position_timed", 1000, &Exploration::getPositionCallBack, this);
+    //robot_pose_subs = nh.subscribe("/localization/kalman_filter/position", 1000, &Exploration::getPositionCallBack, this);
 
     occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
     exploration_client = nh.serviceClient<robo7_srvs::explore>("/exploration_grid/explore");
@@ -95,7 +95,7 @@ public:
       x = explore_srv.response.frontier_destination_pose.linear.x;
       y = explore_srv.response.frontier_destination_pose.linear.y;
 
-      // ROS_INFO("rx %f  ry %f  dx %f  dy %f", robot_pose.linear.x, robot_pose.linear.y, x, y);
+      ROS_INFO("rx %f  ry %f  dx %f  dy %f", robot_pose.linear.x, robot_pose.linear.y, x, y);
       path_req.exploring = true;
       path_req.robot_position = robot_pose;
       path_req.destination_position.x = x;

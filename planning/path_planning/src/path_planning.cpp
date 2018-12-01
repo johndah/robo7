@@ -147,8 +147,8 @@ class PathPlanning
 		this->trajectory_pub = trajectory_pub;
 		this->target_trajectory_pub = target_trajectory_pub;
 
-		//robot_position = nh.subscribe("localization/kalman_filter/position_timed", 1000, &PathPlanning::getPositionCallBack, this);
-		robot_position = nh.subscribe("/localization/kalman_filter/position", 1000, &PathPlanning::getPositionCallBack, this);
+		robot_position = nh.subscribe("localization/kalman_filter/position_timed", 1000, &PathPlanning::getPositionCallBack, this);
+		// robot_position = nh.subscribe("/localization/kalman_filter/position", 1000, &PathPlanning::getPositionCallBack, this);
 
 		path_service = nh.advertiseService("path_service", &PathPlanning::getPath, this);
 
@@ -194,18 +194,18 @@ class PathPlanning
 			if (std::abs(angular_velocity) < 1e-1)
 			{
 				penalty_factor = 0.3;
-				node->path_length = 0.4 * field_scale;
-				// ROS_INFO("Length %f", node->path_length);
+				node->path_length = 0.4 * this->field_scale;
+				// ROS_INFO("Length %f, ", node->path_length);
 			}
 			else if (std::abs(angular_velocity) - node->angular_velocity_resolution < 1e-1 || std::abs(angular_velocity) - 2 * node->angular_velocity_resolution < 1e-1)
 			{
 				penalty_factor = .7;
-				node->path_length = 0.3 * field_scale;
+				node->path_length = 0.3 * this->field_scale;
 			}
 			else
 			{
 				penalty_factor = 1.0;
-				node->path_length = 0.25 * field_scale;
+				node->path_length = 0.25 * this->field_scale;
 			}
 
 			t = 0.0;
@@ -321,7 +321,7 @@ class PathPlanning
 		y_diff = float(node_target->y - node_current->y);
 		
 		int n = floor(200 * std::max(std::abs(x_diff), std::abs(y_diff)));
-		// ROS_INFO("n %d  xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", n,  node_current->x,  node_current->y, node_target->x, node_target->y, x_diff, y_diff);
+		ROS_INFO("n %d  xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", n,  node_current->x,  node_current->y, node_target->x, node_target->y, x_diff, y_diff);
 		bool visable = true;
 
 		x_ray =  node_current->x;
@@ -367,11 +367,11 @@ class PathPlanning
 		geometry_msgs::Twist robot_position = req.robot_position;
 		geometry_msgs::Point destination_position = req.destination_position;
 
-		//ROS_INFO("EC %d", req.exploring);
+		// ROS_INFO("EC %d", req.exploring);
 		if (req.exploring)
-			field_scale = 0.4;
+			this->field_scale = 1.0;
 		else
-			field_scale = 1.0;
+			this->field_scale = 1.0;
 
 		x0 = robot_position.linear.x;
 		y0 = robot_position.linear.y;
