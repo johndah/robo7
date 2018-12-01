@@ -9,4 +9,4 @@ int32[] weights            # number of votes for each class,
                           # every vote has been used for positioning average
 
 
-int8 total_votes          # total number of votes for the objects position.
+int32 total_votes          # total number of votes for the objects position.
