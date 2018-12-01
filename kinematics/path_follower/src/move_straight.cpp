@@ -46,8 +46,6 @@ public:
 
     float time_moving = desire_distance / linear_vel;
 
-    ROS_INFO("Time moving : %lf", time_moving);
-
     ros::Rate loop_rate(10/time_moving);
 
     geometry_msgs::Twist desire_vel;
