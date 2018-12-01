@@ -18,6 +18,7 @@
 #include "robo7_msgs/grid_row.h"
 #include "robo7_msgs/wallPoint.h"
 #include "robo7_msgs/allObstacles.h"
+#include "robo7_msgs/mapping_grid.h"
 
 typedef std::vector<double> Array;
 typedef std::vector<Array> Matrix;
@@ -333,7 +334,6 @@ class HeuristicGridsServer
 
 		if (distance_grid_init)
 		{
-      ROS_INFO("Hey");
 			return distance_grid.at<int>(sq(x_from), sq(y_from));
 		}
 		else
@@ -347,7 +347,6 @@ class HeuristicGridsServer
 			}
 			else
 			{
-        ROS_INFO("heyhey");
 				// To display, uncomment bellow
 				// cv::Mat normalized_dist_grid;
 				// cv::normalize(distance_grid, normalized_dist_grid, 0, 255, cv::NORM_MINMAX, CV_8UC3);
