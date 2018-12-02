@@ -59,7 +59,7 @@ class Node
 
 		this->path_length = 0.3;
 		if (exploration)
-			this->steering_angle_max = pi / (5.0 * this->dt);
+			this->steering_angle_max = pi / (8.0 * this->dt);
 		else
 			this->steering_angle_max = pi / (10.0 * this->dt);
 
@@ -280,7 +280,7 @@ class PathPlanning
 		angular_velocity = 0;
 		penalty_factor = 0.4;
 		t = 0.0;
-		dt = node->dt;
+		dt = 0.01; //node->dt;
 
 		path_cost = 0.0;
 		cost_to_come = node->cost_to_come;
@@ -321,7 +321,8 @@ class PathPlanning
 		y_diff = float(node_target->y - node_current->y);
 
 		int n = floor(200 * std::max(std::abs(x_diff), std::abs(y_diff)));
-		ROS_INFO("n %d  xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", n,  node_current->x,  node_current->y, node_target->x, node_target->y, x_diff, y_diff);
+		if (node_target->x > 0 && node_target->y > 2)
+			ROS_INFO("xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", node_current->x, node_current->y, node_target->x, node_target->y, x_diff, y_diff);
 		bool visable = true;
 
 		x_ray = node_current->x;
@@ -336,7 +337,9 @@ class PathPlanning
 			occupancy_srv.request.y = y_ray;
 			if (occupancy_client.call(occupancy_srv))
 			{
-				//ROS_INFO("Ray:  x %f y %f  occ %f", x_ray, y_ray, occupancy_srv.response.occupancy);
+				// if (node_target->x > 2 && node_target->y > 2)
+				// 	ROS_INFO("Ray:  x %f y %f  occ %f", x_ray, y_ray, occupancy_srv.response.occupancy);
+
 				if (occupancy_srv.response.occupancy == 1.0)
 				{
 					visable = false;
@@ -349,6 +352,9 @@ class PathPlanning
 		{
 			node_ptr node_successor = getDirectTarget(node_current, x_diff, y_diff);
 			node_successor->parent = node_current;
+
+			// if (node_target->x > 0 && node_target->y > 2)
+			// 	ROS_INFO("xs %f ys %f   xt %f  yt %f", node_successor->x, node_successor->y, node_target->x, node_target->y);
 
 			get_found_path(node_successor, node_successor, res);
 		}
@@ -367,9 +373,10 @@ class PathPlanning
 		geometry_msgs::Twist robot_position = req.robot_position;
 		geometry_msgs::Point destination_position = req.destination_position;
 
-		// ROS_INFO("EC %d", req.exploring);
-		if (req.exploring)
-			this->field_scale = 1.0;
+		ROS_INFO("EC %d", req.exploring);
+		exploration = req.exploring;
+		if (exploration)
+			this->field_scale = .6;
 		else
 			this->field_scale = 1.0;
 
@@ -395,7 +402,6 @@ class PathPlanning
 
 		path_x.clear();
 		path_y.clear();
-		path_theta.clear();
 
 		float theta0_resolution;
 
@@ -406,8 +412,12 @@ class PathPlanning
 
 		for (float t0 = theta0 - pi; t0 < theta0 + pi; t0 += theta0_resolution)
 		{
+			path_x.push_back(x0);
+			path_y.push_back(y0);
+			path_theta.push_back(t0);
 			node_ptr node_start = std::make_shared<Node>(x0, y0, t0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
 			node_start->cost_to_go = node_start->getHeuristicCost();
+
 			alive_nodes.push_back(node_start);
 		}
 
@@ -508,13 +518,15 @@ class PathPlanning
 		while (node_current->parent != NULL)
 		{
 
-			int partitions = 2;
+			//int partitions = 2;
 
 			node_ptr node_parent = node_current->parent;
 			node_ptr partial_node = node_current;
 			node_ptr partial_node_parent = node_parent;
 
-			if (partitions >= 0 && node_current->path_x.size() >= 3)
+			int partitions = std::max((int)floor(node_current->path_x.size()/15.0), 1);
+
+			if (partitions >= 0 && node_current->path_x.size() >= partitions+1)
 			{
 
 				for (int i = partitions; i >= 0; i--)
@@ -550,19 +562,16 @@ class PathPlanning
 				}
 			}
 
-			// this->occupancy_srv.request.x = node_current->x;
-			// this->occupancy_srv.request.y = node_current->y;
-
 			node_current = node_parent;
 			target_nodes.push_back(node_current);
 		}
-
 		std::reverse(target_nodes.begin(), target_nodes.end());
 
 		node_target->path_theta.push_back(node_target->theta);
 
-		target_nodes.push_back(node_target);
+		//target_nodes.push_back(node_target);
 
+		node_ptr node = target_nodes[0];
 		for (int i = 1; i < target_nodes.size(); i++)
 		{
 			node_ptr node = target_nodes[i];
@@ -654,7 +663,7 @@ int main(int argc, char **argv)
 	nh = ros::NodeHandle("~");
 
 	bool search_done = false;
-	double control_frequency = 1.0;
+	double control_frequency = 10.0;
 	ros::Publisher paths_pub = nh.advertise<robo7_msgs::paths>("paths_vector", 1000);
 	ros::Publisher target_pub = nh.advertise<geometry_msgs::Point>("target", 1000);
 	ros::Publisher target_path_pub = nh.advertise<robo7_msgs::paths>("target_path", 1000);

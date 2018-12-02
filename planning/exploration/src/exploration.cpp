@@ -41,7 +41,7 @@ public:
 
     path_planning_client = nh.serviceClient<robo7_srvs::path_planning>("/path_planning/path_service");
 
-    robot_pose_subs = nh.subscribe("localization/kalman_filter/position_timed", 1000, &Exploration::getPositionCallBack, this);
+    //robot_pose_subs = nh.subscribe("localization/kalman_filter/position_timed", 1000, &Exploration::getPositionCallBack, this);
     //robot_pose_subs = nh.subscribe("/localization/kalman_filter/position", 1000, &Exploration::getPositionCallBack, this);
 
     occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
@@ -66,12 +66,12 @@ public:
 
     if (position_updated && x == 0 && y == 0 && theta == 0)
     {
-      //x = .215;
-      //y = .2;
-      //theta = pi/2;
-      x = x0_default;
-      y = y0_default;
-      theta = theta0_default;
+      x = .215;
+      y = .2;
+      theta = pi/2;
+      // x = x0_default;
+      // y = y0_default;
+      // theta = theta0_default;
     }
 
     robo7_srvs::path_planning::Request path_req;
@@ -87,15 +87,20 @@ public:
       explore_srv.request.theta = theta;
       explore_srv.request.get_frontier = true;
 
+      // ROS_INFO("Explor srv x %f y %f", x, y);
+
       exploration_client.call(explore_srv);
 
       if (explore_srv.response.exploration_done)
+      {
+        exploration_done = true;
         break;
+      }
 
       x = explore_srv.response.frontier_destination_pose.linear.x;
       y = explore_srv.response.frontier_destination_pose.linear.y;
 
-      ROS_INFO("rx %f  ry %f  dx %f  dy %f", robot_pose.linear.x, robot_pose.linear.y, x, y);
+      // ROS_INFO("rx %f  ry %f  dx %f  dy %f", robot_pose.linear.x, robot_pose.linear.y, x, y);
       path_req.exploring = true;
       path_req.robot_position = robot_pose;
       path_req.destination_position.x = x;
@@ -104,6 +109,11 @@ public:
       if (path_planning_client.call(path_req, path_res))
       {
         res.success = path_res.success;
+      }
+      else
+      {
+        ROS_WARN("No path found for exploration");
+        break;
       }
 
       robo7_msgs::trajectory trajectory_array;
@@ -121,21 +131,21 @@ public:
         explore_srv.request.y = partial_y;
         explore_srv.request.theta = partial_theta;
         explore_srv.request.get_frontier = false;
-
         exploration_client.call(explore_srv);
       }
+      theta = partial_theta;
 
       robot_pose.linear.x = partial_x;
       robot_pose.linear.y = partial_y;
       robot_pose.angular.z = partial_theta;
     }
 
-    ROS_INFO("Exploration Done");
+    ROS_INFO("Exploration done, success: %d", exploration_done);
 
-    res.success = true;
+    res.success = exploration_done;
     res.frontier_destination_pose = explore_srv.response.frontier_destination_pose;
 
-    return true;
+    return exploration_done;
   }
 };
 

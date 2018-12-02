@@ -47,7 +47,7 @@ class Frontier
 	{
 		//ROS_INFO("Costs: occ %f, dist %f, dist_cost %f.  theta_diff %f  exp_cost %f", occupancy_cost, frontier_distance, getDistanceCost(frontier_distance, window_height), theta_diff / (4 * pi), getExplorationGainCost());
 
-		return occupancy_cost + getExplorationGainCost() + theta_diff / (4 * pi) + .5 * float(not_visable);
+		return .7*occupancy_cost + getExplorationGainCost() + getDistanceCost(frontier_distance, window_height) + .5 * float(not_visable);
 		// return occupancy_cost +  theta_diff / (8 * pi) + getExplorationGainCost() + 0 * getDistanceCost(frontier_distance, window_height) + .5 * float(not_visable);
 	}
 
@@ -55,7 +55,7 @@ class Frontier
 	{
 		float frontier_area = float(pow(2 * frontier_window_size, 2));
 		// ROS_INFO("num explor %f   window2  % f    nom %f    denom %f", float(number_unexplored), frontier_area, float(frontier_area - float(number_unexplored)), frontier_area);
-		return .2 * (frontier_area - float(number_unexplored)) / frontier_area;
+		return .5*(frontier_area - float(number_unexplored)) / frontier_area;
 		//return float(.8*(number_unexplored < unexplored_threshold));
 	}
 
@@ -64,9 +64,11 @@ class Frontier
 		//return distance / 6;
 
 		if (distance < threshold)
-			return 1 - gaussian(distance, threshold, threshold);
+			return 2*(threshold - distance);
 		else
-			return 1 - std::exp(-(distance - threshold) * threshold);
+			return 0;
+		// return 1 - gaussian(distance, threshold, threshold);
+		//return 1 - std::exp(-(distance - threshold) * threshold);
 	}
 
 	float gaussian(float x, float mean, float var)
@@ -88,8 +90,9 @@ class MappingGridsServer
 	ros::Subscriber map_sub;
 	ros::Publisher occupancy_pub, wall_occupancy_pub, exploration_pub;
 	robo7_msgs::grid_matrix grid_matrix_msg, exoploration_matrix_msg;
-	ros::ServiceServer is_occupied_service;
+	//ros::ServiceServer is_occupied_service;
 	ros::ServiceServer explore_service;
+	robo7_srvs::IsGridOccupied occupancy_srv;
 	ros::ServiceClient occupancy_client, distance_client;
 	robo7_srvs::distanceTo distance_srv;
 
@@ -107,14 +110,16 @@ class MappingGridsServer
 		n.param<int>("/mapping_grids_server/smoothing_kernel_sd", smoothing_kernel_sd, 3);
 
 		map_sub = n.subscribe("/own_map/wall_coordinates", 1, &MappingGridsServer::mapCallback, this);
-		is_occupied_service = n.advertiseService("mapping_grids_server/occupancy_grid/is_occupied", &MappingGridsServer::occupancyGridRequest, this);
+		//is_occupied_service = n.advertiseService("mapping_grids_server/occupancy_grid/is_occupied", &MappingGridsServer::occupancyGridRequest, this);
 		explore_service = n.advertiseService("/exploration_grid/explore", &MappingGridsServer::explorationGridRequest, this);
 
-		occupancy_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/occupancy_matrix", 1);
-		wall_occupancy_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/wall_occupancy_matrix", 1);
+		//occupancy_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/occupancy_matrix", 1);
+		//wall_occupancy_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/wall_occupancy_matrix", 1);
 		exploration_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/exploration_matrix", 1);
 
-		occupancy_client = n.serviceClient<robo7_srvs::IsGridOccupied>("mapping_grids_server/occupancy_grid/is_occupied");
+		occupancy_client = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
+
+		//occupancy_client = n.serviceClient<robo7_srvs::IsGridOccupied>("mapping_grids_server/occupancy_grid/is_occupied");
 		distance_client = n.serviceClient<robo7_srvs::distanceTo>("/distance_grid/distance");
 
 		num_min_distance_squares = ceil(min_distance / grid_square_size);
@@ -147,10 +152,10 @@ class MappingGridsServer
 		res.frontier_destination_pose = frontier_destination_pose;
 
 		res.success = true;
-		
+
 		return true;
 	}
-
+	/*
 	bool occupancyGridRequest(robo7_srvs::IsGridOccupied::Request &req,
 							  robo7_srvs::IsGridOccupied::Response &res)
 	{
@@ -187,9 +192,40 @@ class MappingGridsServer
 
 		return true;
 	}
+	float getOccupancy(float x, float y)
+	{
+		float occupancy;
+		ROS_DEBUG("New grid occupancy request recieved");
+
+		if (sq(x) >= num_grid_squares_x || sq(y) >= num_grid_squares_y)
+			occupancy = 1.0;
+		else
+		{
+			float value = occupancy_grid.at<float>(sq(x), sq(y));
+
+			if (value < 0.0001)
+				occupancy = 0.0;
+			else
+				occupancy = value;
+		}
+
+		if (!occupancy_grid_init)
+		{
+			grid_matrix_msg = publishOccupancyGrid();
+
+			for (int i = 0; i < 10; i++)
+				occupancy_pub.publish(grid_matrix_msg);
+
+			occupancy_grid_init = true;
+		}
+
+		return occupancy;
+	}
+	*/
 
 	geometry_msgs::Twist getFrontier(float x, float y, float theta, robo7_srvs::explore::Response &res)
 	{
+		// ROS_INFO("getFrontier x %f y %f", x, y);
 
 		std::vector<frontier_ptr> frontier_nodes;
 
@@ -197,10 +233,10 @@ class MappingGridsServer
 		{
 			exploration_grid = cv::Mat::zeros(num_grid_squares_x, num_grid_squares_y, CV_32SC1);
 
-			grid_matrix_msg = publishWallGrid();
+			//grid_matrix_msg = publishWallGrid();
 
-			for (int i = 0; i < 10; i++)
-				wall_occupancy_pub.publish(grid_matrix_msg);
+			//for (int i = 0; i < 10; i++)
+			//	wall_occupancy_pub.publish(grid_matrix_msg);
 
 			exploration_grid_init = true;
 		}
@@ -248,14 +284,13 @@ class MappingGridsServer
 
 				int n = 4 * std::max(std::max(std::abs(sq(x_diff)), std::abs(sq(y_diff))), 20);
 				bool not_visable = false;
-				ROS_INFO("Mapping n %d", n);
+				// ROS_INFO("Mapping n %d", n);
 
 				x_ray = x;
 				y_ray = y;
 
 				for (int i_ray = 0; i_ray < n; i_ray++)
 				{
-
 					x_ray += x_diff / n;
 					y_ray += y_diff / n;
 
@@ -296,7 +331,7 @@ class MappingGridsServer
 						theta_diff = std::abs(std::fmod(theta - atan2(y_diff, x_diff) + pi, 2 * pi) - pi);
 						int n = 4 * std::max(std::abs(sq(x_diff)), std::abs(sq(y_diff)));
 
-						ROS_INFO("x %f x_grid %f  y %f y_grid %f  x_diff/n %f  y_diff/n %f", x, x_grid, y, y_grid, x_diff / n, y_diff / n);
+						// ROS_INFO("x %f x_grid %f  y %f y_grid %f  x_diff/n %f  y_diff/n %f", x, x_grid, y, y_grid, x_diff / n, y_diff / n);
 						for (int i_ray = 0; i_ray < n; i_ray++)
 						{
 							x_ray += x_diff / n;
@@ -311,8 +346,7 @@ class MappingGridsServer
 					}
 					if (add_exploration_cell)
 					{
-						//if (j < 1.0 || j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5)
-						if (j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5)
+						if (j > 5.0 && (j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5))
 						{
 
 							int number_unexplored = 0;
@@ -328,14 +362,18 @@ class MappingGridsServer
 								}
 							}
 
-							float cost = occupancy_grid.at<float>(sq(x_grid), sq(y_grid));
-							//if (grid[sq(x_grid)][sq(y_grid)] < 1.0)
-							if (cost < .6)
+							occupancy_srv.request.x = x_grid;
+							occupancy_srv.request.y = y_grid;
+
+							if (occupancy_client.call(occupancy_srv))
 							{
-								frontier_ptr frontier_node = std::make_shared<Frontier>(x_grid, y_grid, cost, theta_diff, frontier_distance, number_unexplored);
-								frontier_nodes.push_back(frontier_node);
-								all_frontiers_nodes.push_back(frontier_node);
-								exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = -1.0;
+								if (occupancy_srv.response.occupancy < .8)
+								{
+									frontier_ptr frontier_node = std::make_shared<Frontier>(x_grid, y_grid, occupancy_srv.response.occupancy, theta_diff, frontier_distance, number_unexplored);
+									frontier_nodes.push_back(frontier_node);
+									all_frontiers_nodes.push_back(frontier_node);
+									exploration_grid.at<float>(sq(x_grid), sq(y_grid)) = -1.0;
+								}
 							}
 						}
 						else
@@ -349,8 +387,8 @@ class MappingGridsServer
 
 		geometry_msgs::Twist frontier_destination_pose;
 
-		for (int i = 0; i < 10; i++)
-			exploration_pub.publish(grid_matrix_msg);
+		//for (int i = 0; i < 10; i++)
+		exploration_pub.publish(grid_matrix_msg);
 
 		frontier_ptr frontier_destination_node;
 		if (get_frontier)
@@ -372,9 +410,9 @@ class MappingGridsServer
 					return a->getCost() < b->getCost();
 				});
 				frontier_destination_node = all_frontiers_nodes[std::distance(all_frontiers_nodes.begin(), min_cost_iterator)];
-				// ROS_INFO(" ");
-				// ROS_INFO("Costs: %f occ %f, theta_diff %f  exp_cost %f  visability %f", frontier_destination_node->getCost(), frontier_destination_node->occupancy_cost, frontier_destination_node->theta_diff / (2 * pi), frontier_destination_node->getExplorationGainCost(),  float(.5*float(frontier_destination_node->not_visable)));
-				// ROS_INFO(" ");
+				ROS_INFO(" ");
+				ROS_INFO("Costs: %f occ %f, distCost %f theta_diff %f  exp_cost %f  visability %f", frontier_destination_node->getCost(), frontier_destination_node->occupancy_cost, float(frontier_destination_node->getDistanceCost(frontier_destination_node->frontier_distance, window_height)), frontier_destination_node->theta_diff / (2 * pi), frontier_destination_node->getExplorationGainCost(), float(.5 * float(frontier_destination_node->not_visable)));
+				ROS_INFO(" ");
 			}
 			else
 			{
@@ -739,7 +777,7 @@ int main(int argc, char **argv)
 
 	MappingGridsServer mapping_grids_server;
 
-	ros::Rate loop_rate(100);
+	ros::Rate loop_rate(10);
 
 	ROS_INFO("Mapping grids server running");
 
