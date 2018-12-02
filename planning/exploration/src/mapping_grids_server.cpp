@@ -414,9 +414,9 @@ class MappingGridsServer
 					return a->getCost() < b->getCost();
 				});
 				frontier_destination_node = all_frontiers_nodes[std::distance(all_frontiers_nodes.begin(), min_cost_iterator)];
-				ROS_INFO(" ");
-				ROS_INFO("Costs: %f occ %f, distCost %f theta_diff %f  exp_cost %f  visability %f", frontier_destination_node->getCost(), frontier_destination_node->occupancy_cost, float(frontier_destination_node->getDistanceCost(frontier_destination_node->frontier_distance, window_height)), frontier_destination_node->theta_diff / (2 * pi), frontier_destination_node->getExplorationGainCost(), float(.5 * float(frontier_destination_node->not_visable)));
-				ROS_INFO(" ");
+				// ROS_INFO(" ");
+				// ROS_INFO("Costs: %f occ %f, distCost %f theta_diff %f  exp_cost %f  visability %f", frontier_destination_node->getCost(), frontier_destination_node->occupancy_cost, float(frontier_destination_node->getDistanceCost(frontier_destination_node->frontier_distance, window_height)), frontier_destination_node->theta_diff / (2 * pi), frontier_destination_node->getExplorationGainCost(), float(.5 * float(frontier_destination_node->not_visable)));
+				// ROS_INFO(" ");
 			}
 			else
 			{

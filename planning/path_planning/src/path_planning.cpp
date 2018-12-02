@@ -373,7 +373,6 @@ class PathPlanning
 		geometry_msgs::Twist robot_position = req.robot_position;
 		geometry_msgs::Point destination_position = req.destination_position;
 
-		ROS_INFO("EC %d", req.exploring);
 		exploration = req.exploring;
 		if (exploration)
 			this->field_scale = .6;
@@ -384,7 +383,7 @@ class PathPlanning
 		y0 = robot_position.linear.y;
 		theta0 = robot_position.angular.z;
 
-		if (position_updated && x0 == 0 && y0 == 0 && theta0 == 0)
+		if (x0 == 0 && y0 == 0 && theta0 == 0)
 		{
 			x0 = .215;
 			y0 = .2;
