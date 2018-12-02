@@ -389,6 +389,7 @@ class PathPlanning
 			x0 = .215;
 			y0 = .2;
 			theta0 = pi/2;
+			
 			// x0 = x0_default;
 			// y0 = y0_default;
 			// theta0 = theta0_default;
