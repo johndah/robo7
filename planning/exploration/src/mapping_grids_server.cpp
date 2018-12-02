@@ -13,6 +13,7 @@
 #include <image_transport/image_transport.h>
 #include "robo7_msgs/grid_matrix.h"
 #include "robo7_msgs/grid_row.h"
+#include "robo7_msgs/detectedState.h"
 #include "robo7_srvs/distanceTo.h"
 
 typedef std::vector<float> Array;
@@ -87,7 +88,7 @@ class MappingGridsServer
 {
   public:
 	ros::NodeHandle n;
-	ros::Subscriber map_sub;
+	ros::Subscriber map_sub, detected_obj_subs;
 	ros::Publisher occupancy_pub, wall_occupancy_pub, exploration_pub;
 	robo7_msgs::grid_matrix grid_matrix_msg, exoploration_matrix_msg;
 	//ros::ServiceServer is_occupied_service;
@@ -99,6 +100,7 @@ class MappingGridsServer
 	std::vector<frontier_ptr> all_frontiers_nodes;
 	Matrix grid, wall_grid;
 	bool get_frontier;
+	std::vector<int> detected_object_states;
 
 	MappingGridsServer()
 	{
@@ -108,8 +110,10 @@ class MappingGridsServer
 		n.param<float>("/mapping_grids_server/wall_thickness", wall_thickness, 0.03);
 		n.param<int>("/mapping_grids_server/smoothing_kernel_size", smoothing_kernel_size, 15);
 		n.param<int>("/mapping_grids_server/smoothing_kernel_sd", smoothing_kernel_sd, 3);
-
+		
+		detected_obj_subs = n.subscribe("/vision/state", 1, &MappingGridsServer::detectedObjectCallback, this);
 		map_sub = n.subscribe("/own_map/wall_coordinates", 1, &MappingGridsServer::mapCallback, this);
+		
 		//is_occupied_service = n.advertiseService("mapping_grids_server/occupancy_grid/is_occupied", &MappingGridsServer::occupancyGridRequest, this);
 		explore_service = n.advertiseService("/exploration_grid/explore", &MappingGridsServer::explorationGridRequest, this);
 
@@ -442,6 +446,19 @@ class MappingGridsServer
 	{
 		X_wall_coordinates = msg->X_coordinates;
 		Y_wall_coordinates = msg->Y_coordinates;
+	}
+
+	void detectedObjectCallback(const robo7_msgs::detectedState::ConstPtr &msg)
+	{
+		detected_object_states.clear();
+		
+		for (int i = 0; i < msg->state.size(); i++)
+		{
+			detected_object_states.push_back(msg->state[i]);
+
+			ROS_INFO("detection msg %d", detected_object_states[i]);
+
+		}
 	}
 
 	int sq(float coord)
