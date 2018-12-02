@@ -518,8 +518,6 @@ class PathPlanning
 		while (node_current->parent != NULL)
 		{
 
-			//int partitions = 2;
-
 			node_ptr node_parent = node_current->parent;
 			node_ptr partial_node = node_current;
 			node_ptr partial_node_parent = node_parent;
