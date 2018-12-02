@@ -179,7 +179,7 @@ public:
 
 		srv_req.destination_pose = to_pose;
 
-		occupancy_srv.call(srv_req, srv_resp);
+		go_to_srv.call(srv_req, srv_resp);
 
 		return srv_resp.success;
 	}
@@ -258,6 +258,8 @@ public:
 			float test_y = y_dest + (robot_pose_dist * sin(alp));
 
 			float new_occupancy = getOccupancy(test_x, test_y);
+
+			ROS_INFO("Brain:getDestPose testing: x:%f, y:%f and got got occupancy: %f", test_x, test_y, new_occupancy);
 
 			if(new_occupancy < lowest_occupancy){
 				ROS_INFO("Brain:getDestPose found a better pose");
@@ -343,6 +345,8 @@ public:
 
 			if (state == "ST_PICK_UP_OBJ"){
 				ROS_INFO("Brain: ST_PICK_UP_OBJ");
+
+
 
 				callPickupAt((robot_pose_dist - robot_pose_object_delta), false);
 
