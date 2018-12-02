@@ -11,4 +11,4 @@ float32 y
 # 1 means impossible to drive, 0 is absolutely free. 
 
 
-bool occupancy
+float32 occupancy
