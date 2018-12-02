@@ -136,7 +136,7 @@ public:
   	if( ob1_points != ob2_points){
 			return (ob1_points > ob2_points);
 		}
-  	return (ob1.total_votes < ob2.total_votes);
+  	return (ob1.total_votes > ob2.total_votes);
 	}
 
 
