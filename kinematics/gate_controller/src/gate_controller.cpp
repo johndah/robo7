@@ -63,25 +63,28 @@ public:
 		srv_move_straight_req.desired_distance = travel_dist;
 		srv_move_straight_req.move_backward = drop_mode;
 
-		ROS_INFO("Gate Controller: Opening gate");
+		// ROS_INFO("Gate Controller: Opening gate");
 
 		openGate();
 		usleep(2*1000000);
 
-		if (!drop_mode){
-			ROS_INFO("Gate Controller: moving forward for %fm", travel_dist);
-		} else{
-			ROS_INFO("Gate Controller: moving backward for %fm", travel_dist);
-		}
+		// if (!drop_mode){
+		// 	ROS_INFO("Gate Controller: moving forward for %fm", travel_dist);
+		// } else{
+		// 	ROS_INFO("Gate Controller: moving backward for %fm", travel_dist);
+		// }
 
 		move_straight_srv.call(srv_move_straight_req, srv_move_straight_resp);
 
+		usleep(1000000);
+
 		closeGate();
-		usleep(2*1000000);
+
+		usleep(1000000);
 
 		res.success = true;
 
-		ROS_INFO("Gate Controller: Done");
+		// ROS_INFO("Gate Controller: Done");
     return true;
 	}
 

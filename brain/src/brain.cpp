@@ -42,7 +42,7 @@ public:
 		robo_pos_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &Brain::roboPosCallback, this);
 
 		robot_position_set = false;
-		go_to_pose.linear.x = -1;
+		go_to_pose.linear.x = -1.0;
 
 		home_pose.linear.x = 0.215;
 		home_pose.linear.y = 0.2;
@@ -241,7 +241,7 @@ public:
 		// remove the object from the read ones
 		read_objs.erase(read_objs.begin());
 
-		//ROS_INFO("best object class: %d", best_object.obj_class);
+		//ROS_INFO("ct class: %d", best_object.obj_class);
 	}
 
 
@@ -259,14 +259,15 @@ public:
 
 			float new_occupancy = getOccupancy(test_x, test_y);
 
-			ROS_INFO("Brain:getDestPose testing: x:%f, y:%f and got got occupancy: %f", test_x, test_y, new_occupancy);
+			//ROS_INFO("Brain:getDestPose testing: x:%f, y:%f and got got occupancy: %f", test_x, test_y, new_occupancy);
 
 			if(new_occupancy < lowest_occupancy){
-				ROS_INFO("Brain:getDestPose found a better pose");
+				//ROS_INFO("Brain:getDestPose found a better pose");
 				lowest_occupancy = new_occupancy;
 				pose.linear.x = test_x;
 				pose.linear.y = test_y;
-				pose.angular.z = findAngle(x_dest, y_dest, test_x, test_y);
+				pose.angular.z = std::fmod((alp + pi)+pi, 2*pi) - pi;
+				//pose.angular.z = findAngle(x_dest, y_dest, test_x, test_y);
 
 			}
 		}
@@ -276,7 +277,7 @@ public:
 
 
 	void setStateRun(){
-		ROS_INFO("Brain: setting state");
+		//ROS_INFO("Brain: setting state");
 
 		if(!got_obj_dest &! carrying_object){
 		 	state = "ST_EVALUATE";
@@ -310,23 +311,31 @@ public:
 	void act(){
 			if (state == "ST_EVALUATE"){
 				ROS_INFO("Brain: ST_EVALUATE");
+				ROS_INFO("Brain: Go to pose x: %f", go_to_pose.linear.x);
 
-				while (go_to_pose.linear.x == -1 && read_objs.size() > 0){
+				if (read_objs.size() > 0){
+					while (go_to_pose.linear.x == -1.0 && read_objs.size() > 0){
+						ROS_WARN("Brain: %d objects left to pick up.", (int)read_objs.size());
 
-					setBestObject();
-					//ROS_INFO("Brain: Best object at : x: %f y: %f", best_object.pos.x, best_object.pos.y);
-					go_to_pose = getDestPose(best_object.pos.x, best_object.pos.y);
+						setBestObject();
+						go_to_pose = getDestPose(best_object.pos.x, best_object.pos.y);
+
+						ROS_INFO("Brain: Best object at : x: %f y: %f", best_object.pos.x, best_object.pos.y);
+						ROS_INFO("Brain: Go to pose for that object: : x: %f y: %f ang.z: %f", go_to_pose.linear.x, go_to_pose.linear.y, go_to_pose.angular.z);
+
+					}
 
 					if(go_to_pose.linear.x == -1){
-						ROS_WARN("Brain: Failed to find robot pose for object, going to next object");
+						ROS_WARN("Brain: Failed to find robot pose for object, stopping sequence");
+						stop_seq = true;
+					} else{
+						got_obj_dest = true;
 					}
-				}
 
-				if(go_to_pose.linear.x == -1){
+
+				} else{
 					ROS_WARN("Brain: No more objects, stopping sequence");
 					stop_seq = true;
-				} else{
-					got_obj_dest = true;
 				}
 
 			}
@@ -336,6 +345,7 @@ public:
 
 				if(callGoTo(go_to_pose)){
 					at_object = true;
+					go_to_pose.linear.x = -1.0;
 				} else{
 					stop_seq = true;
 					ROS_WARN("Brain: we did not reach the object, stopping sequence");
