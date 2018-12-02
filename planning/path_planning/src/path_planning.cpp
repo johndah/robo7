@@ -147,7 +147,7 @@ class PathPlanning
 		this->trajectory_pub = trajectory_pub;
 		this->target_trajectory_pub = target_trajectory_pub;
 
-		robot_position = nh.subscribe("localization/kalman_filter/position_timed", 1000, &PathPlanning::getPositionCallBack, this);
+		// robot_position = nh.subscribe("localization/kalman_filter/position_timed", 1000, &PathPlanning::getPositionCallBack, this);
 		// robot_position = nh.subscribe("/localization/kalman_filter/position", 1000, &PathPlanning::getPositionCallBack, this);
 
 		path_service = nh.advertiseService("path_service", &PathPlanning::getPath, this);
@@ -386,9 +386,12 @@ class PathPlanning
 
 		if (position_updated && x0 == 0 && y0 == 0 && theta0 == 0)
 		{
-			x0 = x0_default;
-			y0 = y0_default;
-			theta0 = theta0_default;
+			x0 = .215;
+			y0 = .2;
+			theta0 = pi/2;
+			// x0 = x0_default;
+			// y0 = y0_default;
+			// theta0 = theta0_default;
 		}
 
 		x_target = destination_position.x;
