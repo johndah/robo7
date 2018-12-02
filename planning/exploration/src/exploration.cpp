@@ -1,6 +1,7 @@
 #include <math.h>
 #include <algorithm>
 #include <vector>
+#include <thread>
 #include <iostream>
 #include <memory>
 #include <ros/ros.h>
@@ -15,6 +16,8 @@
 #include "robo7_srvs/explore.h"
 #include <robo7_srvs/exploration.h>
 #include <robo7_srvs/path_planning.h>
+#include <robo7_srvs/PathFollower2.h>
+
 
 float pi = 3.14159265358979323846;
 
@@ -24,7 +27,7 @@ class Exploration
 public:
   ros::NodeHandle nh;
   ros::ServiceServer exploration_srv;
-  ros::ServiceClient exploration_client, occupancy_client, path_planning_client;
+  ros::ServiceClient exploration_client, occupancy_client, path_planning_client, path_follower2_srv;
   robo7_srvs::IsGridOccupied occupancy_srv;
   robo7_srvs::explore explore_srv;
   ros::Subscriber robot_pose_subs;
@@ -38,6 +41,7 @@ public:
     this->nh = nh;
 
     exploration_srv = nh.advertiseService("exploration_service", &Exploration::performExploration, this);
+    path_follower2_srv = nh.serviceClient<robo7_srvs::PathFollower2>("/kinematics/path_follower/path_follower_v2");
 
     path_planning_client = nh.serviceClient<robo7_srvs::path_planning>("/path_planning/path_service");
 
@@ -56,6 +60,7 @@ public:
 
     position_updated = true;
   }
+
   bool performExploration(robo7_srvs::exploration::Request &req, robo7_srvs::exploration::Response &res)
   {
     geometry_msgs::Twist robot_pose = req.robot_pose;
@@ -115,6 +120,14 @@ public:
         ROS_WARN("No path found for exploration");
         break;
       }
+
+      geometry_msgs::Twist go_to_pose;
+
+      robo7_srvs::PathFollower2::Request req2;
+      robo7_srvs::PathFollower2::Response res2;
+      req2.traject = path_res.path_planned;
+      path_follower2_srv.call(req2, res2);
+
 
       robo7_msgs::trajectory trajectory_array;
 
