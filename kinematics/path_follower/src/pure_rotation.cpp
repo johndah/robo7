@@ -162,7 +162,7 @@ private:
     // ROS_INFO("angular vel = %lf and %lf", angular_vel, angular_sat);
 
     if(angular_vel > angular_sat) { angular_vel = angular_sat; }
-    else if(-angular_vel < -angular_sat) { angular_vel = -angular_sat; }
+    else if(angular_vel < -angular_sat) { angular_vel = -angular_sat; }
 
     return angular_vel;
   }

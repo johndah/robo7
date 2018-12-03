@@ -75,7 +75,7 @@ public:
       int index_point_following = 0;
       geometry_msgs::Vector3 point_following;
 
-      if(false)
+      if(true)
       {
         point_following = the_discretized_path.the_points[0];
         float x1 = the_robot_pose.position.linear.x;
@@ -219,7 +219,7 @@ private:
     // ROS_INFO("angular vel = %lf and %lf", angular_vel, angular_sat);
 
     if(angular_vel > angular_sat) { angular_vel = angular_sat; }
-    else if(-angular_vel < -angular_sat) { angular_vel = -angular_sat; }
+    else if(angular_vel < -angular_sat) { angular_vel = -angular_sat; }
 
     return angular_vel;
   }
@@ -315,7 +315,7 @@ private:
   {
     robo7_srvs::IsGridOccupied::Request req1;
 		robo7_srvs::IsGridOccupied::Response res1;
-    for(int i=index; i<discretized_path.number; i++)
+    for(int i=index; (i<discretized_path.number)&&(i<index+3); i++)
     {
       req1.x = discretized_path.the_points[i].x;
       req1.y = discretized_path.the_points[i].y;
