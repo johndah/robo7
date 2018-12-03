@@ -1,0 +1,8 @@
+<launch>
+
+   <node pkg="object_saver" type="object_saver" name="object_saver" output="screen">
+      <param name="objs_file" type="string" value="$(find robo7_launch)/memory/objs.txt"/>
+      <param name="obss_file" type="string" value="$(find robo7_launch)/memory/obss.txt"/>
+   </node>
+
+</launch>

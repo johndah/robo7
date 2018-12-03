@@ -4,15 +4,14 @@
 #include "geometry_msgs/Twist.h"
 #include "arduino_servo_control/SetServoAngles.h"
 #include "robo7_srvs/PickupAt.h"
+#include "robo7_srvs/MoveStraight.h"
 
 class PickupAtServer
 {
 public:
 	ros::NodeHandle n;
-	ros::Subscriber robot_pos_sub;
-	ros::Subscriber robot_at_point_sub;
-	ros::Publisher go_to_pub;
-	ros::ServiceServer pickup_at_service;
+	ros::ServiceServer pickup_at_srv_server;
+	ros::ServiceClient move_straight_srv;
 
 	PickupAtServer()
 	{
@@ -21,89 +20,77 @@ public:
 		n.param<int>("/gate_controller/r_open", r_open, 0);
 		n.param<int>("/gate_controller/l_closed", l_closed, 0);
 		n.param<int>("/gate_controller/l_open", l_open, 0);
-		at_point = false;
 
-		robot_pos_sub = n.subscribe("/dead_reckoning/Pos", 1, &PickupAtServer::robotPosCallback, this);
-		robot_at_point_sub = n.subscribe("/robot_arrived", 1, &PickupAtServer::robotAtPointCallback, this);
-		go_to_pub = n.advertise<geometry_msgs::Twist>("/destination_point", 1);
-		pickup_at_service = n.advertiseService("/gate_controller/pickup_at", &PickupAtServer::pickupSequence, this);
+		pickup_at_srv_server = n.advertiseService("/gate_controller/pickup_at", &PickupAtServer::pickupSequence, this);
+
+		move_straight_srv = n.serviceClient<robo7_srvs::MoveStraight>("/kinematics/path_follower/straight_move");
 
 	}
 
-	void robotPosCallback(const geometry_msgs::Twist::ConstPtr &msg)
-	{
-    robot_pos_x = msg->linear.x;
-		robot_pos_y = msg->linear.y;
-		robot_pos_tet = msg->angular.z;
-	}
 
-	void robotAtPointCallback(const std_msgs::Bool::ConstPtr &msg)
-	{
-    at_point = msg->data;
-	}
-
-	void openGate()
-	{
+	void openGate() {
 		ang.request.angle_servo_0 = l_open;
 		ang.request.angle_servo_1 = r_open;
 
-		if (ros::service::call("/arduino_servo_control/set_servo_angles", ang))
-		{
+		if (ros::service::call("/arduino_servo_control/set_servo_angles", ang)) {
 				ROS_DEBUG("Gate opened");
 		}
+
   }
 
-	void closeGate()
-	{
+
+	void closeGate() {
 		ang.request.angle_servo_0 = l_closed;
 		ang.request.angle_servo_1 = r_closed;
 
-		if (ros::service::call("/arduino_servo_control/set_servo_angles", ang))
-		{
+		if (ros::service::call("/arduino_servo_control/set_servo_angles", ang)) {
 				ROS_DEBUG("Gate closed");
 		}
+
 	}
+
 
 	bool pickupSequence(robo7_srvs::PickupAt::Request &req,
          robo7_srvs::PickupAt::Response &res)
 	{
-		at_point = false;
 
-	  ROS_DEBUG("Pickup sequence started");
+		float travel_dist = req.dist;
+		bool drop_mode = req.drop;
 
-		geometry_msgs::Twist obejct_pos_robot = req.object_pos;
+		robo7_srvs::MoveStraight::Request srv_move_straight_req;
+		robo7_srvs::MoveStraight::Response srv_move_straight_resp;
+
+		srv_move_straight_req.desired_distance = travel_dist;
+		srv_move_straight_req.move_backward = drop_mode;
+
+		// ROS_INFO("Gate Controller: Opening gate");
 
 		openGate();
-		// placeholder sleep
-
-		ROS_DEBUG("Computing object position");
-
-		geometry_msgs::Twist object_pos;
-		object_pos.linear.x = (obejct_pos_robot.linear.x * cos(robot_pos_tet) + obejct_pos_robot.linear.y * sin(robot_pos_tet)) + robot_pos_x;
-		object_pos.linear.y = (obejct_pos_robot.linear.x * sin(robot_pos_tet) + obejct_pos_robot.linear.y * cos(robot_pos_tet)) + robot_pos_y;
-
-		ROS_DEBUG("Publishing position");
-
-		usleep(1000000);
-		go_to_pub.publish(object_pos);
-
-		usleep(1000000);
-		ROS_DEBUG("Destination updated");
-
-		while (!at_point){
-		  ros::spinOnce();
-		}
-
 		usleep(2*1000000);
+
+		// if (!drop_mode){
+		// 	ROS_INFO("Gate Controller: moving forward for %fm", travel_dist);
+		// } else{
+		// 	ROS_INFO("Gate Controller: moving backward for %fm", travel_dist);
+		// }
+
+		move_straight_srv.call(srv_move_straight_req, srv_move_straight_resp);
+
+		usleep(1000000);
 
 		closeGate();
 
-		// placeholder sleep
-		usleep(2*1000000);
+		usleep(1000000);
+
+		if (!drop_mode){
+			srv_move_straight_req.desired_distance = travel_dist;
+			srv_move_straight_req.move_backward = !drop_mode;
+			move_straight_srv.call(srv_move_straight_req, srv_move_straight_resp);
+		}
 
 		res.success = true;
 
-		ROS_DEBUG("Pickup sequence done");
+		// ROS_INFO("Gate Controller: Done");
     return true;
 	}
 
@@ -113,10 +100,6 @@ private:
 	int r_open;
 	int l_closed;
 	int l_open;
-	float robot_pos_x;
-	float robot_pos_y;
-	float robot_pos_tet;
-	bool at_point;
 
 };
 
