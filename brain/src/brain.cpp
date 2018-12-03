@@ -18,9 +18,8 @@ class Brain
 {
 public:
 	ros::NodeHandle n;
-	ros::Subscriber objects_sub;
-	ros::Subscriber e_break_sub;
 	ros::Subscriber robo_pos_sub;
+	ros::Publisher all_obj_pub;
 	ros::ServiceClient distance_srv;
 	ros::ServiceClient occupancy_srv;
 	ros::ServiceClient go_to_srv;
@@ -39,7 +38,11 @@ public:
 		occupancy_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
 		go_to_srv = n.serviceClient<robo7_srvs::GoTo>("/kinematics/go_to");
 		pickup_at_srv = n.serviceClient<robo7_srvs::PickupAt>("/gate_controller/pickup_at");
+
 		robo_pos_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &Brain::roboPosCallback, this);
+
+		all_obj_pub = n.advertise<robo7_msgs::allObjects>("/vision/all_objects", 1);
+
 
 		robot_position_set = false;
 		go_to_pose.linear.x = -1.0;
@@ -55,7 +58,9 @@ public:
 		at_home = false;
 		at_object = false;
 
-		readObjsfile();
+		if (!readObjsfile()){
+			stop_seq = true;
+		}
 
 		ROS_INFO("Read %d objects from file.", (int)read_objs.size());
 
@@ -114,6 +119,16 @@ public:
 
 			}
 			return true;
+		}
+	}
+
+
+	void publishObjects(){
+		if(read_objs.size() > 0){
+			ROS_INFO("Brain: Publishing objects for visualization");
+			robo7_msgs::allObjects pub_obj;
+			pub_obj.objects = read_objs;
+			all_obj_pub.publish(pub_obj);
 		}
 	}
 
@@ -315,13 +330,16 @@ public:
 
 				if (read_objs.size() > 0){
 					while (go_to_pose.linear.x == -1.0 && read_objs.size() > 0){
+						publishObjects();
+
 						ROS_WARN("Brain: %d objects left to pick up.", (int)read_objs.size());
 
 						setBestObject();
+
 						go_to_pose = getDestPose(best_object.pos.x, best_object.pos.y);
 
-						ROS_INFO("Brain: Best object at : x: %f y: %f", best_object.pos.x, best_object.pos.y);
-						ROS_INFO("Brain: Go to pose for that object: : x: %f y: %f ang.z: %f", go_to_pose.linear.x, go_to_pose.linear.y, go_to_pose.angular.z);
+						//ROS_INFO("Brain: Best object at : x: %f y: %f", best_object.pos.x, best_object.pos.y);
+						//ROS_INFO("Brain: Go to pose for that object: : x: %f y: %f ang.z: %f", go_to_pose.linear.x, go_to_pose.linear.y, go_to_pose.angular.z);
 
 					}
 
@@ -356,9 +374,9 @@ public:
 			if (state == "ST_PICK_UP_OBJ"){
 				ROS_INFO("Brain: ST_PICK_UP_OBJ");
 
-
-
 				callPickupAt((robot_pose_dist - robot_pose_object_delta), false);
+
+				publishObjects();
 
 				carrying_object = true;
 				at_object = false;
@@ -430,7 +448,9 @@ int main(int argc, char **argv)
 
 	Brain brain;
 
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(0.5);
+
+	loop_rate.sleep();
 
 	brain.setStateRun();
 
