@@ -11,6 +11,7 @@
 #include "robo7_msgs/allObjects.h"
 #include "robo7_msgs/the_robot_position.h"
 #include "robo7_srvs/objectToRobot.h"
+#include "robo7_srvs/FilterOn.h"
 
 
 class ObjectFilter
@@ -18,6 +19,7 @@ class ObjectFilter
   public:
 	ros::NodeHandle n;
   ros::ServiceClient obj_to_robo_srv;
+  ros::ServiceServer filtered_objs_srv_server;
 	ros::Subscriber obj_sub;
   ros::Subscriber robo_pos_sub;
   ros::Publisher all_obj_pub;
@@ -35,13 +37,43 @@ class ObjectFilter
     // If distance between two objects of the different classes is smaller than this, consider them the same obj
 		n.param<float>("/object_filter/dist_other_obj_lim", dist_other_class_lim, 0.04);
 
+    filtered_objs_srv_server = n.advertiseService("/object_filter/activate", &ObjectFilter::turnOnFilter, this);
+
+
+
 		obj_sub = n.subscribe("/vision/results", 1, &ObjectFilter::ObjCallback, this);
     robo_pos_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &ObjectFilter::roboPosCallback, this);
     obj_to_robo_srv = n.serviceClient<robo7_srvs::objectToRobot>("/localization/object_to_robot");
 		all_obj_pub = n.advertise<robo7_msgs::allObjects>("/vision/all_objects", 1);
     speaker_pub = n.advertise<std_msgs::Int16>("/vision/object/class", 1);
-    robot_position_set = false;
 
+    robot_position_set = false;
+    filter_on = false;
+
+	}
+
+  bool turnOnFilter(robo7_srvs::FilterOn::Request &req,
+         robo7_srvs::FilterOn::Response &res)
+	{
+
+		float time_req = req.time;
+
+    ros::Rate loop_rate(50/time_req);
+
+    filter_on = true;
+
+    for( int i=0; i < 50; i++){
+      ros::spinOnce();
+      loop_rate.sleep();
+    }
+
+    filter_on = false;
+
+		res.success = true;
+
+    publishObjects();
+
+    return true;
 	}
 
 
@@ -52,43 +84,49 @@ class ObjectFilter
   }
 
 
-	void ObjCallback(const robo7_msgs::classifiedObj::ConstPtr &msg)
-	{
-    if (!robot_position_set){
-      ROS_WARN("Object filter: Unable to filer object, no robot position recieved");
-      publishSpeaker(-1);
-      return;
+	void ObjCallback(const robo7_msgs::classifiedObj::ConstPtr &msg) {
+      if (!robot_position_set){
+        ROS_WARN("Object filter: Unable to filer object, no robot position recieved");
+        publishSpeaker(-1);
+        return;
+      }
+
+      if (msg->pos.x == 0 && msg->pos.y == 0 && msg->pos.z == 0){
+        ROS_WARN("Object filter: Unable to filer object, 0,0,0 in camera frame recieved");
+        publishSpeaker(-1);
+        return;
+      }
+
+      robo7_srvs::objectToRobot::Request srv_req;
+      robo7_srvs::objectToRobot::Response srv_resp;
+
+      srv_req.camera_position = msg->pos;         // geometry_msgs/Point
+      srv_req.robot_position = robo_pos;          // geometry_msgs/Twist
+
+      obj_to_robo_srv.call(srv_req, srv_resp);
+
+      if (!srv_resp.success){
+        ROS_WARN("Object filter: Unable to filer object, objectToRobot service call failed");
+        publishSpeaker(-1);
+        return;
+      }
+      // ROS_INFO("Object filter: new object position in robot x: %f", srv_resp.object_in_robot_frame.x);
+      // ROS_INFO("Object filter: new object position in robot y: %f", srv_resp.object_in_robot_frame.y);
+      // ROS_INFO("Object filter: new object position in robot z: %f", srv_resp.object_in_robot_frame.z);
+      // ROS_INFO("Object filter: new object position in map x: %f", srv_resp.object_in_map_frame.x);
+      // ROS_INFO("Object filter: new object position in map y: %f", srv_resp.object_in_map_frame.y);
+
+      std::vector<int> init_weigh(num_classes, 0);
+
+      robo7_msgs::aObject new_obj;
+      new_obj.obj_class = msg->objClass;
+      new_obj.pos = srv_resp.object_in_map_frame;
+      new_obj.total_votes = 1;
+      new_obj.weights = init_weigh;
+      new_obj.weights[msg->objClass] = 1;
+
+      saveObj(new_obj);
     }
-
-    robo7_srvs::objectToRobot::Request srv_req;
-    robo7_srvs::objectToRobot::Response srv_resp;
-
-    srv_req.camera_position = msg->pos;         // geometry_msgs/Point
-    srv_req.robot_position = robo_pos;          // geometry_msgs/Twist
-
-    obj_to_robo_srv.call(srv_req, srv_resp);
-
-    if (!srv_resp.success){
-      ROS_WARN("Object filter: Unable to filer object, objectToRobot service call failed");
-      publishSpeaker(-1);
-      return;
-    }
-    // ROS_INFO("Object filter: new object position in robot x: %f", srv_resp.object_in_robot_frame.x);
-    // ROS_INFO("Object filter: new object position in robot y: %f", srv_resp.object_in_robot_frame.y);
-    // ROS_INFO("Object filter: new object position in robot z: %f", srv_resp.object_in_robot_frame.z);
-    // ROS_INFO("Object filter: new object position in map x: %f", srv_resp.object_in_map_frame.x);
-    // ROS_INFO("Object filter: new object position in map y: %f", srv_resp.object_in_map_frame.y);
-
-    std::vector<int> init_weigh(num_classes, 0);
-
-    robo7_msgs::aObject new_obj;
-    new_obj.obj_class = msg->objClass;
-    new_obj.pos = srv_resp.object_in_map_frame;
-    new_obj.total_votes = 1;
-    new_obj.weights = init_weigh;
-    new_obj.weights[msg->objClass] = 1;
-
-    saveObj(new_obj);
 	}
 
 
@@ -199,6 +237,7 @@ class ObjectFilter
     geometry_msgs::Twist robo_pos;
     bool position_updated;
     bool robot_position_set;
+    bool filter_on;
     std::vector<robo7_msgs::aObject> filtered_objs;
 
 };
@@ -209,18 +248,17 @@ int main(int argc, char **argv)
 
 	ObjectFilter object_filter;
 
-	ros::Rate loop_rate(10);
+	// ros::Rate loop_rate(10);
 
 	ROS_INFO("Object filter running");
 
-	while (ros::ok()){
-		ros::spinOnce();
-		loop_rate.sleep();
-    object_filter.publishObjects();
+	// while (ros::ok()){
+	// 	ros::spinOnce();
+	// 	loop_rate.sleep();
+  //
+	// }
 
-	}
-
-	//ros::spin();
+	ros::spin();
 
 	return 0;
 }
