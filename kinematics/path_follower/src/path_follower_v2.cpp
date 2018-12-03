@@ -12,6 +12,7 @@
 #include <robo7_srvs/PathFollower2.h>
 #include <robo7_srvs/PureRotation.h>
 #include <robo7_srvs/IsGridOccupied.h>
+#include <robo7_srvs/MoveStraight.h>
 
 float control_frequency = 10.0;
 float pi = 3.14;
@@ -23,7 +24,7 @@ public:
   ros::Subscriber robot_pose_sub;
   ros::Publisher desired_velocity_pub;
   ros::ServiceServer path_follower_server;
-  ros::ServiceClient pure_rotation_srv, is_cell_occupied_srv;
+  ros::ServiceClient pure_rotation_srv, is_cell_occupied_srv, move_straight_srv;
 
   path_follower_v2()
   {
@@ -44,6 +45,7 @@ public:
 
     pure_rotation_srv = n.serviceClient<robo7_srvs::PureRotation>("/kinematics/path_follower/pure_rotation");
     is_cell_occupied_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
+    move_straight_srv = n.serviceClient<robo7_srvs::MoveStraight>("/kinematics/path_follower/straight_move");
 
     path_follower_server = n.advertiseService("/kinematics/path_follower/path_follower_v2", &path_follower_v2::path_follower_Sequence, this);
   }
@@ -113,6 +115,12 @@ public:
           desire_vel.linear.x = 0;
           desire_vel.angular.z = 0;
           desired_velocity_pub.publish( desire_vel );
+
+          if(is_cell_occupied( the_robot_pose.position.linear.x , the_robot_pose.position.linear.y))
+          {
+            move_straight( 0.05 , true );
+          }
+
           break;
         }
 
@@ -329,6 +337,25 @@ private:
     return true;
   }
 
+  void move_straight(float dist , bool move_back)
+  {
+    robo7_srvs::MoveStraight::Request req1;
+    robo7_srvs::MoveStraight::Response res1;
+    req1.desired_distance = dist;
+    req1.move_backward = move_back;
+    move_straight_srv.call(req1, res1);
+  }
+
+  bool is_cell_occupied( float x , float y )
+  {
+    robo7_srvs::IsGridOccupied::Request req1;
+    robo7_srvs::IsGridOccupied::Response res1;
+    req1.x = x;
+    req1.y = y;
+    is_cell_occupied_srv.call(req1,res1);
+
+    return (res1.occupancy == 1.0);
+  }
 };
 
 
