@@ -19,6 +19,6 @@
   <node pkg="speaker" type="speaker" name="speaker"  output="screen"/>
 
   <!-- Camera -->
-  <include file="$(find realsense_camera)/launch/sr300_nodelet_rgbd.launch"/>
+  <!-- <include file="$(find realsense_camera)/launch/sr300_nodelet_rgbd.launch"/> -->
 
 </launch>

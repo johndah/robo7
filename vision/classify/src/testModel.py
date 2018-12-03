@@ -127,8 +127,8 @@ class classifier:
             cv2.putText(visImg, str(round(res.max(), 2)), (30, 40),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-            cv2.imshow("object image", visImg)
-            cv2.waitKey(2)
+            # cv2.imshow("object image", visImg)
+            # cv2.waitKey(2)
 
             # publish result
             msg = classifiedObj()

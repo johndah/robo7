@@ -1,13 +1,13 @@
 <launch>
 
-  <!-- <include file="$(find realsense_camera)/launch/sr300_nodelet_rgbd.launch"/> -->
+  <include file="$(find realsense_camera)/launch/sr300_nodelet_rgbd.launch"/>
 
   <node pkg="acfDetector" type="acf_detector" name="acf_detector">
     <param name="acfModel" type="string" value="/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb"/>
     <param name="scoreThre" type="double" value="50"/>
     <param name="sizeThre" type="double" value="110"/>
     <param name="boundaryThre" type="double" value="30"/>
-    <param name="showFlag" type="bool" value="true"/>
+    <param name="showFlag" type="bool" value="false"/>
 
 
   </node>
