@@ -305,7 +305,7 @@ class PathPlanning
 				path_cost = occupancy_srv.response.occupancy * path_length * penalty_factor;
 		}
 
-		// ROS_INFO("Adding direct target at x %f  y %f", x, y); 
+		// ROS_INFO("Adding direct target at x %f  y %f", x, y);
 		cost_to_come += path_cost;
 		node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
 		successor_node->cost_to_go = successor_node->getHeuristicCost();
@@ -322,7 +322,6 @@ class PathPlanning
 
 		int n = floor(200 * std::max(std::abs(x_diff), std::abs(y_diff)));
 		// if (node_target->x > 0 && node_target->y > 2)
-		// 	ROS_INFO("xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", node_current->x, node_current->y, node_target->x, node_target->y, x_diff, y_diff);
 		//   ROS_INFO("xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", node_current->x, node_current->y, node_target->x, node_target->y, x_diff, y_diff);
 		bool visable = true;
 
