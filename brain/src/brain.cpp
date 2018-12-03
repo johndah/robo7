@@ -125,12 +125,12 @@ public:
 
 
 	void publishObjects(){
-		if(read_objs.size() > 0){
+		//if(read_objs.size() > 0){
 			ROS_INFO("Brain: Publishing objects for visualization");
 			robo7_msgs::allObjects pub_obj;
 			pub_obj.objects = read_objs;
 			all_obj_pub.publish(pub_obj);
-		}
+		//}
 	}
 
 

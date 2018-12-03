@@ -57,7 +57,7 @@ public:
     //Find the path_planned
     robo7_srvs::path_planning::Request req1;
     robo7_srvs::path_planning::Response res1;
-    ROS_INFO("(x,y,theta) = (%lf, %lf, %lf)", the_robot_pose.position.linear.x, the_robot_pose.position.linear.y, the_robot_pose.position.angular.z);
+    //ROS_INFO("(x,y,theta) = (%lf, %lf, %lf)", the_robot_pose.position.linear.x, the_robot_pose.position.linear.y, the_robot_pose.position.angular.z);
     req1.robot_position = the_robot_pose.position;
     req1.destination_position = destination_position;
     path_planning_srv.call(req1, res1);
