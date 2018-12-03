@@ -109,6 +109,7 @@ public:
 
         if(mapping_mode&&!free_road( the_discretized_path , index_point_following ))
         {
+          ROS_INFO("Road occupied");
           desire_vel.linear.x = 0;
           desire_vel.angular.z = 0;
           desired_velocity_pub.publish( desire_vel );
