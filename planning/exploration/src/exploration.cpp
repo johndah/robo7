@@ -83,16 +83,6 @@ public:
     if (!exploration_client.call(explore_srv))
       ROS_WARN("Local exploration not successful");
 
-    if (x == 0 && y == 0 && theta == 0)
-    {
-      x = .215;
-      y = .2;
-      theta = pi / 2;
-      // x = x_current;
-      // y = y_current;
-      // theta = theta_current;
-    }
-
     robo7_srvs::path_planning::Request path_req;
     robo7_srvs::path_planning::Response path_res;
 
@@ -150,46 +140,6 @@ public:
           ros::Rate r(0.3); r.sleep();
         }
       }
-
-      // robo7_srvs::PathFollower2::Request req2;
-      // robo7_srvs::PathFollower2::Response res2;
-      // req2.traject = path_res.path_planned;
-      // path_follower2_srv.call(req2, res2);
-
-      //trajectory_array = path_res.path_planned;
-      /*
-      if (position_updated)
-      {
-
-        explore_srv.request.x = partial_x;
-        explore_srv.request.y = partial_y;
-        explore_srv.request.theta = partial_theta;
-        explore_srv.request.get_frontier = false;
-        exploration_client.call(explore_srv);
-        theta = partial_theta;
-      }
-      */
-
-      /*
-      float partial_x, partial_y, partial_theta;
-      partial_x = x;
-      partial_y = y;
-      partial_theta = theta;
-      //for (int j = 0; j < path_res.path_planned.trajectory_points.size(); j++)
-      //{
-        partial_x = path_res.path_planned.trajectory_points[j].pose.linear.x;
-        partial_y = path_res.path_planned.trajectory_points[j].pose.linear.y;
-        partial_theta = path_res.path_planned.trajectory_points[j].pose.angular.z;
-        explore_srv.request.x = partial_x;
-        explore_srv.request.y = partial_y;
-        explore_srv.request.theta = partial_theta;
-        explore_srv.request.get_frontier = false;
-        exploration_client.call(explore_srv);
-      //}
-      robot_pose.linear.x = partial_x;
-      robot_pose.linear.y = partial_y;
-      robot_pose.angular.z = partial_theta;
-      */
     }
 
     ROS_INFO("Exploration done, success: %d", exploration_done);
