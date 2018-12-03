@@ -134,6 +134,10 @@
     <param name="dist_between_points" type="double" value="0.50"/>
   </node>
 
+  <node pkg="path_testing" type="path_exploration_full" name="path_exploration_full" output="screen">
+    <param name="dist_between_points" type="double" value="0.50"/>
+  </node>
+
 
 
 

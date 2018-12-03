@@ -21,6 +21,7 @@ public:
   {
     n.param<float>("/path_follower/distance_to_destination_threshold", dest_threshold, 0.01);
     n.param<float>("/path_follower/distance_to_jump_to_next_point", dest_to_next_point, 0.05);
+    n.param<bool>("/path_follower/mapping_mode", mapping_mode, false);
 
     current_point_to_follow = 0;
 
