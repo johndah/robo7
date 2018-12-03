@@ -150,7 +150,7 @@ public:
         }
         path_msgs.clear();
 
-        //followPath(trajectory_array);
+        followPath(trajectory_array);
       }
 
       // robo7_srvs::PathFollower2::Request req2;

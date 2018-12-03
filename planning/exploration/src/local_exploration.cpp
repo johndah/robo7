@@ -58,7 +58,7 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
   nh = ros::NodeHandle("~");
 
-  double control_frequency = 100;
+  double control_frequency = 2;
 
   ROS_INFO("Init local exploration");
 
@@ -68,16 +68,17 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
+    ros::spinOnce();
+
+    ROS_INFO("Doing local stuff");
     if (local_exploration.position_updated)
     {
       ROS_INFO("Explore here");
       local_exploration.exploreHere();
       local_exploration.position_updated = false;
-      ros::Duration(0.5).sleep();
 
     }
 
-    ros::spinOnce();
     loop_rate.sleep();
   }
 
