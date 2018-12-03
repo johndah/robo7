@@ -73,6 +73,8 @@
     </node>
 
     <node pkg="exploration" type="exploration" name="exploration" output="screen"/>
+    
+    <node pkg="local_exploration" type="local_exploration" name="local_exploration" output="screen"/>
 
     <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
 
