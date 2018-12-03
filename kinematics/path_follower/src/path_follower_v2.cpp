@@ -66,12 +66,17 @@ public:
 
     bool path_ended = false;
 
+    if(trajectory_array.trajectory_points.size() == 0)
+    {
+      path_ended = true;
+    }
+
     // robo7_msgs::wallPoint the_discretized_path = discretize_the_path( the_trajectory , discretize_length );
     robo7_msgs::wallPoint the_discretized_path = discretize_the_path2( trajectory_array , discretize_length );
 
     // ROS_INFO("Start moving with %d points", the_discretized_path.number);
 
-    if(point_follower_mode)
+    if(point_follower_mode&&!path_ended)
     {
 
       int index_point_following = 0;
@@ -111,12 +116,12 @@ public:
 
         if(mapping_mode&&!free_road( the_discretized_path , index_point_following ))
         {
-          ROS_INFO("Road occupied");
+          ROS_INFO("Road occupied , %lf", ros::Time::now().toSec());
           desire_vel.linear.x = 0;
           desire_vel.angular.z = 0;
           desired_velocity_pub.publish( desire_vel );
-          ros::Duration(1.0).sleep();
-
+          ros::Rate r(1); r.sleep();
+          ROS_INFO("Check cells , %lf", ros::Time::now().toSec());
           if(is_cell_occupied( the_robot_pose.position.linear.x , the_robot_pose.position.linear.y))
           {
             ROS_INFO("Let's back up");
@@ -355,6 +360,8 @@ private:
     req1.x = x;
     req1.y = y;
     is_cell_occupied_srv.call(req1,res1);
+
+    ROS_INFO("cell occupied %lf ", res1.occupancy);
 
     return (res1.occupancy == 1.0);
   }

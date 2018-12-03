@@ -470,6 +470,8 @@ class HeuristicGridsServer
           fill_local_cells(x_spec, y_spec, dist, cell_around);
         }
       }
+
+      grid = grid_mapping;
     }
 
     updateFilteredGrid( grid_mapping );

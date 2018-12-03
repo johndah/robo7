@@ -12,6 +12,7 @@
 #include <robo7_msgs/paths.h>
 #include <robo7_msgs/trajectory.h>
 #include <robo7_msgs/trajectory_point.h>
+#include <robo7_msgs/the_robot_position.h>
 #include "robo7_srvs/IsGridOccupied.h"
 #include "robo7_srvs/explore.h"
 #include "robo7_srvs/getFrontier.h"
@@ -37,6 +38,7 @@ public:
   float x_current, y_current, theta_current;
   float x, y, theta;
   std::vector<robo7_msgs::trajectory> path_msgs;
+  robo7_msgs::the_robot_position the_robot_pose;
 
   Exploration(ros::NodeHandle nh)
   {
@@ -47,7 +49,7 @@ public:
 
     path_planning_client = nh.serviceClient<robo7_srvs::path_planning>("/path_planning/path_service");
 
-    robot_pose_subs = nh.subscribe("localization/kalman_filter/position_timed", 1000, &Exploration::getPositionCallBack, this);
+    robot_pose_subs = nh.subscribe("/localization/kalman_filter/position_timed", 1000, &Exploration::getPositionCallBack, this);
     //robot_pose_subs = nh.subscribe("/localization/kalman_filter/position", 1000, &Exploration::getPositionCallBack, this);
 
     occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
@@ -55,11 +57,9 @@ public:
     exploration_client = nh.serviceClient<robo7_srvs::explore>("/exploration/explore");
   }
 
-  void getPositionCallBack(const geometry_msgs::Twist::ConstPtr &msg)
+  void getPositionCallBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
   {
-    x_current = msg->linear.x;
-    y_current = msg->linear.y;
-    theta_current = msg->angular.z;
+    the_robot_pose = *msg;
 
     position_updated = true;
   }
@@ -76,16 +76,9 @@ public:
 
   bool performExploration(robo7_srvs::exploration::Request &req, robo7_srvs::exploration::Response &res)
   {
-
-    geometry_msgs::Twist robot_pose = req.robot_pose;
-
-    x = robot_pose.linear.x;
-    y = robot_pose.linear.y;
-    theta = robot_pose.angular.z;
-
-    explore_srv.request.x = x;
-    explore_srv.request.y = y;
-    explore_srv.request.theta = theta;
+    explore_srv.request.x = the_robot_pose.position.linear.x;
+    explore_srv.request.y = the_robot_pose.position.linear.y;
+    explore_srv.request.theta = the_robot_pose.position.angular.z;
 
     if (!exploration_client.call(explore_srv))
       ROS_WARN("Local exploration not successful");
@@ -107,6 +100,7 @@ public:
 
     while (!exploration_done)
     {
+      ros::spinOnce();
 
       get_frontier_client.call(get_frontier_srv);
 
@@ -120,7 +114,7 @@ public:
       y = get_frontier_srv.response.frontier_destination_pose.linear.y;
 
       path_req.exploring = true;
-      path_req.robot_position = robot_pose;
+      path_req.robot_position = the_robot_pose.position;
       path_req.destination_position.x = x;
       path_req.destination_position.y = y;
 
@@ -138,7 +132,7 @@ public:
 
       path_msgs.push_back(path_res.path_planned);
 
-      if (false && path_msgs.size() > 0)
+      if (path_msgs.size() > 0)
       {
 
         for (int i = 0; i < path_msgs.size(); i++)
@@ -150,7 +144,10 @@ public:
         }
         path_msgs.clear();
 
-        followPath(trajectory_array);
+        if(!followPath(trajectory_array))
+        {
+          ros::Rate r(1); r.sleep();
+        }
       }
 
       // robo7_srvs::PathFollower2::Request req2;
@@ -192,9 +189,6 @@ public:
       robot_pose.linear.y = partial_y;
       robot_pose.angular.z = partial_theta;
       */
-      robot_pose.linear.x = x;
-      robot_pose.linear.y = y;
-      robot_pose.angular.z = theta;
     }
 
     ROS_INFO("Exploration done, success: %d", exploration_done);
