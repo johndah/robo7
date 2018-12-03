@@ -12,6 +12,7 @@
 #include <robo7_srvs/PathFollower2.h>
 #include <robo7_srvs/PureRotation.h>
 #include <robo7_srvs/IsGridOccupied.h>
+#include <robo7_srvs/MoveStraight.h>
 
 float control_frequency = 10.0;
 float pi = 3.14;
@@ -23,7 +24,7 @@ public:
   ros::Subscriber robot_pose_sub;
   ros::Publisher desired_velocity_pub;
   ros::ServiceServer path_follower_server;
-  ros::ServiceClient pure_rotation_srv, is_cell_occupied_srv;
+  ros::ServiceClient pure_rotation_srv, is_cell_occupied_srv, move_straight_srv;
 
   path_follower_v2()
   {
@@ -44,6 +45,7 @@ public:
 
     pure_rotation_srv = n.serviceClient<robo7_srvs::PureRotation>("/kinematics/path_follower/pure_rotation");
     is_cell_occupied_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
+    move_straight_srv = n.serviceClient<robo7_srvs::MoveStraight>("/kinematics/path_follower/straight_move");
 
     path_follower_server = n.advertiseService("/kinematics/path_follower/path_follower_v2", &path_follower_v2::path_follower_Sequence, this);
   }
@@ -64,18 +66,23 @@ public:
 
     bool path_ended = false;
 
+    if(trajectory_array.trajectory_points.size() == 0)
+    {
+      path_ended = true;
+    }
+
     // robo7_msgs::wallPoint the_discretized_path = discretize_the_path( the_trajectory , discretize_length );
     robo7_msgs::wallPoint the_discretized_path = discretize_the_path2( trajectory_array , discretize_length );
 
     // ROS_INFO("Start moving with %d points", the_discretized_path.number);
 
-    if(point_follower_mode)
+    if(point_follower_mode&&!path_ended)
     {
 
       int index_point_following = 0;
       geometry_msgs::Vector3 point_following;
 
-      if(false)
+      if(true)
       {
         point_following = the_discretized_path.the_points[0];
         float x1 = the_robot_pose.position.linear.x;
@@ -87,7 +94,7 @@ public:
         //First align the robot with the path start (aka call service)
         robo7_srvs::PureRotation::Request req1;
         robo7_srvs::PureRotation::Response res1;
-        req1.desired_angle = initial_angle;
+        req1.desired_angle = initial_angle + pi;
         pure_rotation_srv.call(req1, res1);
       }
 
@@ -109,10 +116,18 @@ public:
 
         if(mapping_mode&&!free_road( the_discretized_path , index_point_following ))
         {
-          ROS_INFO("Road occupied");
+          ROS_INFO("Road occupied , %lf", ros::Time::now().toSec());
           desire_vel.linear.x = 0;
           desire_vel.angular.z = 0;
           desired_velocity_pub.publish( desire_vel );
+          ros::Rate r(1); r.sleep();
+          ROS_INFO("Check cells , %lf", ros::Time::now().toSec());
+          if(is_cell_occupied( the_robot_pose.position.linear.x , the_robot_pose.position.linear.y))
+          {
+            ROS_INFO("Let's back up");
+            move_straight( 0.10 , true );
+          }
+
           break;
         }
 
@@ -219,7 +234,7 @@ private:
     // ROS_INFO("angular vel = %lf and %lf", angular_vel, angular_sat);
 
     if(angular_vel > angular_sat) { angular_vel = angular_sat; }
-    else if(-angular_vel < -angular_sat) { angular_vel = -angular_sat; }
+    else if(angular_vel < -angular_sat) { angular_vel = -angular_sat; }
 
     return angular_vel;
   }
@@ -315,7 +330,7 @@ private:
   {
     robo7_srvs::IsGridOccupied::Request req1;
 		robo7_srvs::IsGridOccupied::Response res1;
-    for(int i=index; i<discretized_path.number; i++)
+    for(int i=index; (i<discretized_path.number)&&(i<index+3); i++)
     {
       req1.x = discretized_path.the_points[i].x;
       req1.y = discretized_path.the_points[i].y;
@@ -329,6 +344,27 @@ private:
     return true;
   }
 
+  void move_straight(float dist , bool move_back)
+  {
+    robo7_srvs::MoveStraight::Request req1;
+    robo7_srvs::MoveStraight::Response res1;
+    req1.desired_distance = dist;
+    req1.move_backward = move_back;
+    move_straight_srv.call(req1, res1);
+  }
+
+  bool is_cell_occupied( float x , float y )
+  {
+    robo7_srvs::IsGridOccupied::Request req1;
+    robo7_srvs::IsGridOccupied::Response res1;
+    req1.x = x;
+    req1.y = y;
+    is_cell_occupied_srv.call(req1,res1);
+
+    ROS_INFO("cell occupied %lf ", res1.occupancy);
+
+    return (res1.occupancy == 1.0);
+  }
 };
 
 
