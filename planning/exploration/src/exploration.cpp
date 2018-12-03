@@ -146,7 +146,8 @@ public:
 
         if(!followPath(trajectory_array))
         {
-          ros::Rate r(1); r.sleep();
+          ROS_INFO("Wait a little while");
+          ros::Rate r(0.3); r.sleep();
         }
       }
 
