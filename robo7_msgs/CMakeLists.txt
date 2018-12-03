@@ -27,6 +27,7 @@ add_message_files(
   target_trajectory_point.msg
   target_trajectory.msg
   destination_point.msg
+  detectedState.msg
   MeasureFeedback.msg
   occupancy_matrix.msg
   occupancy_row.msg

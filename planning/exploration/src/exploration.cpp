@@ -1,6 +1,7 @@
 #include <math.h>
 #include <algorithm>
 #include <vector>
+#include <thread>
 #include <iostream>
 #include <memory>
 #include <ros/ros.h>
@@ -15,6 +16,8 @@
 #include "robo7_srvs/explore.h"
 #include <robo7_srvs/exploration.h>
 #include <robo7_srvs/path_planning.h>
+#include <robo7_srvs/PathFollower2.h>
+
 
 float pi = 3.14159265358979323846;
 
@@ -24,7 +27,7 @@ class Exploration
 public:
   ros::NodeHandle nh;
   ros::ServiceServer exploration_srv;
-  ros::ServiceClient exploration_client, occupancy_client, path_planning_client;
+  ros::ServiceClient exploration_client, occupancy_client, path_planning_client, path_follower2_srv;
   robo7_srvs::IsGridOccupied occupancy_srv;
   robo7_srvs::explore explore_srv;
   ros::Subscriber robot_pose_subs;
@@ -38,11 +41,12 @@ public:
     this->nh = nh;
 
     exploration_srv = nh.advertiseService("exploration_service", &Exploration::performExploration, this);
+    path_follower2_srv = nh.serviceClient<robo7_srvs::PathFollower2>("/kinematics/path_follower/path_follower_v2");
 
     path_planning_client = nh.serviceClient<robo7_srvs::path_planning>("/path_planning/path_service");
 
     //robot_pose_subs = nh.subscribe("localization/kalman_filter/position_timed", 1000, &Exploration::getPositionCallBack, this);
-    robot_pose_subs = nh.subscribe("/localization/kalman_filter/position", 1000, &Exploration::getPositionCallBack, this);
+    //robot_pose_subs = nh.subscribe("/localization/kalman_filter/position", 1000, &Exploration::getPositionCallBack, this);
 
     occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
     exploration_client = nh.serviceClient<robo7_srvs::explore>("/exploration_grid/explore");
@@ -56,6 +60,7 @@ public:
 
     position_updated = true;
   }
+
   bool performExploration(robo7_srvs::exploration::Request &req, robo7_srvs::exploration::Response &res)
   {
     geometry_msgs::Twist robot_pose = req.robot_pose;
@@ -66,12 +71,12 @@ public:
 
     if (position_updated && x == 0 && y == 0 && theta == 0)
     {
-      //x = .215;
-      //y = .2;
-      //theta = pi/2;
-      x = x0_default;
-      y = y0_default;
-      theta = theta0_default;
+      x = .215;
+      y = .2;
+      theta = pi/2;
+      // x = x0_default;
+      // y = y0_default;
+      // theta = theta0_default;
     }
 
     robo7_srvs::path_planning::Request path_req;
@@ -87,10 +92,15 @@ public:
       explore_srv.request.theta = theta;
       explore_srv.request.get_frontier = true;
 
+      // ROS_INFO("Explor srv x %f y %f", x, y);
+
       exploration_client.call(explore_srv);
 
       if (explore_srv.response.exploration_done)
+      {
+        exploration_done = true;
         break;
+      }
 
       x = explore_srv.response.frontier_destination_pose.linear.x;
       y = explore_srv.response.frontier_destination_pose.linear.y;
@@ -105,6 +115,19 @@ public:
       {
         res.success = path_res.success;
       }
+      else
+      {
+        ROS_WARN("No path found for exploration");
+        break;
+      }
+
+      geometry_msgs::Twist go_to_pose;
+
+      robo7_srvs::PathFollower2::Request req2;
+      robo7_srvs::PathFollower2::Response res2;
+      req2.traject = path_res.path_planned;
+      path_follower2_srv.call(req2, res2);
+
 
       robo7_msgs::trajectory trajectory_array;
 
@@ -121,21 +144,21 @@ public:
         explore_srv.request.y = partial_y;
         explore_srv.request.theta = partial_theta;
         explore_srv.request.get_frontier = false;
-
         exploration_client.call(explore_srv);
       }
+      theta = partial_theta;
 
       robot_pose.linear.x = partial_x;
       robot_pose.linear.y = partial_y;
       robot_pose.angular.z = partial_theta;
     }
 
-    ROS_INFO("Exploration Done");
+    ROS_INFO("Exploration done, success: %d", exploration_done);
 
-    res.success = true;
+    res.success = exploration_done;
     res.frontier_destination_pose = explore_srv.response.frontier_destination_pose;
 
-    return true;
+    return exploration_done;
   }
 };
 
