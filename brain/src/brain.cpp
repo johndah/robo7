@@ -2,6 +2,7 @@
 #include "iostream"
 #include "fstream"
 #include "std_msgs/Bool.h"
+#include "std_msgs/String.h"
 #include "robo7_msgs/aObject.h"
 #include "robo7_msgs/allObjects.h"
 #include "robo7_msgs/the_robot_position.h"
@@ -20,11 +21,28 @@ public:
 	ros::NodeHandle n;
 	ros::Subscriber robo_pos_sub;
 	ros::Publisher all_obj_pub;
+	ros::Publisher espeak_pub;
 	ros::ServiceClient distance_srv;
 	ros::ServiceClient occupancy_srv;
 	ros::ServiceClient go_to_srv;
 	ros::ServiceClient pickup_at_srv;
 	static int objs_values[];
+
+	std::string obj_classes[14] = {
+				"a yellow ball",
+				"a yellow cube",
+				"a green cube",
+				"a green cylinder",
+				"a green hollow cube",
+				"a orange cross",
+				"patric",
+				"a red cylinder",
+				"a red hollow cube",
+				"a red ball",
+				"a blue cube",
+				"a blue triangle",
+				"a purple cross",
+				"a purple star"};
 
 
 	Brain()
@@ -35,14 +53,19 @@ public:
 		n.param<float>("/brain/robot_pose_object_delta", robot_pose_object_delta, 0.09);  // compensate for the "cave" not beeing at robot center
     n.param<std::string>("/brain/objs_file", objs_file, "objs.txt");
 
+		// Services
 		distance_srv = n.serviceClient<robo7_srvs::distanceTo>("/distance_grid/distance");
 		occupancy_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
 		go_to_srv = n.serviceClient<robo7_srvs::GoTo>("/kinematics/go_to");
 		pickup_at_srv = n.serviceClient<robo7_srvs::PickupAt>("/gate_controller/pickup_at");
 
+		// Subscribers
 		robo_pos_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &Brain::roboPosCallback, this);
 
+		// Publishers
 		all_obj_pub = n.advertise<robo7_msgs::allObjects>("/vision/all_objects", 1);
+		espeak_pub = n.advertise<std_msgs::String>("/espeak/string", 1);
+
 
 
 		robot_position_set = false;
@@ -61,6 +84,8 @@ public:
 
 		if (!readObjsfile()){
 			stop_seq = true;
+			publishSpeaker("Something terrible happened", -1);
+
 		}
 
 		ROS_INFO("Read %d objects from file.", (int)read_objs.size());
@@ -132,6 +157,22 @@ public:
 			all_obj_pub.publish(pub_obj);
 		}
 	}
+
+	void publishSpeaker(std::string say, int obj_class){
+		std_msgs::String msg_out;
+    std::stringstream ss;
+
+		if(obj_class == -1){
+			ss << say;
+		}
+    else{
+      ss << say << obj_classes[obj_class];
+    }
+
+    msg_out.data = ss.str();
+    espeak_pub.publish(msg_out);
+	}
+
 
 
 	void roboPosCallback(const robo7_msgs::the_robot_position::ConstPtr &msg)
@@ -334,6 +375,7 @@ public:
 	void act(){
 			if (state == "ST_EVALUATE"){
 				ROS_INFO("Brain: ST_EVALUATE");
+				publishSpeaker("The brain is thinking", -1);
 				ROS_INFO("Brain: Go to pose x: %f", go_to_pose.linear.x);
 
 				if (read_objs.size() > 0){
@@ -354,6 +396,7 @@ public:
 					if(go_to_pose.linear.x == -1){
 						ROS_WARN("Brain: Failed to find robot pose for object, stopping sequence");
 						stop_seq = true;
+						publishSpeaker("Something terrible happened", -1);
 					} else{
 						got_obj_dest = true;
 					}
@@ -361,6 +404,7 @@ public:
 
 				} else{
 					ROS_WARN("Brain: No more objects, stopping sequence");
+					publishSpeaker("No more objects in memory to collect", -1);
 					stop_seq = true;
 				}
 
@@ -368,12 +412,14 @@ public:
 
 			if (state == "ST_GO_TO_OBJECT"){
 				ROS_INFO("Brain: ST_GO_TO_OBJECT");
+				publishSpeaker("Going to ", best_object.obj_class);
 
 				if(callGoTo(go_to_pose)){
 					at_object = true;
 					go_to_pose.linear.x = -1.0;
 				} else{
 					stop_seq = true;
+					publishSpeaker("Something terrible happened", -1);
 					ROS_WARN("Brain: we did not reach the object, stopping sequence");
 				}
 
@@ -381,6 +427,7 @@ public:
 
 			if (state == "ST_PICK_UP_OBJ"){
 				ROS_INFO("Brain: ST_PICK_UP_OBJ");
+				publishSpeaker("Picking up ", best_object.obj_class);
 
 				callPickupAt((robot_pose_dist - robot_pose_object_delta), false);
 
@@ -395,6 +442,7 @@ public:
 
 			if (state == "ST_DROP_OBJ"){
 				ROS_INFO("Brain: ST_DROP_OBJ");
+				publishSpeaker("Dropping object ", -1);
 
 				callPickupAt((robot_pose_dist - robot_pose_object_delta), true);
 
@@ -405,12 +453,14 @@ public:
 
 			if (state == "ST_GO_HOME"){
 				ROS_INFO("Brain: ST_GO_HOME");
+				publishSpeaker("Going home", -1);
 
 				if(callGoTo(home_pose)){
 					at_home = true;
 				} else{
 					stop_seq = true;
 					ROS_WARN("Brain: we did not reach home, stopping sequence");
+					publishSpeaker("Something terrible happened", -1);
 				}
 
 			}
@@ -418,6 +468,7 @@ public:
 			if (state == "ST_STOP_SEQ"){
 				ROS_INFO("Brain: ST_STOP_SEQ");
 				ROS_WARN("Brain: STOPPING");
+				publishSpeaker("Brain is stopping", -1);
 
 				publishObjects();
 
