@@ -54,7 +54,7 @@ class ObjectFilter
 
 	void ObjCallback(const robo7_msgs::classifiedObj::ConstPtr &msg)
 	{
-    if (!position_updated){
+    if (!robot_position_set){
       ROS_WARN("Object filter: Unable to filer object, no robot position recieved");
       publishSpeaker(-1);
       return;

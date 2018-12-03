@@ -318,6 +318,7 @@ public:
           }
 
           // Publish msg
+          ROS_INFO("pos.x: %f", pos.x);
           object_pub.pos = pos;
           std_msgs::String color;
           color.data = colorVec[response];

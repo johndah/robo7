@@ -69,7 +69,7 @@ class classifier:
         self.r_vel = 100
 
 
-        self.detectedObj_sub = rospy.Subscriber("/vision/object", detectedObj, self.applyModel, queue_size=1)
+        self.detectedObj_sub = rospy.Subscriber("/vision/object", detectedObj, self.applyModel, queue_size=1, buff_size=1000000)
         self.result_pub = rospy.Publisher("/vision/results", classifiedObj, queue_size=1)
 
         # self.image_sub = rospy.Subscriber("/vision/object/img", Image, self.applyModel)
