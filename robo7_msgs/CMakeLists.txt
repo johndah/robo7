@@ -17,6 +17,7 @@ add_message_files(
   XY_coordinates.msg
   path.msg
   paths.msg
+  explore.msg
   wallList.msg
   cornerList.msg
   Matrix4.msg
