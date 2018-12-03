@@ -31,7 +31,7 @@ public:
   objectToRobot()
   {
     //The camera angle
-    n.param<float>("/object_to_robot/camera_angle", camera_angle, ((2*pi)/3));
+    n.param<float>("/object_to_robot/camera_angle", camera_angle, ((4*pi)/3));
 
     //Initialize all the matrices
     matrices_initializations();
@@ -48,7 +48,11 @@ public:
 
     forward_transform();
 
-    object_robot_position_vector = (rotation_matrix_1 * rotation_matrix_2 * object_camera_position_vector) + translation_vector;
+    object_robot_position_vector = (rotation_matrix_2 * rotation_matrix_1) * object_camera_position_vector;
+
+    // print_object_to_frame_position();
+
+    object_robot_position_vector += translation_vector;
 
     object_map_position_vector = rotation_matrix_map * object_robot_position_vector + translation_vector_map;
 
@@ -86,8 +90,10 @@ private:
   Eigen::Matrix3f rotation_matrix_map;
   Eigen::Vector3f translation_vector_map;
 
-  float pi;
-
+  void print_object_to_frame_position()
+  {
+    ROS_INFO("(x,y,z) = (%lf, %lf, %lf)", object_robot_position_vector(0), object_robot_position_vector(1), object_robot_position_vector(2));
+  }
 
   void forward_transform()
   {
@@ -126,26 +132,30 @@ private:
     rotation_matrix_2 = Eigen::Matrix3f::Zero(3,3);
     rotation_matrix_3 = Eigen::Matrix3f::Zero(3,3);
 
+    ROS_INFO("camera_angle : %lf, %lf", camera_angle, pi);
+
     // Around robot frame y axis
-    rotation_matrix_1(0,0) = cos(camera_angle);
-    rotation_matrix_1(0,2) = sin(camera_angle);
-    rotation_matrix_1(1,1) = 1;
-    rotation_matrix_1(2,0) = -sin(camera_angle);
+    rotation_matrix_1(0,0) = 1;
+    rotation_matrix_1(1,1) = cos(camera_angle);
+    rotation_matrix_1(1,2) = -sin(camera_angle);
+    rotation_matrix_1(2,1) = sin(camera_angle);
     rotation_matrix_1(2,2) = cos(camera_angle);
 
+
     // Around robot frame z axis
-    rotation_matrix_2(0,0) = cos(-pi/2);
-    rotation_matrix_2(0,1) = -sin(-pi/2);
-    rotation_matrix_2(1,0) = sin(-pi/2);
-    rotation_matrix_2(1,1) = cos(-pi/2);
+    float ang = -pi/2;
+    rotation_matrix_2(0,0) = cos(ang);
+    rotation_matrix_2(0,1) = -sin(ang);
+    rotation_matrix_2(1,0) = sin(ang);
+    rotation_matrix_2(1,1) = cos(ang);
     rotation_matrix_2(2,2) = 1;
+
 
     //Translation vector intialization
     translation_vector(0) = 0.116;
     translation_vector(1) = 0;
     translation_vector(2) = 0.131;
   }
-
 };
 
 int main(int argc, char **argv)

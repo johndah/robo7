@@ -122,7 +122,10 @@
     <param name="open_visualisation_window" type="bool" value="false"/>
   </node>
 
-  <node pkg="object_visualization" type="object_to_robot" name="object_to_robot" output="screen"/>
+  <node pkg="object_visualization" type="object_to_robot" name="object_to_robot" output="screen">
+    <param name="camera_angle" type="double" value="4.18"/>
+  </node>
+
   <node pkg="object_filter" type="object_filter" name="object_filter" output="screen"/>
 
   <node pkg="map_maintenance" type="map_maintenance" name="map_maintenance" output="screen">
@@ -152,5 +155,5 @@
    <node pkg="test_service" type="test_service" name="test_service" output="screen">
      <param name="cell_size" type="double" value="0.02"/>
    </node>
-
+   
 </launch>
