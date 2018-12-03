@@ -8,4 +8,3 @@ float64 speed
 float64 distance
 std_msgs/Bool line_or_turn  #if it is a line -> true otherwise -> false
 float64 radius
- 
