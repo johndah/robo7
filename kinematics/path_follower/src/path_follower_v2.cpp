@@ -108,7 +108,9 @@ public:
       }
 
       geometry_msgs::Twist desire_vel;
-      float time_prev = ros::Time::now().toSec();
+      double time_prev = ros::Time::now().toSec();
+
+      ros::Rate loop_rate(100);
 
       //Then make it follow the path
       while(!path_ended)
@@ -140,10 +142,16 @@ public:
           break;
         }
 
-        float time_n = ros::Time::now().toSec();
+        double time_n = ros::Time::now().toSec();
 
-        ROS_INFO("%d & %d -> %lf & %lf", (the_objects_states.state.size()>0),(time_n - time_prev > 5), time_n, time_prev);
-        if(mapping_mode&&(static_cast<int>(the_objects_states.state.size()>0))&&(time_n - time_prev > 5))
+        if(object_just_detected)
+        {
+          time_prev = time_n;
+          object_just_detected = false;
+        }
+
+        ROS_INFO("%d & %d -> %lf & %lf", (the_objects_states.state.size()>0),(time_n - time_prev > 1), time_n, time_prev);
+        if(mapping_mode&&(static_cast<int>(the_objects_states.state.size()>0))&&(time_n - time_prev > 1))
         {
           ros::Rate loop_rate(2.0);
           desire_vel.linear.x = 0;
@@ -152,7 +160,7 @@ public:
           loop_rate.sleep();
           ros::spinOnce();
           trigger_filtering_of_object();
-          time_prev = time_n;
+          object_just_detected = true;
         }
 
         //Extract the angle difference out of this point to follow
@@ -184,6 +192,8 @@ public:
 
         //Then publish the speed
         desired_velocity_pub.publish( desire_vel );
+
+        loop_rate.sleep();
       }
 
       //Republish an 0 speed
@@ -213,6 +223,7 @@ private:
   bool point_follower_mode;
   bool mapping_mode;
   bool object_detected;
+  bool object_just_detected;
 
   int point_to_follow( robo7_msgs::wallPoint discretized_path_msg, int current_index)
   {
