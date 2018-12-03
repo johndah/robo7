@@ -89,7 +89,7 @@ public:
         //First align the robot with the path start (aka call service)
         robo7_srvs::PureRotation::Request req1;
         robo7_srvs::PureRotation::Response res1;
-        req1.desired_angle = initial_angle;
+        req1.desired_angle = initial_angle + pi;
         pure_rotation_srv.call(req1, res1);
       }
 
@@ -115,10 +115,12 @@ public:
           desire_vel.linear.x = 0;
           desire_vel.angular.z = 0;
           desired_velocity_pub.publish( desire_vel );
+          ros::Duration(1.0).sleep();
 
           if(is_cell_occupied( the_robot_pose.position.linear.x , the_robot_pose.position.linear.y))
           {
-            move_straight( 0.05 , true );
+            ROS_INFO("Let's back up");
+            move_straight( 0.10 , true );
           }
 
           break;
