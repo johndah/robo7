@@ -82,6 +82,12 @@ public:
 
 		usleep(1000000);
 
+		if (!drop_mode){
+			srv_move_straight_req.desired_distance = travel_dist;
+			srv_move_straight_req.move_backward = !drop_mode;
+			move_straight_srv.call(srv_move_straight_req, srv_move_straight_resp);
+		}
+
 		res.success = true;
 
 		// ROS_INFO("Gate Controller: Done");
