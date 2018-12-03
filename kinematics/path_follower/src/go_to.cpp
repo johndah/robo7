@@ -18,7 +18,7 @@ class go_to
 public:
   ros::NodeHandle n;
   //Subscriber
-  ros::Subscriber robot_position;
+  ros::Subscriber robot_position_sub;
   //Client
   ros::ServiceClient path_planning_srv;
   ros::ServiceClient path_follower2_srv;
@@ -34,7 +34,7 @@ public:
     pure_rotation_srv = n.serviceClient<robo7_srvs::PureRotation>("/kinematics/path_follower/pure_rotation");
 
     //Subscriber
-    ros::Subscriber robot_position_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &go_to::position_callBack, this);
+    robot_position_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &go_to::position_callBack, this);
 
     //Server
     go_to_server = n.advertiseService("/kinematics/go_to", &go_to::goToSequence, this);
@@ -57,6 +57,7 @@ public:
     //Find the path_planned
     robo7_srvs::path_planning::Request req1;
     robo7_srvs::path_planning::Response res1;
+    ROS_INFO("(x,y,theta) = (%lf, %lf, %lf)", the_robot_pose.position.linear.x, the_robot_pose.position.linear.y, the_robot_pose.position.angular.z);
     req1.robot_position = the_robot_pose.position;
     req1.destination_position = destination_position;
     path_planning_srv.call(req1, res1);
@@ -68,10 +69,13 @@ public:
     path_follower2_srv.call(req2, res2);
 
     //Turn on itself to the right direction
-    robo7_srvs::PureRotation::Request req3;
-    robo7_srvs::PureRotation::Response res3;
-    req3.desired_angle = destination_pose.angular.z;
-    pure_rotation_srv.call(req3, res3);
+    if(destination_pose.angular.x != -1)
+    {
+      robo7_srvs::PureRotation::Request req3;
+      robo7_srvs::PureRotation::Response res3;
+      req3.desired_angle = destination_pose.angular.z;
+      pure_rotation_srv.call(req3, res3);
+    }
 
     res.success = res2.success;
   }

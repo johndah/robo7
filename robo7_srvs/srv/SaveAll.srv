@@ -1,0 +1,5 @@
+# request
+bool save_obj  # do you want to save the objects
+bool save_obs  # do you want to save the obstacles
+---
+bool success  # True if successful

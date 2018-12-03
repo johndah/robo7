@@ -1,0 +1,6 @@
+model_checkpoint_path: "mobilenetv2-1879"
+all_model_checkpoint_paths: "mobilenetv2-1700"
+all_model_checkpoint_paths: "mobilenetv2-1750"
+all_model_checkpoint_paths: "mobilenetv2-1800"
+all_model_checkpoint_paths: "mobilenetv2-1850"
+all_model_checkpoint_paths: "mobilenetv2-1879"

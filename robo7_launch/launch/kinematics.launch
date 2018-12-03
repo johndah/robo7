@@ -1,9 +1,10 @@
 <launch>
 
 <!-- The kinematics nodes -->
-   <node pkg="own_map" type="own_map" name="own_map"
+   <node pkg="own_map" type="own_map" name="own_map" output="screen"
          args="_map_file:=$(find own_map)/maps/lab_maze_2018_2_missing.txt">
          <param name="discretization_step" type="double" value="0.01"/>
+         <param name="obss_file" type="string" value="$(find robo7_launch)/memory/obss.txt"/>
    </node>
 
    <node pkg="motors" type="motor_controller" name="motor_controller">
@@ -133,6 +134,10 @@
   </node>
 
   <node pkg="path_testing" type="path_exploration_test" name="path_exploration_test" output="screen">
+    <param name="dist_between_points" type="double" value="0.50"/>
+  </node>
+
+  <node pkg="path_testing" type="path_exploration_full" name="path_exploration_full" output="screen">
     <param name="dist_between_points" type="double" value="0.50"/>
   </node>
 

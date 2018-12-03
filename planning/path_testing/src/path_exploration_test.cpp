@@ -154,13 +154,8 @@ public:
 					local_y = theRestPoint.the_points[i].y + j_index[k]*cell_size;
 					if((local_x > 0)&&(local_x < x_max)&&(local_y > 0)&&(local_y < y_max))
 					{
-						// ROS_INFO("(x,y) = (%lf, %lf)", local_x, local_y);
-						//Call the service to check if this place is occupied
-						req1.x = local_x;
-						req1.y = local_y;
-						is_cell_occupied_srv.call(req1, res1);
-						// ROS_INFO("Is occupied : %lf", res1.occupancy);
-						if(res1.occupancy != 1)
+						int nb_c = 2;
+						if(check_around_space(nb_c, local_x, local_y))
 						{
 							theRestPoint.the_points[i].x = local_x;
 							theRestPoint.the_points[i].y = local_y;
@@ -177,6 +172,36 @@ public:
 				allUnexploredPoints.the_points.push_back( theRestPoint.the_points[i] );
 			}
 		}
+	}
+
+	bool check_around_space(int nb_cells, float x, float y)
+	{
+		robo7_srvs::IsGridOccupied::Request req1;
+		robo7_srvs::IsGridOccupied::Response res1;
+		float cell_size = 0.02;
+		for(int i=-nb_cells; i<nb_cells+1; i++)
+		{
+			for(int j=-nb_cells; j<nb_cells+1; j++)
+			{
+				float local_x = x + i*cell_size;
+				float local_y = y + j*cell_size;
+
+				if((local_x > 0)&&(local_x < x_max)&&(local_y > 0)&&(local_y < y_max))
+				{
+					// ROS_INFO("(x,y) = (%lf, %lf)", local_x, local_y);
+					//Call the service to check if this place is occupied
+					req1.x = local_x;
+					req1.y = local_y;
+					is_cell_occupied_srv.call(req1, res1);
+
+					if(res1.occupancy == 1)
+					{
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 	bool replaceAllPoints(robo7_srvs::replaceExplorationPoints::Request &req,
@@ -241,7 +266,7 @@ public:
 		destination.linear.x = point_to_follow.x;
 		destination.linear.y = point_to_follow.y;
 		destination.linear.z = point_to_follow.z;
-		destination.angular.z = -1;
+		destination.angular.x = -1;
 
 		//Do go_To service and see what it does return
 		robo7_srvs::GoTo::Request req2;

@@ -1,6 +1,6 @@
 <launch>
 
   <node pkg="feed_video" type="feed_video" name="feed_video"
-        args="_dir:=/home/jtao/robo7_vision/data/videos/test.avi" />
+        args="_dir:=/home/ras17/data/videos/test.avi" />
 
 </launch>

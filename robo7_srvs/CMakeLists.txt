@@ -26,12 +26,14 @@ add_service_files(
   UpdateOccupancyGridFiltered.srv
   UpdateDiscretizedMap.srv
   callServiceTest.srv
+  SaveAll.srv
   replaceExplorationPoints.srv
   moveToNextPoint.srv
   PureRotation.srv
   MoveStraight.srv
   PathFollower2.srv
   GoTo.srv
+  exploreTheMap.srv
 )
 
 
