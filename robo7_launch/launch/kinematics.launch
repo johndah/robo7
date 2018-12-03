@@ -41,7 +41,7 @@
      <param name="angular_adjustment" type="double" value="0.0217"/>
 
      <param name="use_dead_reckoning" type="bool" value="true"/>
-     <param name="use_measure" type="bool" value="false"/>
+     <param name="use_measure" type="bool" value="true"/>
 
      <param name="sigma_distance" type="double" value="1.0"/>
      <param name="sigma_angle" type="double" value="10.0"/>
@@ -74,7 +74,7 @@
     </node>
 
     <node pkg="exploration" type="exploration" name="exploration" output="screen"/>
-    
+
     <node pkg="exploration" type="local_exploration" name="local_exploration" output="screen"/>
 
     <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>

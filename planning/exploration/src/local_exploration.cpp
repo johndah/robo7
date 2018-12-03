@@ -4,8 +4,9 @@
 #include <iostream>
 #include <memory>
 #include <ros/ros.h>
-#include "robo7_srvs/explore.h"
+#include <robo7_srvs/explore.h>
 #include <robo7_srvs/exploration.h>
+#include <robo7_msgs/the_robot_position.h>
 
 
 class LocalExploration
@@ -25,18 +26,18 @@ public:
   {
     this->nh = nh;
 
-    robot_pose_subs = nh.subscribe("localization/kalman_filter/position_timed", 1000, &LocalExploration::getPositionCallBack, this);
+    robot_pose_subs = nh.subscribe("/localization/kalman_filter/position_timed", 1000, &LocalExploration::getPositionCallBack, this);
 
     exploration_client = nh.serviceClient<robo7_srvs::explore>("/exploration/explore");
   }
 
-  void getPositionCallBack(const geometry_msgs::Twist::ConstPtr &msg)
+  void getPositionCallBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
   {
-    x_current = msg->linear.x;
-    y_current = msg->linear.y;
-    theta_current = msg->angular.z;
+    x_current = msg->position.linear.x;
+    y_current = msg->position.linear.y;
+    theta_current = msg->position.angular.z;
 
-    ROS_INFO("Getting position %f  %f", x_current, y_current);
+    // ROS_INFO("Getting position %f  %f", x_current, y_current);
     position_updated = true;
   }
 
@@ -70,10 +71,10 @@ int main(int argc, char **argv)
   {
     ros::spinOnce();
 
-    ROS_INFO("Doing local stuff");
+    // ROS_INFO("Doing local stuff");
     if (local_exploration.position_updated)
     {
-      ROS_INFO("Explore here");
+      // ROS_INFO("Explore here");
       local_exploration.exploreHere();
       local_exploration.position_updated = false;
 
