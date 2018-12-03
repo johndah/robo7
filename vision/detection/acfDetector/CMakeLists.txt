@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   roscpp
   message_generation
+  robo7_msgs
 )
 
 find_package(OpenCV REQUIRED)
@@ -18,11 +19,11 @@ add_message_files(
   detectedObj.msg
 )
 
-generate_messages(DEPENDENCIES std_msgs sensor_msgs)
+generate_messages(DEPENDENCIES std_msgs sensor_msgs robo7_msgs)
 
 catkin_package(
   DEPENDS
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge geometry_msgs image_transport message_runtime
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs cv_bridge geometry_msgs image_transport message_runtime robo7_msgs
 )
 
 include_directories(include

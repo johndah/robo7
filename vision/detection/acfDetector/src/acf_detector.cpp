@@ -14,6 +14,8 @@
 #include <acf/ACF.h>
 #include "acfDetector/detectedObj.h"
 
+#include "robo7_msgs/detectedState.h"
+
 using namespace std;
 using namespace cv;
 using namespace cv::ml;
@@ -44,6 +46,7 @@ public:
   // ros::Publisher obj_pos_pub;
 
   ros::Publisher obj_detected_pub;
+  ros::Publisher obj_state_pub;
 
   	ACFdetector()
   	  : it_(nh_)
@@ -51,17 +54,13 @@ public:
   		image_sub_ = it_.subscribe("/camera/rgb/image_rect_color", 1,
   			                       &ACFdetector::detection, this);
 
-      // obj_img_pub = it_.advertise("/vision/object/img", 1);
-
-  		// namedWindow("Detected image");
-      // namedWindow("bbx");
-      // namedWindow("Cropped object image");
 
       depth_points_sub = n.subscribe("/camera/depth_registered/points", 1, &ACFdetector::depthCallBack, this);
       obj_detected_pub = n.advertise<acfDetector::detectedObj>("/vision/object", 1);
+      obj_state_pub = n.advertise<robo7_msgs::detectedState>("/vision/state", 1);
 
       std::string acfModel;
-      n.param<string>("/acf_detector/acfModel", acfModel, "/home/jtao/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb");
+      n.param<string>("/acf_detector/acfModel", acfModel, "/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb");
       detector = std::make_shared<acf::Detector>(acfModel);
 
       if (detector.get() && detector->good()) {
@@ -69,6 +68,23 @@ public:
       }
 
       n.param<double>("/acf_detector/scoreThre", scoreThre, 50);
+      n.param<double>("/acf_detector/sizeThre", sizeThre, 110);
+      n.param<double>("/acf_detector/boundaryThre", boundaryThre, 30);
+      n.param<bool>("/acf_detector/showFlag", showFlag, true);
+
+      if (showFlag == true)
+        namedWindow("Detected image");
+
+      // namedWindow("bbx");
+      // namedWindow("Cropped object image");
+
+      // record a Video
+      // video.open("/home/ras17/detected_result.avi", VideoWriter::fourcc('M', 'J', 'P', 'G'), 20, Size(640, 480));
+      // if (video.isOpened())
+      //   ROS_INFO("Initialize successfully!");
+      // else
+      //   ROS_INFO("Initializion fail!");
+
     }
 
   	~ACFdetector()
@@ -146,16 +162,6 @@ public:
         large_bbx.width = scale * o.width;
         large_bbx.height = scale * o.height;
       }
-
-      // ROS_INFO("x: %d", o.x);
-      // ROS_INFO("y: %d", o.y);
-      // ROS_INFO("width: %d", o.width);
-      // ROS_INFO("height: %d", o.height);
-
-      // ROS_INFO("x: %d", large_bbx.x);
-      // ROS_INFO("y: %d", large_bbx.y);
-      // ROS_INFO("width: %d", large_bbx.width);
-      // ROS_INFO("height: %d", large_bbx.height);
       return large_bbx;
     }
 
@@ -204,13 +210,39 @@ public:
 
       int ind = 0;
       std::stringstream ss;
+
+      robo7_msgs::detectedState state_msg;
+
       for (const auto& o : objects)
       {
         // Threshold of scores
         if (scores[ind] < scoreThre){
-          ROS_INFO("skip the bbx with %f", scores[ind]);
+          // ROS_INFO("skip the bbx with %f", scores[ind]);
           ind++;
           continue;
+        }
+
+        ROS_INFO("size of bbx:%d", o.width);
+        if (o.width < sizeThre){
+          ind++;
+          ROS_INFO("too small bbx!");
+          continue;
+        }
+
+        // ROS_INFO("left x: %d", o.x);
+        // ROS_INFO("right x: %d", o.x + o.width);
+        if (o.x < boundaryThre){
+          ind++;
+          state_msg.state.push_back(1);
+          continue;
+          ROS_INFO("too left!");
+        }
+
+        if ((o.x + o.width) > (origImg.cols - boundaryThre)){
+          ind++;
+          state_msg.state.push_back(2);
+          continue;
+          ROS_INFO("too right!");
         }
 
         acfDetector::detectedObj object_pub;
@@ -218,10 +250,15 @@ public:
         // make sure the bbx don't out of the image
         if (o.x >= 0 && o.y >= 0 && (o.x + o.width) <= origImg.cols && (o.y + o.height) <= origImg.rows)
         {
-          // draw bbbx
-          cv::rectangle(resultImg, o, { 0, 255, 0 }, 2, 8);
+          state_msg.state.push_back(3);
+
           Point center = (o.tl()+o.br())/2;
-          circle(resultImg, center, 2, Scalar(0,0,255), 2, 8, 0);
+          // draw bbbx
+          if (showFlag == true)
+          {
+            cv::rectangle(resultImg, o, { 0, 255, 0 }, 2, 8);
+            circle(resultImg, center, 2, Scalar(0,0,255), 2, 8, 0);
+          }
 
           // apply SVM color classifier
           cv::Mat bbx_img;
@@ -234,18 +271,20 @@ public:
           // imshow("bbx", bbx_img);
           // waitKey(5);
 
-          // put the score and color on the bbx
-          ss << (int)scores[ind];
-          // cout << scores[ind] << endl;
-          cv::putText(resultImg, ss.str() + ", " + colorVec[response], cv::Point(o.x, o.y), CV_FONT_HERSHEY_SIMPLEX, 0.8, {255, 255, 255});
+          if (showFlag == true)
+          {
+            // put the score and color on the bbx
+            // ROS_INFO("score: %f", scores[ind]);
+            ss << scores[ind];
+            cv::putText(resultImg, ss.str().substr(0, 4) + ", " + colorVec[response], cv::Point(o.x, o.y), CV_FONT_HERSHEY_SIMPLEX, 0.8, {255, 255, 255});
+          }
+
           ind++;
 
           // Crop the image with enlarged bbx
           cv::Rect large_o = ACFdetector::enlargeBBX(o, origImg.cols, origImg.rows, 1.4);
           cv::Mat obj_img;
           obj_img = origImg(large_o);
-
-          // imshow("Cropped object image", obj_img);
 
           sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", obj_img).toImageMsg();
 
@@ -265,7 +304,6 @@ public:
                 pos = pixelTo3DPoint(pCloud_cam, center.x + j, center.y);
                 if (!isnan(pos.x))
                   break;
-
               for (int k=-6; j<7; k=k+4)
               {
                 pos = pixelTo3DPoint(pCloud_cam, center.x, center.y + k);
@@ -277,12 +315,6 @@ public:
                 break;
               }
             }
-
-            // ROS_INFO("center x: %d", center.x);
-            // ROS_INFO("center y: %d", center.y);
-            // ROS_INFO("final_x: %f", pos.x);
-            // ROS_INFO("final_y: %f", pos.y);
-            // ROS_INFO("final_z: %f", pos.z);
           }
 
           // Publish msg
@@ -295,6 +327,8 @@ public:
           obj_detected_pub.publish(object_pub);
         }
       }
+
+      obj_state_pub.publish(state_msg);
     }
 
   	void detection(const sensor_msgs::ImageConstPtr& msg)
@@ -308,11 +342,18 @@ public:
       else
       {
         resultImg = origImg.clone();
-
         ACFdetector::applyDetector(detector, origImg);
 
-        // imshow("Detected image", resultImg);
-        cv::waitKey(5);
+
+        if (showFlag == true)
+        {
+          imshow("Detected image", resultImg);
+          cv::waitKey(5);
+        }
+
+        // video
+        // video.write(resultImg);
+
       }
 
   	}
@@ -325,6 +366,12 @@ private:
 
   cv::Mat resultImg;
   double scoreThre;
+  double sizeThre;
+  double boundaryThre;
+  bool showFlag;
+
+  // cv::VideoWriter video;
+
 
 };
 
