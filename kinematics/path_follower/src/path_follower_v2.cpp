@@ -142,7 +142,7 @@ public:
         {
           desire_vel.linear.x = velocity_sign * aver_lin_vel;
           desire_vel.angular.z = P_update( diff_angle );
-          angle_ref_max = pi/3;
+          angle_ref_max = pi/6;
         }
 
         //Then check if the path came to an end
