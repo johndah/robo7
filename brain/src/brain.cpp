@@ -418,6 +418,9 @@ public:
 			if (state == "ST_STOP_SEQ"){
 				ROS_INFO("Brain: ST_STOP_SEQ");
 				ROS_WARN("Brain: STOPPING");
+
+				publishObjects();
+
 				return;
 
 			}
