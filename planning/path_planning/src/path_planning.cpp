@@ -321,8 +321,8 @@ class PathPlanning
 		y_diff = float(node_target->y - node_current->y);
 
 		int n = floor(200 * std::max(std::abs(x_diff), std::abs(y_diff)));
-		if (node_target->x > 0 && node_target->y > 2)
-			ROS_INFO("xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", node_current->x, node_current->y, node_target->x, node_target->y, x_diff, y_diff);
+		// if (node_target->x > 0 && node_target->y > 2)
+		//   ROS_INFO("xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", node_current->x, node_current->y, node_target->x, node_target->y, x_diff, y_diff);
 		bool visable = true;
 
 		x_ray = node_current->x;

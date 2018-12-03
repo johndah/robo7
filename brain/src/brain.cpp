@@ -30,6 +30,7 @@ public:
 	Brain()
 	{
 		n.param<int>("/brain/weight_thresh", weight_thresh, 5);
+		n.param<float>("/brain/occu_thresh", occu_thresh, 0.4);
 		n.param<float>("/brain/robot_pose_dist", robot_pose_dist, 0.25); // distance avay from the robot center to search for a pose
 		n.param<float>("/brain/robot_pose_object_delta", robot_pose_object_delta, 0.09);  // compensate for the "cave" not beeing at robot center
     n.param<std::string>("/brain/objs_file", objs_file, "objs.txt");
@@ -155,7 +156,9 @@ public:
 	}
 
 
-	float getDistance(float x, float y){
+	int getDistance(float x, float y, bool reverse){
+		ros::spinOnce();
+
 		robo7_srvs::distanceTo::Request srv_req;
 		robo7_srvs::distanceTo::Response srv_resp;
 
@@ -164,10 +167,18 @@ public:
 			return -1;
 		}
 
-		srv_req.x_from = robo_pos.linear.x;
-		srv_req.y_from = robo_pos.linear.y;
-		srv_req.x_to = x;
-		srv_req.y_to = y;
+		if (!reverse){
+			srv_req.x_from = robo_pos.linear.x;
+			srv_req.y_from = robo_pos.linear.y;
+			srv_req.x_to = x;
+			srv_req.y_to = y;
+
+		} else{
+			srv_req.x_from = x;
+			srv_req.y_from = y;
+			srv_req.x_to = robo_pos.linear.x;
+			srv_req.y_to = robo_pos.linear.y;
+		}
 
 		distance_srv.call(srv_req, srv_resp);
 
@@ -213,33 +224,6 @@ public:
 	}
 
 
-	int sgn(float v) {
-	  if (v < 0) return -1;
-	  else if (v > 0) return 1;
-	  else return 0;
-	}
-
-
-	float findAngle(float x_obj, float y_obj, float x_rob, float y_rob) {
-		float x = x_obj - x_rob;
-		float y = y_obj - y_rob;
-
-	  if(x==0){
-	    return pi*sgn(y);
-
-	  } else if((x<0)&&(y>0)){
-	    return atan(y/x) + pi;
-
-	  } else if ((x<0)&&(y<0)){
-	    return atan(y/x) - pi;
-
-	  } else {
-	    return atan(y/x);
-	  }
-	  // return atan(x/y);
-	}
-
-
 	void setBestObject(){
 		ROS_INFO("Evaluating objects");
 		int num_objs = read_objs.size();
@@ -265,6 +249,11 @@ public:
 		pose.linear.x = -1;
 
 		float lowest_occupancy = 1.0;
+		int lowest_dist = 1000000;
+
+		float test_lowest_occu_x;
+		float test_lowest_occu_y;
+		float test_lowest_occu_ang_z;
 
 		// returns a pose that is possible to travel to, given the destination
 		for (float alp = 0 ; alp < 2*pi ; alp = alp+(pi/8)){
@@ -273,19 +262,38 @@ public:
 			float test_y = y_dest + (robot_pose_dist * sin(alp));
 
 			float new_occupancy = getOccupancy(test_x, test_y);
+			int new_distance = getDistance(test_x, test_y, true);
 
 			//ROS_INFO("Brain:getDestPose testing: x:%f, y:%f and got got occupancy: %f", test_x, test_y, new_occupancy);
+			//ROS_INFO("Brain: Occ: %f, Dist: %d", (float)new_occupancy, (int)new_distance);
 
-			if(new_occupancy < lowest_occupancy){
-				//ROS_INFO("Brain:getDestPose found a better pose");
-				lowest_occupancy = new_occupancy;
+			if(new_occupancy < occu_thresh && new_distance < lowest_dist){
+				//ROS_INFO("Brain: FOUND A BETTER POSE");
+				lowest_dist = new_distance;
 				pose.linear.x = test_x;
 				pose.linear.y = test_y;
 				pose.angular.z = std::fmod((alp + pi)+pi, 2*pi) - pi;
-				//pose.angular.z = findAngle(x_dest, y_dest, test_x, test_y);
 
 			}
+
+			if(new_occupancy < lowest_occupancy){
+				lowest_occupancy = new_occupancy;
+				test_lowest_occu_x = test_x;
+				test_lowest_occu_y = test_y;
+				test_lowest_occu_ang_z = std::fmod((alp + pi)+pi, 2*pi) - pi;
+
+			}
+
 		}
+
+		if (lowest_dist == 1000000){
+			// in case no object fulfills the threshold, take the best of the worst
+			ROS_WARN("Brain: No distance was found for the testing angles around the object");
+			pose.linear.x = test_lowest_occu_x;
+			pose.linear.y = test_lowest_occu_y;
+			pose.angular.z = test_lowest_occu_ang_z;
+		}
+
 		return pose;
 
 	}
@@ -410,6 +418,9 @@ public:
 			if (state == "ST_STOP_SEQ"){
 				ROS_INFO("Brain: ST_STOP_SEQ");
 				ROS_WARN("Brain: STOPPING");
+
+				publishObjects();
+
 				return;
 
 			}
@@ -433,6 +444,7 @@ private:
 	bool at_object;
 	bool stop_seq;
 	int weight_thresh;
+	float occu_thresh;
 	std::string objs_file;
 	float robot_pose_dist;
 	float robot_pose_object_delta;
@@ -448,7 +460,7 @@ int main(int argc, char **argv)
 
 	Brain brain;
 
-	ros::Rate loop_rate(0.5);
+	ros::Rate loop_rate(0.3);
 
 	loop_rate.sleep();
 
