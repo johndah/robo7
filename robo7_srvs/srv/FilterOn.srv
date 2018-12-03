@@ -1,0 +1,7 @@
+# how long to turn on the filter
+
+float32 time # time in seconds to turn on filter
+---
+
+# Response
+bool success

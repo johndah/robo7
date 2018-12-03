@@ -34,6 +34,7 @@ add_service_files(
   PathFollower2.srv
   GoTo.srv
   exploreTheMap.srv
+  FilterOn.srv
 )
 
 
