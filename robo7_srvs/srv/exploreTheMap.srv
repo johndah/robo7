@@ -1,0 +1,7 @@
+# Request
+# The position in x,y coordinates
+
+geometry_msgs/Twist initial_pose
+
+---
+bool success
