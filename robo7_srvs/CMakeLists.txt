@@ -12,7 +12,6 @@ add_service_files(
   ICPAlgorithm.srv
   IsGridOccupied.srv
   explore.srv
-  getFrontier.srv
   PathFollowerSrv.srv
   scanCoord.srv
   objectToRobot.srv
