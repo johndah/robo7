@@ -1,0 +1,2 @@
+bool exploration_done
+geometry_msgs/Twist frontier_destination_pose
