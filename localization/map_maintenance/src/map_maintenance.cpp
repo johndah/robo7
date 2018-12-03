@@ -52,6 +52,7 @@ public:
 		n.param<float>("/map_maintenance/free_space_around_a_cell", free_threshold, 0.10);
 		n.param<float>("/map_maintenance/free_space_around_an_obstacle", obstacle_threshold, 0.20);
 		n.param<float>("/map_maintenance/obstacle_width", obstacle_width, 0.10);
+		n.param<float>("/map_maintenance/lidar_wall_detection_distance", lidar_distance_thres, 0.50);
 		n.param<bool>("/map_maintenance/use_mapping_algorithm", use_mapping, false);
 		n.param<bool>("/map_maintenance/use_ransac", use_ransac, false);
 
@@ -131,7 +132,7 @@ public:
 			map_lidar_scan = res1.the_lidar_points;
 
 			//Fill up the previously undetected walls in the occupancy grid
-			update_the_occupancy_grid_with_lidar();
+			update_the_occupancy_grid_with_lidar( the_robot_pose.position );
 
 			//Save when/where was the last update
 			previous_update_pose = the_robot_pose;
@@ -187,7 +188,7 @@ private:
 	float occupied, unoccupied, unknown, obstacle;
 	bool use_mapping, use_ransac;
 	float x_max, x_min, y_max, y_min;
-	float free_threshold, obstacle_threshold, obstacle_width;
+	float free_threshold, obstacle_threshold, obstacle_width, lidar_distance_thres;
 
 	//State of the robot
 	robo7_msgs::activation_states state_activated;
@@ -209,27 +210,40 @@ private:
 		}
 	}
 
-	void update_the_occupancy_grid_with_lidar()
+	void update_the_occupancy_grid_with_lidar( geometry_msgs::Twist robot_pose )
 	{
 		for(int i=0; i < map_lidar_scan.number; i++)
 		{
-			std::vector<int> the_cell = corresponding_cell(map_lidar_scan.the_points[i].x, map_lidar_scan.the_points[i].y);
-			if((the_cell[0] > 0)&&(the_cell[0] < the_occupancy_grid.occupancy_grid.nb_rows)
-					&&(the_cell[1] > 0)&&(the_cell[1] < the_occupancy_grid.occupancy_grid.nb_cols))
-					{
-						if(check_free_around_it(the_cell[0], the_cell[1]))
+			if(distance_robot_point( robot_pose , map_lidar_scan.the_points[i] ) < lidar_distance_thres )
+			{
+				std::vector<int> the_cell = corresponding_cell(map_lidar_scan.the_points[i].x, map_lidar_scan.the_points[i].y);
+				if((the_cell[0] > 0)&&(the_cell[0] < the_occupancy_grid.occupancy_grid.nb_rows)
+						&&(the_cell[1] > 0)&&(the_cell[1] < the_occupancy_grid.occupancy_grid.nb_cols))
 						{
-							the_occupancy_grid.occupancy_grid.rows[the_cell[0]].cols[the_cell[1]] = occupied;
-							new_change = true;
-							the_new_points_msg.number++;
-							the_new_points_msg.the_points.push_back(map_lidar_scan.the_points[i]);
+							if(check_free_around_it(the_cell[0], the_cell[1]))
+							{
+								the_occupancy_grid.occupancy_grid.rows[the_cell[0]].cols[the_cell[1]] = occupied;
+								new_change = true;
+								the_new_points_msg.number++;
+								the_new_points_msg.the_points.push_back(map_lidar_scan.the_points[i]);
+							}
 						}
-					}
+			}
 		}
 		if(new_change)
 		{
 			new_point_pub.publish( the_new_points_msg );
 		}
+	}
+
+	float distance_robot_point( geometry_msgs::Twist robot_pose , geometry_msgs::Vector3 one_lidar_point )
+	{
+		float x1 = robot_pose.linear.x;
+		float y1 = robot_pose.linear.y;
+		float x2 = one_lidar_point.x;
+		float y2 = one_lidar_point.y;
+
+		return sqrt(pow(x1-x2,2) + pow(y1-y2,2));
 	}
 
 	std::vector<int> corresponding_cell(float x, float y)

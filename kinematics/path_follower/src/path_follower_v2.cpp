@@ -52,6 +52,8 @@ public:
     classification_srv = n.serviceClient<robo7_srvs::FilterOn>("/object_filter/activate");
 
     path_follower_server = n.advertiseService("/kinematics/path_follower/path_follower_v2", &path_follower_v2::path_follower_Sequence, this);
+
+    time_prev = ros::Time::now().toSec();
   }
 
   void position_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
@@ -108,7 +110,6 @@ public:
       }
 
       geometry_msgs::Twist desire_vel;
-      double time_prev = ros::Time::now().toSec();
 
       ros::Rate loop_rate(100);
 
@@ -224,6 +225,7 @@ private:
   bool mapping_mode;
   bool object_detected;
   bool object_just_detected;
+  double time_prev;
 
   int point_to_follow( robo7_msgs::wallPoint discretized_path_msg, int current_index)
   {
