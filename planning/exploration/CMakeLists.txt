@@ -35,9 +35,12 @@ add_executable(exploration src/exploration.cpp)
 target_link_libraries(exploration ${catkin_LIBRARIES})
 add_dependencies(exploration ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-
 add_executable(mapping_grids_server src/mapping_grids_server.cpp)
 target_link_libraries(mapping_grids_server
 ${catkin_LIBRARIES}
 ${OpenCV_LIBRARIES})
 add_dependencies(mapping_grids_server ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(local_exploration src/local_exploration.cpp)
+target_link_libraries(local_exploration ${catkin_LIBRARIES})
+add_dependencies(local_exploration ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
