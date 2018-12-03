@@ -8,11 +8,13 @@
 #include <robo7_msgs/target_trajectory.h>
 #include <robo7_msgs/wallPoint.h>
 #include <robo7_msgs/trajectory.h>
+#include <robo7_msgs/detectedState.h>
 //Services
 #include <robo7_srvs/PathFollower2.h>
 #include <robo7_srvs/PureRotation.h>
 #include <robo7_srvs/IsGridOccupied.h>
 #include <robo7_srvs/MoveStraight.h>
+#include <robo7_srvs/FilterOn.h>
 
 float control_frequency = 10.0;
 float pi = 3.14;
@@ -21,10 +23,10 @@ class path_follower_v2
 {
 public:
   ros::NodeHandle n;
-  ros::Subscriber robot_pose_sub;
+  ros::Subscriber robot_pose_sub, object_detection_sub;
   ros::Publisher desired_velocity_pub;
   ros::ServiceServer path_follower_server;
-  ros::ServiceClient pure_rotation_srv, is_cell_occupied_srv, move_straight_srv;
+  ros::ServiceClient pure_rotation_srv, is_cell_occupied_srv, move_straight_srv, classification_srv;
 
   path_follower_v2()
   {
@@ -40,12 +42,14 @@ public:
     n.param<bool>("/path_follower_v2/mapping_mode", mapping_mode, true);
 
     robot_pose_sub = n.subscribe("/localization/kalman_filter/position_timed", 1, &path_follower_v2::position_callBack, this);
+    object_detection_sub = n.subscribe("/vision/state", 1, &path_follower_v2::detection_callBack, this);
 
     desired_velocity_pub = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
 
     pure_rotation_srv = n.serviceClient<robo7_srvs::PureRotation>("/kinematics/path_follower/pure_rotation");
     is_cell_occupied_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
     move_straight_srv = n.serviceClient<robo7_srvs::MoveStraight>("/kinematics/path_follower/straight_move");
+    classification_srv = n.serviceClient<robo7_srvs::FilterOn>("/object_filter/activate");
 
     path_follower_server = n.advertiseService("/kinematics/path_follower/path_follower_v2", &path_follower_v2::path_follower_Sequence, this);
   }
@@ -53,6 +57,11 @@ public:
   void position_callBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
   {
     the_robot_pose = *msg;
+  }
+
+  void detection_callBack(const robo7_msgs::detectedState::ConstPtr &msg)
+  {
+    the_objects_states = *msg;
   }
 
   bool path_follower_Sequence(robo7_srvs::PathFollower2::Request &req,
@@ -133,13 +142,17 @@ public:
 
         float time_n = ros::Time::now().toSec();
 
-        if(mapping_mode&&object_detected&&(time_n - time_prev > 5))
+        ROS_INFO("%d & %d -> %lf & %lf", (the_objects_states.state.size()>0),(time_n - time_prev > 5), time_n, time_prev);
+        if(mapping_mode&&(static_cast<int>(the_objects_states.state.size()>0))&&(time_n - time_prev > 5))
         {
           ros::Rate loop_rate(2.0);
           desire_vel.linear.x = 0;
           desire_vel.angular.z = 0;
           desired_velocity_pub.publish( desire_vel );
           loop_rate.sleep();
+          ros::spinOnce();
+          trigger_filtering_of_object();
+          time_prev = time_n;
         }
 
         //Extract the angle difference out of this point to follow
@@ -186,6 +199,7 @@ public:
 private:
   //Subscribers
   robo7_msgs::the_robot_position the_robot_pose;
+  robo7_msgs::detectedState the_objects_states;
 
   //Controllers values
   float a_P;
@@ -353,6 +367,14 @@ private:
     move_straight_srv.call(req1, res1);
   }
 
+  void pure_rotation(float angle)
+  {
+    robo7_srvs::PureRotation::Request req1;
+    robo7_srvs::PureRotation::Response res1;
+    req1.desired_angle = angle;
+    pure_rotation_srv.call(req1, res1);
+  }
+
   bool is_cell_occupied( float x , float y )
   {
     robo7_srvs::IsGridOccupied::Request req1;
@@ -364,6 +386,38 @@ private:
     ROS_INFO("cell occupied %lf ", res1.occupancy);
 
     return (res1.occupancy == 1.0);
+  }
+
+  void trigger_filtering_of_object()
+  {
+    if(the_objects_states.state[0] == 1)
+    {
+      //Turn left
+      pure_rotation( -pi/6 );
+    }
+    else if(the_objects_states.state[0] == 2)
+    {
+      //Turn right
+      pure_rotation( pi/6 );
+    }
+
+    //Then call the classifier service
+    robo7_srvs::FilterOn::Request req1;
+    robo7_srvs::FilterOn::Response res1;
+    req1.time = 5.0;
+    classification_srv.call(req1, res1);
+
+    //Turn back to initial position
+    if(the_objects_states.state[0] == 1)
+    {
+      //Turn right
+      pure_rotation( pi/6 );
+    }
+    else if(the_objects_states.state[0] == 2)
+    {
+      //Turn left
+      pure_rotation( -pi/6 );
+    }
   }
 };
 
