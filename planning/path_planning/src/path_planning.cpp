@@ -16,7 +16,6 @@
 #include "robo7_srvs/IsGridOccupied.h"
 #include "robo7_srvs/distanceTo.h"
 #include <robo7_srvs/path_planning.h>
-#include <Eigen/Dense>
 
 class Node;
 class PathPlanning;
@@ -147,9 +146,6 @@ class PathPlanning
 		this->trajectory_pub = trajectory_pub;
 		this->target_trajectory_pub = target_trajectory_pub;
 
-		// robot_position = nh.subscribe("localization/kalman_filter/position_timed", 1000, &PathPlanning::getPositionCallBack, this);
-		// robot_position = nh.subscribe("/localization/kalman_filter/position", 1000, &PathPlanning::getPositionCallBack, this);
-
 		path_service = nh.advertiseService("path_service", &PathPlanning::getPath, this);
 
 		this->occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
@@ -159,22 +155,11 @@ class PathPlanning
 		node_id = 1;
 	}
 
-	void getPositionCallBack(const geometry_msgs::Twist::ConstPtr &msg)
-	{
-
-		x0_default = msg->linear.x;
-		y0_default = msg->linear.y;
-		theta0_default = msg->angular.z;
-
-		position_updated = true;
-	}
-
 	std::vector<node_ptr> getSuccessorNodes(node_ptr node, node_ptr node_target)
 	{
 		float angle_diff_tol, cost_to_come, cost, path_length_max;
 		std::vector<node_ptr> successors;
 		std::vector<float> path_x, path_y, path_theta;
-		// node_ptr node_target = std::make_shared<Node>(x_target, y_target, 0.0f, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
 
 		angle_diff_tol = 1e-1;
 
@@ -195,7 +180,6 @@ class PathPlanning
 			{
 				penalty_factor = 0.3;
 				node->path_length = 0.4 * this->field_scale;
-				// ROS_INFO("Length %f, ", node->path_length);
 			}
 			else if (std::abs(angular_velocity) - node->angular_velocity_resolution < 1e-1 || std::abs(angular_velocity) - 2 * node->angular_velocity_resolution < 1e-1)
 			{
@@ -276,16 +260,13 @@ class PathPlanning
 		x = node->x;
 		y = node->y;
 		theta = std::fmod(atan2(y_diff, x_diff) + pi, 2 * pi) - pi;
-		// ROS_INFO("xdiff, y_diff, theta %f, path_length %f", x_diff, y_diff, theta, path_length);
 		angular_velocity = 0;
 		penalty_factor = 0.4;
 		t = 0.0;
-		dt = 0.01; //node->dt;
+		dt = 0.01; 
 
 		path_cost = 0.0;
 		cost_to_come = node->cost_to_come;
-
-		// add_node = true;
 
 		while (t < path_length)
 		{
@@ -305,7 +286,6 @@ class PathPlanning
 				path_cost = occupancy_srv.response.occupancy * path_length * penalty_factor;
 		}
 
-		// ROS_INFO("Adding direct target at x %f  y %f", x, y);
 		cost_to_come += path_cost;
 		node_ptr successor_node = std::make_shared<Node>(x, y, theta, angular_velocity, path_x, path_y, path_theta, path_cost, cost_to_come, occupancy_client, distance_client, this->node_id++);
 		successor_node->cost_to_go = successor_node->getHeuristicCost();
@@ -321,8 +301,6 @@ class PathPlanning
 		y_diff = float(node_target->y - node_current->y);
 
 		int n = floor(200 * std::max(std::abs(x_diff), std::abs(y_diff)));
-		// if (node_target->x > 0 && node_target->y > 2)
-		//   ROS_INFO("xc %f yc %f   xt %f  yt %f  xdiff %f ydiff %f", node_current->x, node_current->y, node_target->x, node_target->y, x_diff, y_diff);
 		bool visable = true;
 
 		x_ray = node_current->x;
@@ -337,9 +315,6 @@ class PathPlanning
 			occupancy_srv.request.y = y_ray;
 			if (occupancy_client.call(occupancy_srv))
 			{
-				// if (node_target->x > 2 && node_target->y > 2)
-				// 	ROS_INFO("Ray:  x %f y %f  occ %f", x_ray, y_ray, occupancy_srv.response.occupancy);
-
 				if (occupancy_srv.response.occupancy == 1.0)
 				{
 					visable = false;
@@ -352,9 +327,6 @@ class PathPlanning
 		{
 			node_ptr node_successor = getDirectTarget(node_current, x_diff, y_diff);
 			node_successor->parent = node_current;
-
-			// if (node_target->x > 0 && node_target->y > 2)
-			// 	ROS_INFO("xs %f ys %f   xt %f  yt %f", node_successor->x, node_successor->y, node_target->x, node_target->y);
 
 			get_found_path(node_successor, node_successor, res);
 		}
@@ -388,10 +360,6 @@ class PathPlanning
 			x0 = .215;
 			y0 = .2;
 			theta0 = pi/2;
-
-			// x0 = x0_default;
-			// y0 = y0_default;
-			// theta0 = theta0_default;
 		}
 
 		x_target = destination_position.x;
@@ -408,10 +376,7 @@ class PathPlanning
 
 		float theta0_resolution;
 
-		if (exploration)
-			theta0_resolution = pi / 4;
-		else
-			theta0_resolution = pi / 2;
+		theta0_resolution = pi / 4;
 
 		for (float t0 = theta0 - pi; t0 < theta0 + pi; t0 += theta0_resolution)
 		{
@@ -570,9 +535,6 @@ class PathPlanning
 
 		node_target->path_theta.push_back(node_target->theta);
 
-		//target_nodes.push_back(node_target);
-
-		node_ptr node = target_nodes[0];
 		for (int i = 1; i < target_nodes.size(); i++)
 		{
 			node_ptr node = target_nodes[i];
