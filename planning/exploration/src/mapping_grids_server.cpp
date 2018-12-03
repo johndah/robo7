@@ -5,6 +5,7 @@
 #include "std_msgs/Bool.h"
 #include "robo7_srvs/IsGridOccupied.h"
 #include "robo7_srvs/explore.h"
+#include "robo7_srvs/getFrontier.h"
 #include "robo7_msgs/XY_coordinates.h"
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -48,7 +49,7 @@ class Frontier
 	{
 		//ROS_INFO("Costs: occ %f, dist %f, dist_cost %f.  theta_diff %f  exp_cost %f", occupancy_cost, frontier_distance, getDistanceCost(frontier_distance, window_height), theta_diff / (4 * pi), getExplorationGainCost());
 
-		return .7*occupancy_cost + getExplorationGainCost() + getDistanceCost(frontier_distance, window_height) + .5 * float(not_visable);
+		return .7 * occupancy_cost + getExplorationGainCost() + getDistanceCost(frontier_distance, window_height) + .5 * float(not_visable);
 		// return occupancy_cost +  theta_diff / (8 * pi) + getExplorationGainCost() + 0 * getDistanceCost(frontier_distance, window_height) + .5 * float(not_visable);
 	}
 
@@ -56,7 +57,7 @@ class Frontier
 	{
 		float frontier_area = float(pow(2 * frontier_window_size, 2));
 		// ROS_INFO("num explor %f   window2  % f    nom %f    denom %f", float(number_unexplored), frontier_area, float(frontier_area - float(number_unexplored)), frontier_area);
-		return .5*(frontier_area - float(number_unexplored)) / frontier_area;
+		return .5 * (frontier_area - float(number_unexplored)) / frontier_area;
 		//return float(.8*(number_unexplored < unexplored_threshold));
 	}
 
@@ -65,7 +66,7 @@ class Frontier
 		//return distance / 6;
 
 		if (distance < threshold)
-			return 2*(threshold - distance);
+			return 2 * (threshold - distance);
 		else
 			return 0;
 		// return 1 - gaussian(distance, threshold, threshold);
@@ -92,7 +93,7 @@ class MappingGridsServer
 	ros::Publisher occupancy_pub, wall_occupancy_pub, exploration_pub;
 	robo7_msgs::grid_matrix grid_matrix_msg, exoploration_matrix_msg;
 	//ros::ServiceServer is_occupied_service;
-	ros::ServiceServer explore_service;
+	ros::ServiceServer explore_service, getFrontier_service;
 	robo7_srvs::IsGridOccupied occupancy_srv;
 	ros::ServiceClient occupancy_client, distance_client;
 	robo7_srvs::distanceTo distance_srv;
@@ -110,12 +111,13 @@ class MappingGridsServer
 		n.param<float>("/mapping_grids_server/wall_thickness", wall_thickness, 0.03);
 		n.param<int>("/mapping_grids_server/smoothing_kernel_size", smoothing_kernel_size, 15);
 		n.param<int>("/mapping_grids_server/smoothing_kernel_sd", smoothing_kernel_sd, 3);
-		
+
 		detected_obj_subs = n.subscribe("/vision/state", 1, &MappingGridsServer::detectedObjectCallback, this);
 		map_sub = n.subscribe("/own_map/wall_coordinates", 1, &MappingGridsServer::mapCallback, this);
-		
+
 		//is_occupied_service = n.advertiseService("mapping_grids_server/occupancy_grid/is_occupied", &MappingGridsServer::occupancyGridRequest, this);
-		explore_service = n.advertiseService("/exploration_grid/explore", &MappingGridsServer::explorationGridRequest, this);
+		explore_service = n.advertiseService("/exploration/explore", &MappingGridsServer::exploreHere, this);
+		getFrontier_service = n.advertiseService("/exploration/getFrontier", &MappingGridsServer::getFrontier, this);
 
 		//occupancy_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/occupancy_matrix", 1);
 		//wall_occupancy_pub = n.advertise<robo7_msgs::grid_matrix>("/mapping_grids_server/wall_occupancy_matrix", 1);
@@ -141,6 +143,7 @@ class MappingGridsServer
 		frontier_window_size = 4;
 	}
 
+	/*
 	bool explorationGridRequest(robo7_srvs::explore::Request &req, robo7_srvs::explore::Response &res)
 	{
 		ROS_DEBUG("New grid exploration request recieved");
@@ -159,7 +162,6 @@ class MappingGridsServer
 
 		return true;
 	}
-	/*
 	bool occupancyGridRequest(robo7_srvs::IsGridOccupied::Request &req,
 							  robo7_srvs::IsGridOccupied::Response &res)
 	{
@@ -227,9 +229,11 @@ class MappingGridsServer
 	}
 	*/
 
-	geometry_msgs::Twist getFrontier(float x, float y, float theta, robo7_srvs::explore::Response &res)
+	bool exploreHere(robo7_srvs::explore::Request &req, robo7_srvs::explore::Response &res)
 	{
-		// ROS_INFO("getFrontier x %f y %f", x, y);
+		float x = req.x;
+		float y = req.y;
+		float theta = req.theta;
 
 		std::vector<frontier_ptr> frontier_nodes;
 
@@ -389,52 +393,49 @@ class MappingGridsServer
 
 		grid_matrix_msg = publishExplorationGrid();
 
-		geometry_msgs::Twist frontier_destination_pose;
-
-		//for (int i = 0; i < 10; i++)
 		exploration_pub.publish(grid_matrix_msg);
 
+		res.success = true;
+
+		return res.success;
+	}
+
+	bool getFrontier(robo7_srvs::getFrontier::Request &req, robo7_srvs::getFrontier::Response &res)
+	{
 		frontier_ptr frontier_destination_node;
-		if (get_frontier)
+
+
+		std::vector<frontier_ptr>::iterator min_cost_iterator;
+
+		// ROS_INFO("All frontiers size %d ", (int)all_frontiers_nodes.size());
+
+		if (!all_frontiers_nodes.empty())
 		{
-			std::vector<frontier_ptr>::iterator min_cost_iterator;
-
-			// ROS_INFO("Frontier size %d ", (int)frontier_nodes.size());
-			ROS_INFO("All frontiers size %d ", (int)all_frontiers_nodes.size());
-			if (false && !frontier_nodes.empty())
-			{
-				min_cost_iterator = std::min_element(frontier_nodes.begin(), frontier_nodes.end(), [](const frontier_ptr a, const frontier_ptr b) {
-					return a->getCost() < b->getCost();
-				});
-				frontier_destination_node = frontier_nodes[std::distance(frontier_nodes.begin(), min_cost_iterator)];
-			}
-			else if (!all_frontiers_nodes.empty())
-			{
-				min_cost_iterator = std::min_element(all_frontiers_nodes.begin(), all_frontiers_nodes.end(), [](const frontier_ptr a, const frontier_ptr b) {
-					return a->getCost() < b->getCost();
-				});
-				frontier_destination_node = all_frontiers_nodes[std::distance(all_frontiers_nodes.begin(), min_cost_iterator)];
-				// ROS_INFO(" ");
-				// ROS_INFO("Costs: %f occ %f, distCost %f theta_diff %f  exp_cost %f  visability %f", frontier_destination_node->getCost(), frontier_destination_node->occupancy_cost, float(frontier_destination_node->getDistanceCost(frontier_destination_node->frontier_distance, window_height)), frontier_destination_node->theta_diff / (2 * pi), frontier_destination_node->getExplorationGainCost(), float(.5 * float(frontier_destination_node->not_visable)));
-				// ROS_INFO(" ");
-			}
-			else
-			{
-				ROS_INFO("Everything explored!");
-				res.success = true;
-				res.exploration_done = true;
-
-				return frontier_destination_pose;
-			}
-
-			frontier_destination_pose.linear.x = frontier_destination_node->x;
-			frontier_destination_pose.linear.y = frontier_destination_node->y;
-			res.exploration_done = false;
-			res.success = true;
-			res.frontier_destination_pose = frontier_destination_pose;
+			min_cost_iterator = std::min_element(all_frontiers_nodes.begin(), all_frontiers_nodes.end(), [](const frontier_ptr a, const frontier_ptr b) {
+				return a->getCost() < b->getCost();
+			});
+			frontier_destination_node = all_frontiers_nodes[std::distance(all_frontiers_nodes.begin(), min_cost_iterator)];
+			// ROS_INFO(" ");
+			// ROS_INFO("Costs: %f occ %f, distCost %f theta_diff %f  exp_cost %f  visability %f", frontier_destination_node->getCost(), frontier_destination_node->occupancy_cost, float(frontier_destination_node->getDistanceCost(frontier_destination_node->frontier_distance, window_height)), frontier_destination_node->theta_diff / (2 * pi), frontier_destination_node->getExplorationGainCost(), float(.5 * float(frontier_destination_node->not_visable)));
+			// ROS_INFO(" ");
 		}
+		else
+		{
+			ROS_INFO("Everything explored!");
+			res.success = true;
+			res.exploration_done = true;
 
-		return frontier_destination_pose;
+			return res.success;
+		}
+		geometry_msgs::Twist frontier_destination_pose;
+
+		frontier_destination_pose.linear.x = frontier_destination_node->x;
+		frontier_destination_pose.linear.y = frontier_destination_node->y;
+		res.exploration_done = false;
+		res.success = true;
+		res.frontier_destination_pose = frontier_destination_pose;
+
+		return res.success;
 	}
 
 	bool withinMap(float x_grid, float y_grid)
@@ -451,13 +452,12 @@ class MappingGridsServer
 	void detectedObjectCallback(const robo7_msgs::detectedState::ConstPtr &msg)
 	{
 		detected_object_states.clear();
-		
+
 		for (int i = 0; i < msg->state.size(); i++)
 		{
 			detected_object_states.push_back(msg->state[i]);
 
 			ROS_INFO("detection msg %d", detected_object_states[i]);
-
 		}
 	}
 
