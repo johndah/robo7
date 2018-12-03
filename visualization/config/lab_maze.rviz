@@ -427,7 +427,7 @@ Visualization Manager:
       Marker Topic: /FoundObjects
       Name: MarkerArray
       Namespaces:
-        Found objects: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -450,25 +450,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.49417782
+      Distance: 5.35423851
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.23845983
-        Y: 1.25147712
-        Z: 0.123847954
+        X: 1.27993965
+        Y: 1.11836243
+        Z: -0.104985721
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.39979649
+      Pitch: 1.56979632
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.71540642
+      Yaw: 4.64039993
     Saved: ~
 Window Geometry:
   Displays:
