@@ -3,6 +3,11 @@
 #include <string>
 #include <vector>
 
+// std includes
+#include <limits>
+#include <iostream>
+#include <fstream>
+
 //The messages
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
@@ -49,6 +54,8 @@ public:
 		n.param<bool>("/initialisation/use_mapping_mode", mapping_mode, false);
 		n.param<float>("/initialisation/time_before_starting_everything", time_before_initialisation, 5.0);
 		n.param<int>("/initialisation/which_map_mode", map_mode, 1);
+		n.param<std::string>("/initialisation/obss_file", obss_file, "obss.txt");
+		n.param<std::string>("/initialisation/walls_file", walls_file, "walls.txt");
 
 		//Publishers
 		activation_states_pub = n.advertise<robo7_msgs::activation_states>("/robot_state/activation_states", 1);
@@ -100,7 +107,9 @@ public:
 			//Here should stand the initialisation for the non mapping mode
 			//Otherwise it is the picking up sequence mode
 			initialize_pickingup_states();
-			updateOccupancyGridCall();
+			robo7_msgs::allObstacles the_obss = plot_batteries();
+			robo7_msgs::wallPoint the_points = plot_points();
+			updateOccupancyGridCall( the_obss , the_points );
 
 		}
 		else
@@ -126,6 +135,7 @@ public:
 private:
 	//Initialisation published_msgs
 	robo7_msgs::activation_states state_activated;
+	std::string obss_file, walls_file;
 
 	//The mode we choose
 	bool mapping_mode;
@@ -146,7 +156,7 @@ private:
 		state_activated.mapping = false;
 	}
 
-	void updateOccupancyGridCall()
+	void updateOccupancyGridCall(  robo7_msgs::allObstacles the_obstacles_msg , robo7_msgs::wallPoint the_points )
 	{
 		robo7_msgs::wallPoint no_point;
 		no_point.number = 0;
@@ -159,8 +169,8 @@ private:
 		the_obs.the_obstacles = recieved_obss;
 
 
-		srv_req.new_points = no_point;
-		srv_req.the_obstacles = the_obs;
+		srv_req.new_points = the_points;
+		srv_req.the_obstacles = the_obstacles_msg;
 
 		update_occupancy_grid_srv.call(srv_req, srv_resp);
 	}
@@ -185,6 +195,127 @@ private:
 		state_activated.mapping = true;
 	}
 
+	robo7_msgs::allObstacles plot_batteries()
+	{
+		robo7_msgs::allObstacles obss_msg;
+		std::vector<geometry_msgs::Vector3> obstacles;
+
+		// obstacle code starts here
+		std::string line;
+    std::ifstream obstacle_fs;
+    obstacle_fs.open(obss_file.c_str());
+
+    if (!obstacle_fs.is_open()){
+        ROS_WARN("Could not read obstacles file, exploration mode?");
+				obss_msg.number = 0;
+				obss_msg.obstacle_size = 0;
+				obstacles.clear();
+				obss_msg.the_obstacles = obstacles;
+
+				return obss_msg;
+    } else{
+      ROS_INFO("Reading obstacles from file");
+      int num_obss = 0;
+      float obss_size = 0;
+
+      while (getline(obstacle_fs, line)){
+          if (line[0] == '#') {
+            // comment -> skip
+            continue;
+          }
+          num_obss++;
+
+
+          float max_num = std::numeric_limits<float>::max();
+
+          float obs_size = max_num,
+                 obs_x = max_num,
+                 obs_y = max_num;
+
+          std::istringstream line_stream(line);
+
+          line_stream >> obs_size >> obs_x >> obs_y;
+
+          if ((obs_size == max_num) || ( obs_x == max_num) || (obs_y == max_num)){
+              ROS_WARN("Segment error in obss file. Skipping line: %s",line.c_str());
+              continue;
+          }
+
+          obss_size = obs_size;
+          geometry_msgs::Vector3 a_obstacle;
+          a_obstacle.x = obs_x;
+          a_obstacle.y = obs_y;
+
+          obstacles.push_back(a_obstacle);
+      }
+
+      obss_msg.number = num_obss;
+      obss_msg.obstacle_size = obss_size;
+      obss_msg.the_obstacles = obstacles;
+
+    }
+		// obstacle code ends here
+		return obss_msg;
+	}
+
+	robo7_msgs::wallPoint plot_points()
+	{
+		robo7_msgs::wallPoint point_msg;
+
+		point_msg.number = 0;
+		point_msg.the_points.clear();
+
+		// obstacle code starts here
+		std::string line;
+    std::ifstream point_fs;
+    point_fs.open(walls_file.c_str());
+
+    if (!point_fs.is_open()){
+        ROS_WARN("Could not read walls file, exploration mode?");
+				return point_msg;
+    } else{
+      ROS_INFO("Reading obstacles from file");
+
+      while (getline(point_fs, line)){
+          if (line[0] == '#') {
+            // comment -> skip
+            continue;
+          }
+
+          float max_num = std::numeric_limits<float>::max();
+
+          float  point_x = max_num,
+                 point_y = max_num;
+
+          std::istringstream line_stream(line);
+
+          line_stream >> point_x >> point_y;
+
+          if (( point_x == max_num) || (point_y == max_num)){
+              ROS_WARN("Segment error in walls file. Skipping line: %s",line.c_str());
+              continue;
+          }
+
+          geometry_msgs::Vector3 aPoint;
+          aPoint.x = point_x;
+          aPoint.y = point_y;
+
+					point_msg.number++;
+					point_msg.the_points.push_back( aPoint );
+      }
+    }
+
+		return point_msg;
+	}
+
+	void call_update_grid( robo7_msgs::allObstacles the_obstacles_msg )
+	{
+		robo7_srvs::UpdateOccupancyGridFiltered::Request req1;
+		robo7_srvs::UpdateOccupancyGridFiltered::Response res1;
+		req1.the_obstacles = the_obstacles_msg;
+
+
+	}
 };
 
 
