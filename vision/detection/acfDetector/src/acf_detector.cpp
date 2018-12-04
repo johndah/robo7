@@ -90,7 +90,7 @@ public:
       //   ROS_INFO("Initialize successfully!");
       // else
       //   ROS_INFO("Initializion fail!");
-
+      classify_flag = false;
     }
 
   	~ACFdetector()
@@ -240,8 +240,8 @@ public:
           continue;
         }
 
-        if (o.width > sizeMin && o.width < sizeAccept){
-          ind++;
+        else if (o.width > sizeMin && o.width < sizeAccept){
+          // ind++;
 
           if (o.x < boundaryForward){
             ROS_INFO("should move forward left!");
@@ -255,23 +255,26 @@ public:
             ROS_INFO("should move forward!");
             state_msg.state.push_back(6);
           }
-          continue;
+          // continue;
         }
 
         // ROS_INFO("left x: %d", o.x);
         // ROS_INFO("right x: %d", o.x + o.width);
-        if (o.x < boundaryThre){
-          ind++;
+        else if (o.width >= sizeAccept && o.x < boundaryThre){
+          // ind++;
           state_msg.state.push_back(1);
-          continue;
+          // continue;
           ROS_INFO("too left!");
         }
 
-        if ((o.x + o.width) > (origImg.cols - boundaryThre)){
-          ind++;
+        else if (o.width >= sizeAccept && (o.x + o.width) > (origImg.cols - boundaryThre)){
+          // ind++;
           state_msg.state.push_back(2);
-          continue;
+          // continue;
           ROS_INFO("too right!");
+        }
+        else{
+          state_msg.state.push_back(3);
         }
 
         acfDetector::detectedObj object_pub;
@@ -279,7 +282,6 @@ public:
         // make sure the bbx don't out of the image
         if (o.x >= 0 && o.y >= 0 && (o.x + o.width) <= origImg.cols && (o.y + o.height) <= origImg.rows)
         {
-          state_msg.state.push_back(3);
 
           Point center = (o.tl()+o.br())/2;
           // draw bbbx
