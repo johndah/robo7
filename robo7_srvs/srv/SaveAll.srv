@@ -1,5 +1,8 @@
 # request
 bool save_obj  # do you want to save the objects
 bool save_obs  # do you want to save the obstacles
+bool save_walls  # do you want to save the walls
 ---
-bool success  # True if successful
+bool success_objs  # True if successful
+bool success_obss  # True if successful
+bool success_walls  # True if successful

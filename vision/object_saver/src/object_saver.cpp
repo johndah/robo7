@@ -11,6 +11,7 @@
 #include "robo7_msgs/XY_coordinates.h"
 #include "robo7_msgs/classifiedObj.h"
 #include "robo7_msgs/aObject.h"
+#include "robo7_msgs/wallPoint.h"
 #include "robo7_msgs/allObjects.h"
 #include "robo7_msgs/allObstacles.h"
 #include "robo7_srvs/SaveAll.h"
@@ -22,6 +23,7 @@ class ObjectSaver
 	ros::NodeHandle n;
 	ros::Subscriber objs_sub;
 	ros::Subscriber obss_sub;
+  ros::Subscriber walls_sub;
   ros::ServiceServer save_all_service;
 
 	ObjectSaver()
@@ -29,9 +31,11 @@ class ObjectSaver
 		// Parameters
     n.param<std::string>("/object_saver/objs_file", objs_file, "objs.txt");
     n.param<std::string>("/object_saver/obss_file", obss_file, "obss.txt");
+    n.param<std::string>("/object_saver/walls_file", walls_file, "walls.txt");
 
 		objs_sub = n.subscribe("/vision/all_objects", 1, &ObjectSaver::ObjsCallback, this);
 		obss_sub = n.subscribe("/localization/mapping/the_obstacles", 1, &ObjectSaver::ObssCallback, this);
+    walls_sub = n.subscribe("/localization/mapping/the_new_points", 1, &ObjectSaver::WallsCallBack, this);
     save_all_service = n.advertiseService("/vision/save", &ObjectSaver::saveAllRequest, this);
 
     objs_recieved = false;
@@ -74,6 +78,12 @@ class ObjectSaver
     }
   }
 
+  void WallsCallBack(const robo7_msgs::wallPoint::ConstPtr &msg)
+  {
+    recieved_walls = msg->the_points;
+    walls_recieved = true;
+  }
+
 
   bool saveObjs(){
     std::ofstream objs_fs;
@@ -113,32 +123,67 @@ class ObjectSaver
 
   }
 
+  bool saveWalls(){
+    std::ofstream walls_fs;
+    walls_fs.open(walls_file.c_str());
+
+    if (!walls_fs.is_open()){
+        ROS_ERROR_STREAM("Could not read from "<<walls_file<<". Please double check that the file exists. Aborting.");
+        return false;
+    }
+
+    for (int i = 0; i < recieved_walls.size(); ++i){
+      geometry_msgs::Vector3 point = recieved_walls[i];
+      walls_fs << point.x << " " << point.y << "\n";
+    }
+
+    walls_fs.close();
+    return true;
+
+  }
+
 
   bool saveAllRequest(robo7_srvs::SaveAll::Request &req,
                 robo7_srvs::SaveAll::Response &res){
-    res.success = true;
+    res.success_objs = false;
+    res.success_obss = false;
+    res.success_walls = false;
+
 
     if (req.save_obj){
       if(!objs_recieved){
         ROS_WARN("Trying to save objects but no objects have been recieved");
-        res.success = false;
-        return true;
+        res.success_objs = false;
       }
-
-      ROS_INFO("Saving objects");
-      res.success = saveObjs();
-
+      else
+      {
+        ROS_INFO("Saving objects");
+        res.success_objs = saveObjs();
+      }
     }
 
     if (req.save_obs){
       if(!obss_recieved){
         ROS_WARN("Trying to save obstacles but no obstacles have been recieved");
-        res.success = false;
-        return true;
+        res.success_obss = false;
       }
+      else
+      {
+        ROS_INFO("Saving obstacles");
+        res.success_obss = saveObss();
+      }
+    }
 
-      ROS_INFO("Saving obstacles");
-       res.success = saveObss();
+    if (req.save_walls){
+      if(!walls_recieved){
+        ROS_WARN("Trying to save walls but no walls have been recieved");
+        res.success_walls = false;
+      }
+      else
+      {
+        ROS_INFO("Saving walls");
+        res.success_obss = saveWalls();
+      }
     }
 
     return true;
@@ -149,10 +194,13 @@ class ObjectSaver
   private:
     std::string objs_file;
     std::string obss_file;
+    std::string walls_file;
     bool objs_recieved;
     bool obss_recieved;
+    bool walls_recieved;
     std::vector<robo7_msgs::aObject> recieved_objs;
     std::vector<geometry_msgs::Vector3> recieved_obss;
+    std::vector<geometry_msgs::Vector3> recieved_walls;
     float obstacle_size;
 
 };
