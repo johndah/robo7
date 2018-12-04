@@ -19,6 +19,7 @@
 #include <robo7_srvs/exploration.h>
 #include <robo7_srvs/path_planning.h>
 #include <robo7_srvs/PathFollower2.h>
+#include <robo7_srvs/SaveAll.h>
 
 float pi = 3.14159265358979323846;
 
@@ -28,7 +29,7 @@ class Exploration
 public:
   ros::NodeHandle nh;
   ros::ServiceServer exploration_srv;
-  ros::ServiceClient exploration_client, get_frontier_client, occupancy_client, path_planning_client, path_follower2_srv;
+  ros::ServiceClient exploration_client, get_frontier_client, occupancy_client, path_planning_client, path_follower2_srv, save_datas_srv;
   robo7_srvs::IsGridOccupied occupancy_srv;
   robo7_srvs::explore explore_srv;
   robo7_srvs::getFrontier get_frontier_srv;
@@ -55,6 +56,7 @@ public:
     occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
     get_frontier_client = nh.serviceClient<robo7_srvs::getFrontier>("/exploration/getFrontier");
     exploration_client = nh.serviceClient<robo7_srvs::explore>("/exploration/explore");
+    save_datas_srv = nh.serviceClient<robo7_srvs::SaveAll>("/vision/save");
   }
 
   void getPositionCallBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
@@ -140,6 +142,8 @@ public:
           ros::Rate r(0.3); r.sleep();
         }
       }
+
+      save_datas();
     }
 
     ROS_INFO("Exploration done, success: %d", exploration_done);
@@ -147,6 +151,16 @@ public:
     res.success = exploration_done;
 
     return exploration_done;
+  }
+
+  void save_datas()
+  {
+    robo7_srvs::SaveAll::Request req1;
+    robo7_srvs::SaveAll::Response res1;
+    req1.save_obj = true;
+    req1.save_obs = true;
+    req1.save_walls = true;
+    save_datas_srv.call(req1,res1);
   }
 };
 

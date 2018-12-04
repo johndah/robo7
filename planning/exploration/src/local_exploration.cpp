@@ -50,6 +50,8 @@ public:
     if (!exploration_client.call(explore_srv))
       ROS_WARN("Local exploration not successful");
   }
+
+
 };
 
 int main(int argc, char **argv)
@@ -77,7 +79,6 @@ int main(int argc, char **argv)
       // ROS_INFO("Explore here");
       local_exploration.exploreHere();
       local_exploration.position_updated = false;
-
     }
 
     loop_rate.sleep();
