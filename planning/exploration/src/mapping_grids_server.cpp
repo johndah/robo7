@@ -137,8 +137,8 @@ class MappingGridsServer
 			ROS_WARN("Entered kernel size is even number, changing to: %d", smoothing_kernel_size);
 		}
 
-		window_width = .35;
-		window_height = .6;
+		window_width = .32;
+		window_height = .32;
 		unexplored_threshold = 25;
 		frontier_window_size = 4;
 	}
@@ -318,7 +318,7 @@ class MappingGridsServer
 		bool add_exploration_cell;
 		for (float j = 0.0; j < j_max; j += .5)
 		{
-			i_shift = j_max / 4 - j / 4;
+			i_shift = j_max / 3 - j / 3;
 			i_max = float(window_width / grid_square_size) - i_shift;
 
 			for (float i = i_shift; i < i_max; i += .5)
@@ -354,7 +354,7 @@ class MappingGridsServer
 					}
 					if (add_exploration_cell)
 					{
-						if (j > 15.0 && (j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5))
+						if (j > 8.0 && (j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5))
 						{
 
 							int number_unexplored = 0;

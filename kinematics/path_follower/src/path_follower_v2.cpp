@@ -422,20 +422,20 @@ private:
       //Turn right
       pure_rotation( -pi/6 );
     }
-    else if(the_objects_states.state[0] == 4)
-    {
-      pure_rotation( pi/10 );
-      move_straight( 0.1 , false);
-    }
-    else if(the_objects_states.state[0] == 5)
-    {
-      pure_rotation( -pi/10 );
-      move_straight( 0.1 , false );
-    }
-    else if(the_objects_states.state[0] == 6)
-    {
-      move_straight( 0.1 , false );
-    }
+    // else if(the_objects_states.state[0] == 4)
+    // {
+    //   pure_rotation( pi/10 );
+    //   move_straight( 0.1 , false);
+    // }
+    // else if(the_objects_states.state[0] == 5)
+    // {
+    //   pure_rotation( -pi/10 );
+    //   move_straight( 0.1 , false );
+    // }
+    // else if(the_objects_states.state[0] == 6)
+    // {
+    //   move_straight( 0.1 , false );
+    // }
 
     //Then call the classifier service
     robo7_srvs::FilterOn::Request req1;

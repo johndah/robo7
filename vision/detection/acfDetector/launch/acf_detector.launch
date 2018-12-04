@@ -5,7 +5,7 @@
   <node pkg="acfDetector" type="acf_detector" name="acf_detector" output="screen">
     <param name="acfModel" type="string" value="/home/ras17/catkin_ws/src/robo7/vision/detection/acfDetector/model/model_color_mag.cpb"/>
     <param name="scoreThre" type="double" value="50"/>
-    <param name="sizeMin" type="double" value="65"/>
+    <param name="sizeMin" type="double" value="110"/>
     <param name="sizeAccept" type="double" value="110"/>
     <param name="boundaryThre" type="double" value="30"/>
     <param name="boundaryForward" type="double" value="80"/>

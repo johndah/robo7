@@ -234,40 +234,40 @@ public:
         }
 
         ROS_INFO("size of bbx:%d", o.width);
-        if (o.width <= sizeMin){
-          ind++;
-          ROS_INFO("too small bbx!");
-          continue;
-        }
-
-        else if (o.width > sizeMin && o.width < sizeAccept){
+        if (o.width < sizeMin){
           // ind++;
-
-          if (o.x < boundaryForward){
-            ROS_INFO("should move forward left!");
-            state_msg.state.push_back(4);
-          }
-          if ((o.x+o.width) > (origImg.cols - boundaryForward)){
-            ROS_INFO("should move forward right!");
-            state_msg.state.push_back(5);
-          }
-          else{
-            ROS_INFO("should move forward!");
-            state_msg.state.push_back(6);
-          }
+          ROS_INFO("too small bbx!");
           // continue;
         }
 
+        // else if (o.width > sizeMin && o.width < sizeAccept){
+        //   // ind++;
+        //
+        //   if (o.x < boundaryForward){
+        //     ROS_INFO("should move forward left!");
+        //     state_msg.state.push_back(4);
+        //   }
+        //   if ((o.x+o.width) > (origImg.cols - boundaryForward)){
+        //     ROS_INFO("should move forward right!");
+        //     state_msg.state.push_back(5);
+        //   }
+        //   else{
+        //     ROS_INFO("should move forward!");
+        //     state_msg.state.push_back(6);
+        //   }
+        //   // continue;
+        // }
+
         // ROS_INFO("left x: %d", o.x);
         // ROS_INFO("right x: %d", o.x + o.width);
-        else if (o.width >= sizeAccept && o.x < boundaryThre){
+        else if (o.width >= sizeMin && o.x < boundaryThre){
           // ind++;
           state_msg.state.push_back(1);
           // continue;
           ROS_INFO("too left!");
         }
 
-        else if (o.width >= sizeAccept && (o.x + o.width) > (origImg.cols - boundaryThre)){
+        else if (o.width >= sizeMin && (o.x + o.width) > (origImg.cols - boundaryThre)){
           // ind++;
           state_msg.state.push_back(2);
           // continue;
