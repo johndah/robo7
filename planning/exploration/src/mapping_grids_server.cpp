@@ -354,7 +354,7 @@ class MappingGridsServer
 					}
 					if (add_exploration_cell)
 					{
-						if (j > 8.0 && (j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5))
+						if (j > 10.0 && (j > j_max - 1.5 || i < i_shift + 1.0 || i > i_max - 1.5))
 						{
 
 							int number_unexplored = 0;
