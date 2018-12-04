@@ -393,7 +393,7 @@ private:
   {
     robo7_srvs::PureRotation::Request req1;
     robo7_srvs::PureRotation::Response res1;
-    req1.desired_angle = angle;
+    req1.desired_angle = angle + the_robot_pose.position.angular.z;
     pure_rotation_srv.call(req1, res1);
   }
 
@@ -415,26 +415,26 @@ private:
     if(the_objects_states.state[0] == 1)
     {
       //Turn left
-      pure_rotation( -pi/6 );
+      pure_rotation( pi/6 );
     }
     else if(the_objects_states.state[0] == 2)
     {
       //Turn right
-      pure_rotation( pi/6 );
+      pure_rotation( -pi/6 );
     }
     else if(the_objects_states.state[0] == 4)
     {
-      pure_rotation( -pi/10 );
-      move_straight( 0.2 , false);
+      pure_rotation( pi/10 );
+      move_straight( 0.1 , false);
     }
     else if(the_objects_states.state[0] == 5)
     {
-      pure_rotation( pi/10 );
-      move_straight( 0.2 , false );
+      pure_rotation( -pi/10 );
+      move_straight( 0.1 , false );
     }
     else if(the_objects_states.state[0] == 6)
     {
-      move_straight( 0.2 , false );
+      move_straight( 0.1 , false );
     }
 
     //Then call the classifier service
@@ -447,12 +447,12 @@ private:
     if(the_objects_states.state[0] == 1)
     {
       //Turn right
-      pure_rotation( pi/6 );
+      pure_rotation( -pi/6 );
     }
     else if(the_objects_states.state[0] == 2)
     {
       //Turn left
-      pure_rotation( -pi/6 );
+      pure_rotation( pi/6 );
     }
   }
 };
