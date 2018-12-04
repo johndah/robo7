@@ -47,7 +47,7 @@ public:
 
 	Brain()
 	{
-		n.param<int>("/brain/weight_thresh", weight_thresh, 5);
+		n.param<int>("/brain/weight_thresh", weight_thresh, 4);
 		n.param<float>("/brain/occu_thresh", occu_thresh, 0.4);
 		n.param<float>("/brain/robot_pose_dist", robot_pose_dist, 0.25); // distance avay from the robot center to search for a pose
 		n.param<float>("/brain/robot_pose_object_delta", robot_pose_object_delta, 0.09);  // compensate for the "cave" not beeing at robot center
@@ -503,7 +503,7 @@ private:
 
 };
 
-int Brain::objs_values[14] = { 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140};
+int Brain::objs_values[14] = { 10000, 1000, 1000, 1000, 100, 100, 5000, 1000, 100, 10000, 1000, 5000, 100, 5000 };
 
 int main(int argc, char **argv)
 {

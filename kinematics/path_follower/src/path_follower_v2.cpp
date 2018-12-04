@@ -2,6 +2,7 @@
 #include <stdlib.h>     /* abs */
 #include <ros/ros.h>
 //Messages
+#include <std_msgs/Bool.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
 #include <robo7_msgs/the_robot_position.h>
@@ -24,7 +25,7 @@ class path_follower_v2
 public:
   ros::NodeHandle n;
   ros::Subscriber robot_pose_sub, object_detection_sub;
-  ros::Publisher desired_velocity_pub;
+  ros::Publisher desired_velocity_pub, trigger_classification_pub;
   ros::ServiceServer path_follower_server;
   ros::ServiceClient pure_rotation_srv, is_cell_occupied_srv, move_straight_srv, classification_srv;
 
@@ -38,6 +39,7 @@ public:
     n.param<float>("/path_follower_v2/angular_threshold_trust", angle_ref_max, pi/8);
     n.param<float>("/path_follower_v2/aver_linear_speed", aver_lin_vel, 0.0);
     n.param<float>("/path_follower_v2/discretization_length", discretize_length, 0.0);
+    n.param<float>("/path_follower_v2/classification_time_standing_still", classification_time, 5.0);
     n.param<bool>("/path_follower_v2/following_point_mode", point_follower_mode, true);
     n.param<bool>("/path_follower_v2/mapping_mode", mapping_mode, true);
 
@@ -45,6 +47,7 @@ public:
     object_detection_sub = n.subscribe("/vision/state", 1, &path_follower_v2::detection_callBack, this);
 
     desired_velocity_pub = n.advertise<geometry_msgs::Twist>("/desired_velocity", 1);
+    trigger_classification_pub = n.advertise<std_msgs::Bool>("/vision/trigger_classification", 1);
 
     pure_rotation_srv = n.serviceClient<robo7_srvs::PureRotation>("/kinematics/path_follower/pure_rotation");
     is_cell_occupied_srv = n.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
@@ -154,14 +157,19 @@ public:
         ROS_INFO("%d & %d -> %lf & %lf", (the_objects_states.state.size()>0),(time_n - time_prev > 1), time_n, time_prev);
         if(mapping_mode&&(static_cast<int>(the_objects_states.state.size()>0))&&(time_n - time_prev > 1))
         {
-          ros::Rate loop_rate(2.0);
+          ros::Rate loop_rate(1.0);
           desire_vel.linear.x = 0;
           desire_vel.angular.z = 0;
           desired_velocity_pub.publish( desire_vel );
+          std_msgs::Bool state_class;
+          state_class.data = true;
+          trigger_classification_pub.publish( state_class );
           loop_rate.sleep();
           ros::spinOnce();
           trigger_filtering_of_object();
           object_just_detected = true;
+          state_class.data = false;
+          trigger_classification_pub.publish( state_class );
         }
 
         //Extract the angle difference out of this point to follow
@@ -226,6 +234,7 @@ private:
   bool object_detected;
   bool object_just_detected;
   double time_prev;
+  float classification_time;
 
   int point_to_follow( robo7_msgs::wallPoint discretized_path_msg, int current_index)
   {
@@ -413,11 +422,25 @@ private:
       //Turn right
       pure_rotation( pi/6 );
     }
+    else if(the_objects_states.state[0] == 4)
+    {
+      pure_rotation( -pi/10 );
+      move_straight( 0.2 , false);
+    }
+    else if(the_objects_states.state[0] == 5)
+    {
+      pure_rotation( pi/10 );
+      move_straight( 0.2 , false );
+    }
+    else if(the_objects_states.state[0] == 6)
+    {
+      move_straight( 0.2 , false );
+    }
 
     //Then call the classifier service
     robo7_srvs::FilterOn::Request req1;
     robo7_srvs::FilterOn::Response res1;
-    req1.time = 5.0;
+    req1.time = classification_time;
     classification_srv.call(req1, res1);
 
     //Turn back to initial position

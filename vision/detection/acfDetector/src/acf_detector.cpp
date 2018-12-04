@@ -4,6 +4,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/Point.h>
+#include <std_msgs/Bool.h>
 
 #include <opencv/cv.hpp>
 #include <opencv2/imgproc.hpp>
@@ -43,6 +44,7 @@ public:
 
   ros::NodeHandle n;
   ros::Subscriber depth_points_sub;
+  ros::Subscriber classify_flag_sub;
   // ros::Publisher obj_pos_pub;
 
   ros::Publisher obj_detected_pub;
@@ -56,6 +58,7 @@ public:
 
 
       depth_points_sub = n.subscribe("/camera/depth_registered/points", 1, &ACFdetector::depthCallBack, this);
+      classify_flag_sub = n.subscribe("/vision/trigger_classification", 1, &ACFdetector::flagCallBack, this);
       obj_detected_pub = n.advertise<acfDetector::detectedObj>("/vision/object", 1);
       obj_state_pub = n.advertise<robo7_msgs::detectedState>("/vision/state", 1);
 
@@ -68,9 +71,12 @@ public:
       }
 
       n.param<double>("/acf_detector/scoreThre", scoreThre, 50);
-      n.param<double>("/acf_detector/sizeThre", sizeThre, 110);
+      n.param<double>("/acf_detector/sizeMin", sizeMin, 50);
+      n.param<double>("/acf_detector/sizeAccept", sizeAccept, 110);
+      n.param<double>("/acf_detector/boundaryForward", boundaryForward, 60);
       n.param<double>("/acf_detector/boundaryThre", boundaryThre, 30);
       n.param<bool>("/acf_detector/showFlag", showFlag, true);
+      n.param<bool>("/acf_detector/svmFlag", svmFlag, true);
 
       if (showFlag == true)
         namedWindow("Detected image");
@@ -91,6 +97,11 @@ public:
   	{
   		destroyAllWindows();
   	}
+
+    void flagCallBack(const std_msgs::Bool &msg)
+    {
+      classify_flag = msg.data;
+    }
 
     void depthCallBack(const sensor_msgs::PointCloud2 &msg)
     {
@@ -201,8 +212,8 @@ public:
     {
       std::vector<double> scores;
       std::vector<cv::Rect> objects;
-      string color[6] = {"yellow", "green", "orange", "red", "blue", "purple"};
-      std::vector<string> colorVec(color, color+6);
+      string color[7] = {"yellow", "green", "orange", "red", "blue", "purple", "unknown"};
+      std::vector<string> colorVec(color, color+7);
 
       cv::Mat imageRGB;
       cv::cvtColor(origImg, imageRGB, cv::COLOR_BGR2RGB);
@@ -223,9 +234,27 @@ public:
         }
 
         ROS_INFO("size of bbx:%d", o.width);
-        if (o.width < sizeThre){
+        if (o.width <= sizeMin){
           ind++;
           ROS_INFO("too small bbx!");
+          continue;
+        }
+
+        if (o.width > sizeMin && o.width < sizeAccept){
+          ind++;
+
+          if (o.x < boundaryForward){
+            ROS_INFO("should move forward left!");
+            state_msg.state.push_back(4);
+          }
+          if ((o.x+o.width) > (origImg.cols - boundaryForward)){
+            ROS_INFO("should move forward right!");
+            state_msg.state.push_back(5);
+          }
+          else{
+            ROS_INFO("should move forward!");
+            state_msg.state.push_back(6);
+          }
           continue;
         }
 
@@ -260,16 +289,21 @@ public:
             circle(resultImg, center, 2, Scalar(0,0,255), 2, 8, 0);
           }
 
-          // apply SVM color classifier
-          cv::Mat bbx_img;
-          std::vector<float> hist;
-          bbx_img = origImg(o);
-          cv::resize(bbx_img, bbx_img, cv::Size(width, height));
-          hist = ACFdetector::get_color_histogram(bbx_img);
-          int response = svm->predict(hist);
-          // cout << colorVec[response] << endl;
-          // imshow("bbx", bbx_img);
-          // waitKey(5);
+          int response = 6;
+          if (svmFlag == true)
+          {
+            // apply SVM color classifier
+            cv::Mat bbx_img;
+            std::vector<float> hist;
+            bbx_img = origImg(o);
+            cv::resize(bbx_img, bbx_img, cv::Size(width, height));
+            hist = ACFdetector::get_color_histogram(bbx_img);
+            int response = svm->predict(hist);
+            // cout << colorVec[response] << endl;
+            // imshow("bbx", bbx_img);
+            // waitKey(5);
+          }
+
 
           if (showFlag == true)
           {
@@ -281,51 +315,54 @@ public:
 
           ind++;
 
-          // Crop the image with enlarged bbx
-          cv::Rect large_o = ACFdetector::enlargeBBX(o, origImg.cols, origImg.rows, 1.4);
-          cv::Mat obj_img;
-          obj_img = origImg(large_o);
+          if (classify_flag == true){
+            // Crop the image with enlarged bbx
+            cv::Rect large_o = ACFdetector::enlargeBBX(o, origImg.cols, origImg.rows, 1.4);
+            cv::Mat obj_img;
+            obj_img = origImg(large_o);
 
-          sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", obj_img).toImageMsg();
+            sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", obj_img).toImageMsg();
 
-          object_pub.img = *img_msg;
+            object_pub.img = *img_msg;
 
-          // get the pos of the object
-          geometry_msgs::Point pos;
+            // get the pos of the object
+            geometry_msgs::Point pos;
 
-          if (pCloud_cam.width != 0)
-          {
-            pos = pixelTo3DPoint(pCloud_cam, center.x, center.y);
-            if (isnan(pos.x))
+            if (pCloud_cam.width != 0)
             {
-              // get other 4 pixels around center
-              for (int j=-6; j<7; j=j+4)
+              pos = pixelTo3DPoint(pCloud_cam, center.x, center.y);
+              if (isnan(pos.x))
               {
-                pos = pixelTo3DPoint(pCloud_cam, center.x + j, center.y);
-                if (!isnan(pos.x))
-                  break;
-              for (int k=-6; j<7; k=k+4)
-              {
-                pos = pixelTo3DPoint(pCloud_cam, center.x, center.y + k);
+                // get other 4 pixels around center
+                for (int j=-6; j<7; j=j+4)
+                {
+                  pos = pixelTo3DPoint(pCloud_cam, center.x + j, center.y);
+                  if (!isnan(pos.x))
+                    break;
+                for (int k=-6; j<7; k=k+4)
+                {
+                  pos = pixelTo3DPoint(pCloud_cam, center.x, center.y + k);
 
+                  if (!isnan(pos.x))
+                    break;
+                }
                 if (!isnan(pos.x))
                   break;
-              }
-              if (!isnan(pos.x))
-                break;
+                }
               }
             }
+
+            // Publish msg
+            // ROS_INFO("pos.x: %f", pos.x);
+            object_pub.pos = pos;
+            std_msgs::String color;
+            color.data = colorVec[response];
+            object_pub.color = color;
+            // object_pub.objClass = 1;
+
+            obj_detected_pub.publish(object_pub);
           }
 
-          // Publish msg
-          ROS_INFO("pos.x: %f", pos.x);
-          object_pub.pos = pos;
-          std_msgs::String color;
-          color.data = colorVec[response];
-          object_pub.color = color;
-          // object_pub.objClass = 1;
-
-          obj_detected_pub.publish(object_pub);
         }
       }
 
@@ -367,9 +404,13 @@ private:
 
   cv::Mat resultImg;
   double scoreThre;
-  double sizeThre;
+  double sizeAccept;
+  double sizeMin;
   double boundaryThre;
+  double boundaryForward;
   bool showFlag;
+  bool svmFlag;
+  bool classify_flag;
 
   // cv::VideoWriter video;
 

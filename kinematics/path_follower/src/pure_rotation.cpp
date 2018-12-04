@@ -21,7 +21,7 @@ public:
   pure_rotation()
   {
     //Initialisation
-    n.param<float>("/pure_rotation/margins_acceptance", angle_deviation_acceptance, pi/8);
+    n.param<float>("/pure_rotation/margins_acceptance", angle_deviation_acceptance, pi/12);
     n.param<float>("/pure_rotation/angle_P", a_P, 0.0);
     n.param<float>("/pure_rotation/angular_velocity_saturation_threshold", desire_angular_sat, 0.0);
 
