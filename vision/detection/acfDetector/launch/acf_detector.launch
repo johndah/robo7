@@ -10,7 +10,7 @@
     <param name="boundaryThre" type="double" value="30"/>
     <param name="boundaryForward" type="double" value="80"/>
     <param name="showFlag" type="bool" value="true"/>
-    <param name="svmFlag" type="bool" value="true"/>
+    <param name="svmFlag" type="bool" value="false"/>
 
 
   </node>
