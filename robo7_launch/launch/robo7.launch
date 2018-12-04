@@ -3,7 +3,7 @@
   <include file="$(find robo7_launch)/launch/hardware.launch"/>
 
   <node pkg="robo7_launch" type="initialisation" name="initialisation" output="screen">
-    <param name="use_mapping_mode" type="bool" value="true"/>
+    <param name="use_mapping_mode" type="bool" value="false"/>
     <param name="time_before_starting_everything" type="double" value="5.0"/>
     <param name="obss_file" type="string" value="$(find robo7_launch)/memory/obss.txt"/>
     <param name="walls_file" type="string" value="$(find robo7_launch)/memory/walls.txt"/>
