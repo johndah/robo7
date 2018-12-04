@@ -34,6 +34,7 @@ public:
   robo7_srvs::getFrontier get_frontier_srv;
   ros::Subscriber robot_pose_subs;
   bool position_updated;
+  bool ready_for_path_following;
 
   float x_current, y_current, theta_current;
   float x, y, theta;
@@ -50,11 +51,12 @@ public:
     path_planning_client = nh.serviceClient<robo7_srvs::path_planning>("/path_planning/path_service");
 
     robot_pose_subs = nh.subscribe("/localization/kalman_filter/position_timed", 1000, &Exploration::getPositionCallBack, this);
-    //robot_pose_subs = nh.subscribe("/localization/kalman_filter/position", 1000, &Exploration::getPositionCallBack, this);
 
     occupancy_client = nh.serviceClient<robo7_srvs::IsGridOccupied>("/occupancy_grid/is_occupied");
     get_frontier_client = nh.serviceClient<robo7_srvs::getFrontier>("/exploration/getFrontier");
     exploration_client = nh.serviceClient<robo7_srvs::explore>("/exploration/explore");
+
+    ready_for_path_following = true;
   }
 
   void getPositionCallBack(const robo7_msgs::the_robot_position::ConstPtr &msg)
@@ -64,14 +66,21 @@ public:
     position_updated = true;
   }
 
-  bool followPath(robo7_msgs::trajectory trajectory_array)
+  void followPath(robo7_msgs::trajectory trajectory_array)
   {
     robo7_srvs::PathFollower2::Request req;
     robo7_srvs::PathFollower2::Response res;
     req.traject = trajectory_array;
     path_follower2_srv.call(req, res);
 
-    return res.success;
+    if (!res.success)
+    {
+      ROS_INFO("Wait a little while");
+      ros::Rate r(0.3);
+      r.sleep();
+    }
+    ready_for_path_following = true;
+
   }
 
   bool performExploration(robo7_srvs::exploration::Request &req, robo7_srvs::exploration::Response &res)
@@ -122,23 +131,32 @@ public:
 
       path_msgs.push_back(path_res.path_planned);
 
-      if (path_msgs.size() > 0)
+      if (ready_for_path_following)
       {
-
-        for (int i = 0; i < path_msgs.size(); i++)
+        if (path_msgs.size() > 0)
         {
-          for (int j = 0; j < path_msgs[i].trajectory_points.size(); j++)
-          {
-            trajectory_array.trajectory_points.push_back(path_msgs[i].trajectory_points[j]);
-          }
-        }
-        path_msgs.clear();
 
+          for (int i = 0; i < path_msgs.size(); i++)
+          {
+            for (int j = 0; j < path_msgs[i].trajectory_points.size(); j++)
+            {
+              trajectory_array.trajectory_points.push_back(path_msgs[i].trajectory_points[j]);
+            }
+          }
+          path_msgs.clear();
+
+          std::thread t1(&Exploration::followPath, this, trajectory_array);
+          t1.join();
+          ready_for_path_following = false;
+        }
+
+        /*
         if(!followPath(trajectory_array))
         {
           ROS_INFO("Wait a little while");
           ros::Rate r(0.3); r.sleep();
         }
+        */
       }
     }
 
