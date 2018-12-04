@@ -137,8 +137,8 @@ class MappingGridsServer
 			ROS_WARN("Entered kernel size is even number, changing to: %d", smoothing_kernel_size);
 		}
 
-		window_width = .32;
-		window_height = .32;
+		window_width = .45;
+		window_height = .45;
 		unexplored_threshold = 25;
 		frontier_window_size = 4;
 	}
