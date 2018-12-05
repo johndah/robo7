@@ -1,3 +1,5 @@
+// John Dahlberg, 2018-05-12
+
 #include <math.h>
 #include <algorithm>
 #include <vector>
