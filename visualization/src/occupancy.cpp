@@ -1,3 +1,4 @@
+// John Dahlberg, 2018-05-12
 
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
@@ -27,9 +28,7 @@ class OccupancyGrid
 
     OccupancyGrid(ros::NodeHandle nh, ros::Publisher occupancy_grid_pub, ros::Publisher distance_grid_pub, ros::Publisher exploration_grid_pub)
     {
-        //occupancy_grid_sub = nh.subscribe("/mapping_grids_server/wall_occupancy_matrix", 1000, &OccupancyGrid::occupancyCallback, this);
         occupancy_grid_sub = nh.subscribe("/heuristic_grids_server/occupancy_matrix", 1000, &OccupancyGrid::occupancyCallback, this);
-        //occupancy_grid_sub = nh.subscribe("/mapping_grids_server/occupancy_matrix", 1000, &OccupancyGrid::occupancyCallback, this);
         distance_grid_sub = nh.subscribe("/heuristic_grids_server/distance_matrix", 1000, &OccupancyGrid::distanceCallback, this);
         exploration_grid_sub = nh.subscribe("/mapping_grids_server/exploration_matrix", 1000, &OccupancyGrid::explorationCallback, this);
         this->occupancy_grid_pub = occupancy_grid_pub;
@@ -47,40 +46,17 @@ class OccupancyGrid
 
         occupancy_grid_width = occupancy_matrix_msg->occupancy_rows.size();
         occupancy_grid_height = occupancy_matrix_msg->occupancy_rows[0].occupancy_row.size();
-        // ROS_INFO("Received occupancy, %d, %d", occupancy_grid_width, occupancy_grid_height);
 
         for (int j = 0; j < static_cast<int>(occupancy_grid_height); j++)
         {
             for (int i = 0; i < static_cast<int>(occupancy_grid_width); i++)
             {
-              // ROS_INFO("(%d, %d) : (%d, %d)", occupancy_grid_width, occupancy_grid_height, i, j);
               occupancy_array.push_back(occupancy_matrix_msg->occupancy_rows[i].occupancy_row[j]);
             }
         }
 
         occupancy_grid_received = true;
-        // ROS_INFO("done");
     }
-    /*
-    void occupancyCallback(const robo7_msgs::grid_matrix::ConstPtr &occupancy_matrix_msg)
-    {
-        occupancy_array.clear();
-
-        occupancy_grid_width = occupancy_matrix_msg->grid_rows.size();
-        occupancy_grid_height = occupancy_matrix_msg->grid_rows[0].grid_row.size();
-        ROS_INFO("Received occupancy");
-
-        for (int j = 0; j < occupancy_grid_height; j++)
-        {
-            for (int i = 0; i < occupancy_grid_width; i++)
-            {
-                occupancy_array.push_back(occupancy_matrix_msg->grid_rows[i].grid_row[j]);
-            }
-        }
-
-        occupancy_grid_received = true;
-    }
-*/
 
     void distanceCallback(const robo7_msgs::occupancy_matrix::ConstPtr &distance_matrix_msg)
     {
@@ -112,7 +88,6 @@ class OccupancyGrid
 
         exploration_grid_width = exploration_matrix_msg->grid_rows.size();
         exploration_grid_height = exploration_matrix_msg->grid_rows[0].grid_row.size();
-        // ROS_INFO("Received exploration");
 
         for (int j = 0; j < exploration_grid_height; j++)
         {
@@ -234,7 +209,6 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
-
         occupancy_grid.updateOccupancyGrid();
         occupancy_grid.updateDistanceGrid();
         occupancy_grid.updateExplorationGrid();

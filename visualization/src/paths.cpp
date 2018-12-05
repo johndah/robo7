@@ -1,3 +1,4 @@
+// John Dahlberg, 2018-05-12
 
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
@@ -22,7 +23,7 @@ class Paths
 {
 public:
   ros::Subscriber robot_position, paths_sub, target_sub, goal_path_sub, target_paths_sub;
-  ros::Publisher marker_array_pub; //, marker_pub;
+  ros::Publisher marker_array_pub;
 
   //Initialisation
   float x0, y0, theta0;
@@ -35,7 +36,6 @@ public:
     this->target_paths_sub = nh.subscribe("/path_planning/target_path", 1000, &Paths::trajectoryCallback, this);
 
     this->marker_array_pub = marker_array_pub;
-    // this->marker_pub = marker_pub;
 
     this->paths_received = false;
     this->target_received = false;
@@ -128,8 +128,6 @@ public:
       for (int i = 0; i < trajectory_x.size(); i++)
       {
 
-        // target_paths_msg.markers[i].points.clear();
-
         target_paths_msg.markers[i].header.frame_id = "/map";
         target_paths_msg.markers[i].header.stamp = ros::Time::now();
         target_paths_msg.markers[i].action = visualization_msgs::Marker::ADD;
@@ -167,18 +165,12 @@ public:
           p.y = trajectory_y[i][j];
           p.z = path_height;
           target_paths_msg.markers[i].points.push_back(p);
-          // target_paths_msg.markers[i].pose.position.x = trajectory_x[i][j];
-          // target_paths_msg.markers[i].pose.position.y = trajectory_y[i][j];
-          // target_paths_msg.markers[i].pose.position.z = path_height;
         }
         if (trajectory_x[i].size() > 0)
         {
           target_points_msg.markers[i].pose.position.x = p.x;
           target_points_msg.markers[i].pose.position.y = p.y;
           target_points_msg.markers[i].pose.position.z = path_height;
-          // target_points_msg.markers[i].pose.position.x = trajectory_x[i][trajectory_x[i].size()-1];
-          // target_points_msg.markers[i].pose.position.y = trajectory_y[i][trajectory_x[i].size()-1];
-          // target_points_msg.markers[i].pose.position.z = path_height;
         }
       }
     }
@@ -221,7 +213,6 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
 
   ros::Publisher marker_array_pub = nh.advertise<visualization_msgs::MarkerArray>("Paths", 10);
-  //ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("Nodes", 10);
 
   ROS_INFO("Init paths");
   Paths paths = Paths(nh, marker_array_pub);

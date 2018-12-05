@@ -1,3 +1,5 @@
+// John Dahlberg, 2018-05-12
+
 #include <math.h>
 #include <algorithm>
 #include <vector>
@@ -134,7 +136,7 @@ class PathPlanning
 	// Initialisation
 	float goal_radius_tolerance;
 	float x0, y0, theta0, x0_default, y0_default, theta0_default, position_updated;
-	bool field_scale;
+	bool path_length_scale;
 	unsigned int node_id;
 
 	PathPlanning(ros::NodeHandle nh, ros::Publisher paths_pub, ros::Publisher target_pub, ros::Publisher target_path_pub, ros::Publisher trajectory_pub, ros::Publisher target_trajectory_pub)
@@ -179,17 +181,17 @@ class PathPlanning
 			if (std::abs(angular_velocity) < 1e-1)
 			{
 				penalty_factor = 0.3;
-				node->path_length = 0.4 * this->field_scale;
+				node->path_length = 0.4 * this->path_length_scale;
 			}
 			else if (std::abs(angular_velocity) - node->angular_velocity_resolution < 1e-1 || std::abs(angular_velocity) - 2 * node->angular_velocity_resolution < 1e-1)
 			{
 				penalty_factor = .7;
-				node->path_length = 0.3 * this->field_scale;
+				node->path_length = 0.3 * this->path_length_scale;
 			}
 			else
 			{
 				penalty_factor = 1.0;
-				node->path_length = 0.25 * this->field_scale;
+				node->path_length = 0.25 * this->path_length_scale;
 			}
 
 			t = 0.0;
@@ -263,7 +265,7 @@ class PathPlanning
 		angular_velocity = 0;
 		penalty_factor = 0.4;
 		t = 0.0;
-		dt = 0.01; 
+		dt = 0.01;
 
 		path_cost = 0.0;
 		cost_to_come = node->cost_to_come;
@@ -334,6 +336,25 @@ class PathPlanning
 		return visable;
 	}
 
+	void initStartPosition(bool exploration)
+	{
+		if (exploration)
+			this->path_length_scale = .6;
+		else
+			this->path_length_scale = 1.0;
+
+		x0 = robot_position.linear.x;
+		y0 = robot_position.linear.y;
+		theta0 = robot_position.angular.z;
+
+		if (x0 == 0 && y0 == 0 && theta0 == 0)
+		{
+			x0 = .215;
+			y0 = .2;
+			theta0 = pi / 2;
+		}
+	}
+
 	bool getPath(robo7_srvs::path_planning::Request &req, robo7_srvs::path_planning::Response &res)
 	{
 		std::vector<float> path_x, path_y, path_theta, goal_path_x, goal_path_y;
@@ -346,21 +367,8 @@ class PathPlanning
 		geometry_msgs::Point destination_position = req.destination_position;
 
 		exploration = req.exploring;
-		if (exploration)
-			this->field_scale = .6;
-		else
-			this->field_scale = 1.0;
 
-		x0 = robot_position.linear.x;
-		y0 = robot_position.linear.y;
-		theta0 = robot_position.angular.z;
-
-		if (x0 == 0 && y0 == 0 && theta0 == 0)
-		{
-			x0 = .215;
-			y0 = .2;
-			theta0 = pi/2;
-		}
+		initStartPosition(exploration);
 
 		x_target = destination_position.x;
 		y_target = destination_position.y;
@@ -490,9 +498,10 @@ class PathPlanning
 			node_ptr partial_node = node_current;
 			node_ptr partial_node_parent = node_parent;
 
-			int partitions = std::max((int)floor(node_current->path_x.size()/15.0), 1);
+			// Divide path segments into partial nodes
+			int partitions = std::max((int)floor(node_current->path_x.size() / 15.0), 1);
 
-			if (partitions >= 0 && node_current->path_x.size() >= partitions+1)
+			if (partitions >= 0 && node_current->path_x.size() >= partitions + 1)
 			{
 
 				for (int i = partitions; i >= 0; i--)
@@ -531,22 +540,26 @@ class PathPlanning
 			node_current = node_parent;
 			target_nodes.push_back(node_current);
 		}
+
 		std::reverse(target_nodes.begin(), target_nodes.end());
 
 		node_target->path_theta.push_back(node_target->theta);
 
+		// Publish target path nodes
 		for (int i = 1; i < target_nodes.size(); i++)
 		{
 			node_ptr node = target_nodes[i];
 
 			float partitions = std::abs(node->angular_velocity / node->angular_velocity_resolution);
 
+			// For visualization
 			target_path_msg.path_x = node->path_x;
 			target_path_msg.path_y = node->path_y;
 			target_paths_msg.paths.push_back(target_path_msg);
 
 			if (!node->path_x.empty())
 			{
+				// For current path following
 				trajectory_point_msg.id_number = i;
 				trajectory_point_msg.point_coord.x = node->path_x[node->path_x.size() - 1];
 				trajectory_point_msg.point_coord.y = node->path_y[node->path_y.size() - 1];
@@ -563,6 +576,7 @@ class PathPlanning
 				if (node->parent != NULL)
 				{
 
+					// Inteded for better path following to follow the curves/lines instead of points
 					target_trajectory_point_msg.id_number = i;
 
 					float x, y, theta, x_successor, y_successor, theta_successor, theta_diff;

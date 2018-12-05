@@ -37,7 +37,6 @@ public:
     y_current = msg->position.linear.y;
     theta_current = msg->position.angular.z;
 
-    // ROS_INFO("Getting position %f  %f", x_current, y_current);
     position_updated = true;
   }
 
@@ -73,10 +72,8 @@ int main(int argc, char **argv)
   {
     ros::spinOnce();
 
-    // ROS_INFO("Doing local stuff");
     if (local_exploration.position_updated)
     {
-      // ROS_INFO("Explore here");
       local_exploration.exploreHere();
       local_exploration.position_updated = false;
     }
