@@ -2,7 +2,7 @@
 
 <!-- The kinematics nodes -->
    <node pkg="own_map" type="own_map" name="own_map" output="screen"
-         args="_map_file:=$(find own_map)/maps/contest_maze_20184.txt">
+         args="_map_file:=$(find own_map)/maps/lab_maze_2018_missing.txt">
          <param name="discretization_step" type="double" value="0.01"/>
    </node>
 
