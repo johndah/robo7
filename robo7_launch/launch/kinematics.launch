@@ -2,7 +2,7 @@
 
 <!-- The kinematics nodes -->
    <node pkg="own_map" type="own_map" name="own_map" output="screen"
-         args="_map_file:=$(find own_map)/maps/lab_maze_2018_2.txt">
+         args="_map_file:=$(find own_map)/maps/contest_maze_20184.txt">
          <param name="discretization_step" type="double" value="0.01"/>
    </node>
 
@@ -40,7 +40,7 @@
      <param name="angular_adjustment" type="double" value="0.0217"/>
 
      <param name="use_dead_reckoning" type="bool" value="true"/>
-     <param name="use_measure" type="bool" value="false"/>
+     <param name="use_measure" type="bool" value="true"/>
 
      <param name="sigma_distance" type="double" value="1.0"/>
      <param name="sigma_angle" type="double" value="10.0"/>
@@ -74,7 +74,7 @@
 
     <node pkg="exploration" type="exploration" name="exploration" output="screen"/>
 
-   <node pkg="exploration" type="local_exploration" name="local_exploration" output="screen"/>
+   <!-- <node pkg="exploration" type="local_exploration" name="local_exploration" output="screen"/> -->
 
     <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
 
@@ -128,7 +128,7 @@
 
   <node pkg="object_filter" type="object_filter" name="object_filter" output="screen"/>
 
-  <node pkg="map_maintenance" type="map_maintenance" name="map_maintenance" output="screen">
+  <node pkg="map_maintenance" type="map_maintenance" name="map_maintenance" output="screen" launch-prefix="valgrind">
     <param name="cell_size" type="double" value="0.02"/>
     <param name="free_space_around_a_cell" type="double" value="0.08"/>
     <param name="distance_between_two_measures" type="double" value="0.1"/>

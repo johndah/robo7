@@ -190,10 +190,10 @@ public:
 		//TODO: implement distance here somewhere
 		// getDistance(ob1.pos.x, ob1.pos.y) < getDistance(ob2.pos.x, ob2.pos.y)
 
-  	if( ob1_points != ob2_points){
-			return (ob1_points > ob2_points);
+  	if( ob1.total_votes != ob2.total_votes){
+			return (ob1.total_votes > ob2.total_votes);
 		}
-  	return (ob1.total_votes > ob2.total_votes);
+  	return (ob1_points > ob2_points);
 	}
 
 
