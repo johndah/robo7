@@ -2,7 +2,7 @@
 
 <!-- The kinematics nodes -->
    <node pkg="own_map" type="own_map" name="own_map" output="screen"
-         args="_map_file:=$(find own_map)/maps/lab_maze_2018_2.txt">
+         args="_map_file:=$(find own_map)/maps/lab_maze_2018_2_missing.txt">
          <param name="discretization_step" type="double" value="0.01"/>
    </node>
 
@@ -100,7 +100,7 @@
      <param name="angular_threshold_trust" type="double" value="0.4"/>
      <param name="aver_linear_speed" type="double" value="0.15"/>
      <param name="discretization_length" type="double" value="0.1"/>
-     <param name="classification_time_standing_still" type="double" value="2.0"/>
+     <param name="classification_time_standing_still" type="double" value="5.0"/>
      <param name="following_point_mode" type="bool" value="true"/>
      <param name="mapping_mode" type="bool" value="true"/>
    </node>

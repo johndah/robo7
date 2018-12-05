@@ -63,7 +63,7 @@ public:
       // ROS_INFO("(x,y,theta) = (%lf, %lf, %lf)", the_robot_pose.position.linear.x, the_robot_pose.position.linear.y, the_robot_pose.position.angular.z);
       req1.robot_position = the_robot_pose.position;
       req1.destination_position = destination_position;
-      req1.exploration = true;
+      // req1.exploration = true;
       path_planning_srv.call(req1, res1);
 
       //Find the path_planned

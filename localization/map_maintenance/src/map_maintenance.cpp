@@ -59,8 +59,8 @@ public:
 		//Initialize state
 		state_activated.mapping = false;
 		condition_respected = true;
-		occupied = 2;
-		obstacle = 3;
+		occupied = 2.0;
+		obstacle = 3.0;
 		points_received = false;
 		occupancy_initialized = false;
 		obstacle_vect.clear();
@@ -134,6 +134,8 @@ public:
 			//Fill up the previously undetected walls in the occupancy grid
 			update_the_occupancy_grid_with_lidar( the_robot_pose.position );
 
+			// ROS_INFO("banana");
+
 			//Save when/where was the last update
 			previous_update_pose = the_robot_pose;
 
@@ -144,6 +146,7 @@ public:
 		//Look at the batteries
 		update_the_occupancy_grid_with_battery();
 
+		// ROS_INFO("apple");
 		//Check if the map changed because of the lidar.
 		if(new_change)
 		{
@@ -400,8 +403,8 @@ private:
 		the_occupancy_grid.top_left_corner.y = y_min - cell_size/2;
 		//Define the occupancy matrix
 		robo7_msgs::matrix the_matrix;
-		the_matrix.nb_rows = (int)(the_occupancy_grid.window_width / the_occupancy_grid.cell_size);
-		the_matrix.nb_cols = (int)(the_occupancy_grid.window_height / the_occupancy_grid.cell_size);
+		the_matrix.nb_rows = (int)(the_occupancy_grid.window_width / the_occupancy_grid.cell_size + 2);
+		the_matrix.nb_cols = (int)(the_occupancy_grid.window_height / the_occupancy_grid.cell_size + 2);
 		robo7_msgs::matrix_row one_row;
 		for(int i=0; i<the_matrix.nb_cols; i++)
 		{
@@ -414,6 +417,7 @@ private:
 		for(int i=0; i<the_wall_points.number; i++)
 		{
 			std::vector<int> the_cell = corresponding_cell(the_wall_points.corners[i].x, the_wall_points.corners[i].y);
+			ROS_INFO("%d, %d, %d, %d", the_matrix.nb_rows, the_matrix.nb_cols, the_cell[0], the_cell[1]);
 			the_matrix.rows[the_cell[0]].cols[the_cell[1]] = occupied;
 		}
 		the_occupancy_grid.occupancy_grid = the_matrix;
