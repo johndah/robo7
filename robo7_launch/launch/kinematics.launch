@@ -78,8 +78,6 @@
 
     <node pkg="path_planning" type="path_planning" name="path_planning" output="screen"/>
 
-  <!-- <node pkg="path_testing" type="path_testing" name="path_testing" output="screen"/> -->
-
 <!-- The path_follower nodes -->
 
    <node pkg="path_follower" type="pure_rotation" name="pure_rotation" output="screen">
@@ -106,8 +104,6 @@
    </node>
 
    <node pkg="path_follower" type="go_to" name="go_to" output="screen"/>
-
-   <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
 
 <!-- The mapping nodes -->
   <node pkg="ransac" type="ransac" name="ransac" output="screen">
@@ -146,11 +142,6 @@
   <node pkg="path_testing" type="path_exploration_full" name="path_exploration_full" output="screen">
     <param name="dist_between_points" type="double" value="0.50"/>
   </node>
-
-
-
-
-   <!-- <node pkg="path_follower" type="breaker" name="breaker" output="screen"/> -->
 
 <!-- The testing services node -->
    <node pkg="test_service" type="test_service" name="test_service" output="screen">
