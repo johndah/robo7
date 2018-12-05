@@ -19,10 +19,6 @@ include_directories(
 )
 
 
-add_executable(breaker src/breaker.cpp)
-target_link_libraries(breaker ${catkin_LIBRARIES})
-add_dependencies(breaker ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
 add_executable(pure_rotation src/pure_rotation.cpp)
 target_link_libraries(pure_rotation ${catkin_LIBRARIES})
 add_dependencies(pure_rotation ${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
