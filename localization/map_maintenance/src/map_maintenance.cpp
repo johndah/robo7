@@ -417,7 +417,7 @@ private:
 		for(int i=0; i<the_wall_points.number; i++)
 		{
 			std::vector<int> the_cell = corresponding_cell(the_wall_points.corners[i].x, the_wall_points.corners[i].y);
-			ROS_INFO("%d, %d, %d, %d", the_matrix.nb_rows, the_matrix.nb_cols, the_cell[0], the_cell[1]);
+			// ROS_INFO("%d, %d, %d, %d", the_matrix.nb_rows, the_matrix.nb_cols, the_cell[0], the_cell[1]);
 			the_matrix.rows[the_cell[0]].cols[the_cell[1]] = occupied;
 		}
 		the_occupancy_grid.occupancy_grid = the_matrix;
