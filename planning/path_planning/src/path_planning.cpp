@@ -1,11 +1,12 @@
 // John Dahlberg, 2018-05-12
 
+#include <ros/ros.h>
 #include <math.h>
 #include <algorithm>
 #include <vector>
 #include <iostream>
 #include <memory>
-#include <ros/ros.h>
+#include <queue>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
 #include <std_msgs/Float32.h>
@@ -159,6 +160,16 @@ class PathPlanning
 		goal_radius_tolerance = .02;
 		node_id = 1;
 	}
+
+	struct GreaterThanByCost
+	{
+		bool operator()(const node_ptr a, const node_ptr b) const
+		{
+			return a->getCost() > b->getCost();
+		}
+	};
+
+	typedef std::priority_queue<node_ptr, std::vector<node_ptr>, GreaterThanByCost> node_priority_queue;
 
 	float checkPathCurvature(float angular_velocity, node_ptr node)
 	{
@@ -380,7 +391,7 @@ class PathPlanning
 		return node_target;
 	}
 
-	std::vector<node_ptr> addStartNodes(std::vector<node_ptr> alive_nodes, ros::ServiceClient occupancy_client, ros::ServiceClient distance_client)
+	node_priority_queue addStartNodes(node_priority_queue alive_nodes, ros::ServiceClient occupancy_client, ros::ServiceClient distance_client)
 	{
 		std::vector<float> path_x, path_y, path_theta;
 
@@ -394,7 +405,7 @@ class PathPlanning
 			node_ptr node_start = std::make_shared<Node>(x0, y0, t0, 0.0f, path_x, path_y, path_theta, 0.0f, 0.0f, occupancy_client, distance_client, this->node_id++);
 			node_start->cost_to_go = node_start->getHeuristicCost();
 
-			alive_nodes.push_back(node_start);
+			alive_nodes.push(node_start);
 		}
 
 		return alive_nodes;
@@ -412,27 +423,14 @@ class PathPlanning
 		return false;
 	}
 
-	std::vector<node_ptr> switchToBetterSuccessor(node_ptr node_successor, std::vector<node_ptr> alive_nodes)
+	node_priority_queue switchToBetterSuccessor(node_ptr node_successor, node_priority_queue alive_nodes)
 	{
 		robo7_msgs::path path_msg;
 		bool match = false;
 
-		for (int j = 0; j < alive_nodes.size(); j++)
-		{
-			node_ptr alive_node = alive_nodes[j];
-
-			if (alive_node->is(node_successor) && node_successor->getCost() < alive_node->getCost())
-			{
-				match = true;
-				alive_nodes.erase(alive_nodes.begin() + j);
-				alive_nodes.push_back(node_successor);
-				break;
-			}
-		}
-
 		if (!match)
 		{
-			alive_nodes.push_back(node_successor);
+			alive_nodes.push(node_successor);
 			path_msg.path_x = node_successor->path_x;
 			path_msg.path_y = node_successor->path_y;
 			paths_msg.paths.push_back(path_msg);
@@ -444,11 +442,12 @@ class PathPlanning
 	bool getPath(robo7_srvs::path_planning::Request &req, robo7_srvs::path_planning::Response &res)
 	{
 		std::vector<float> path_x, path_y, path_theta, goal_path_x, goal_path_y;
-		std::vector<node_ptr> successors, alive_nodes, dead_nodes;
+		std::vector<node_ptr> successors, dead_nodes;
 		robo7_msgs::path target_path_msg;
 		geometry_msgs::Point target_msg;
 		robo7_msgs::paths target_paths_msg;
 		geometry_msgs::Point destination_position = req.destination_position;
+		node_priority_queue alive_nodes;
 
 		exploration = req.exploring;
 
@@ -465,11 +464,7 @@ class PathPlanning
 		{
 			target_pub.publish(target_msg);
 
-			auto min_cost_iterator = std::min_element(alive_nodes.begin(), alive_nodes.end(), [](const node_ptr a, const node_ptr b) {
-				return a->getCost() < b->getCost();
-			});
-
-			node_ptr node_current = alive_nodes[std::distance(alive_nodes.begin(), min_cost_iterator)];
+			node_ptr node_current = alive_nodes.top();
 
 			if (targetInSight(node_current, node_target, res))
 				return true;
@@ -477,7 +472,7 @@ class PathPlanning
 			if (node_current->distanceSquared(node_target) < this->goal_radius_tolerance)
 				return get_found_path(node_current, node_current, res);
 
-			alive_nodes.erase(min_cost_iterator);
+			alive_nodes.pop();
 			dead_nodes.push_back(node_current);
 
 			successors = getSuccessorNodes(node_current, node_target);
@@ -620,7 +615,7 @@ class PathPlanning
 
 		return destination_pose;
 	}
-	
+
 	bool get_found_path(node_ptr node_current, node_ptr node_target, robo7_srvs::path_planning::Response &res)
 	{
 		std::vector<node_ptr> target_nodes;
