@@ -1,7 +1,7 @@
 # robo7
 
-This project will include all software for the autonomous robot.
 
+![](https://github.com/johndah/robo7/blob/master/robot18-contest-phase1-G7_480p.mp4)
 ## Clone base-project files from git
 ```
 cd
