@@ -1,13 +1,28 @@
 # robo7
 
+The autonomous robot has been used in a competition at KTH Royal Institute of Technology testing its ability of 
 
-![](https://github.com/johndah/robo7/blob/master/robot18-contest-phase1-G7_480p.mp4)
+exploration of walls with a LIDAR and objects to classify with camera,
+https://github.com/johndah/robo7/blob/master/robot18-contest-phase1-G7_480p.mp4
+
+rescue, i.e. performing path planning and get to found objects in precious phase, catch them and place them in start posision
+https://github.com/johndah/robo7/blob/master/robot18-contest-phase2-G7_480p.mp4
+
+git 
+
 ## Clone base-project files from git
 ```
 cd
 git clone https://github.com/KTH-RAS/ras_install.git
 cd ras_install/scripts
 ./install.sh
+```
+
+## Launch
+Launch main launch file with
+
+```
+roslaunch robo7_launch/launch/robo7.launch
 ```
 
 ## Motor
