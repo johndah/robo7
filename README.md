@@ -10,12 +10,8 @@ https://github.com/johndah/robo7/blob/master/robot18-contest-phase2-G7_480p.mp4
 
 git 
 
-I contributed with exploration 
-![Path planning](https://github.com/johndah/robo7/blob/master/ExplorationSimulation-2018-12-04_03.56.32%20(Short).mp4)
-
-https://github.com/johndah/robo7/blob/master/ExplorationSimulation-2018-12-04_03.56.32%20(Short).mp4
-and path planning
-https://github.com/johndah/robo7/blob/master/PathPlanning-2018-11-15_09.30.11.mp4
+I was responsible to develop ![Exploration](https://github.com/johndah/robo7/blob/master/ExplorationSimulation-2018-12-04_03.56.32%20(Short).mp4)
+and ![Path planning](https://github.com/johndah/robo7/blob/master/PathPlanning-2018-11-15_09.30.11.mp4)
 
 Sample images:
 ![Path planning](https://github.com/johndah/robo7/blob/master/pathplanning.png)
