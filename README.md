@@ -8,8 +8,6 @@ https://github.com/johndah/robo7/blob/master/robot18-contest-phase1-G7_480p.mp4
 rescue, i.e. performing path planning and get to found objects in precious phase, catch them and place them in start posision
 https://github.com/johndah/robo7/blob/master/robot18-contest-phase2-G7_480p.mp4
 
-git 
-
 I was responsible to develop ![Exploration](https://github.com/johndah/robo7/blob/master/ExplorationSimulation-2018-12-04_03.56.32%20(Short).mp4)
 and ![Path planning](https://github.com/johndah/robo7/blob/master/PathPlanning-2018-11-15_09.30.11.mp4)
 
