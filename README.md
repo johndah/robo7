@@ -15,12 +15,13 @@ The implementation is based on Robot Operating System and the code is written in
 
 Sample images:
 ### Path Planning
+Path planning node publishing information (left) and the visualized path planning (right).
 ![Path planning](https://github.com/johndah/robo7/blob/master/pathplanning.png)
 ### Visualized Occupancy Grid
-Whiter means higher probability of being an obstacle
+Whiter grids means lower probability of being an obstacle.
 ![Occupancy Grid](https://github.com/johndah/robo7/blob/master/OccupancyGrid.png)
 ### Visualized Distance Grid to target
-Whiter means closer to target
+Whiter grids means closer to target.
 ![Distance Grid](https://github.com/johndah/robo7/blob/master/DistanceGrid.png)
 
 
