@@ -14,6 +14,10 @@ and ![Path planning](https://github.com/johndah/robo7/blob/master/PathPlanning-2
 The implementation is based on Robot Operating System and the code is written in C++.
 
 Sample images:
+### Overview of competition
+The maze for final testing with the robot while classifying an object.
+![Overview](https://github.com/johndah/robo7/blob/master/Overview.png)
+
 ### Path Planning
 Path planning node publishing information (left) and the visualized path planning (right).
 ![Path planning](https://github.com/johndah/robo7/blob/master/pathplanning.png)
