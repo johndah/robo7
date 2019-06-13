@@ -21,7 +21,7 @@ The maze for final testing with the robot while classifying an object.
 ### Path Planning
 Path planning node based on hybrid A* publishing information (left) and the visualized path planning (right).
 ![Path planning](https://github.com/johndah/robo7/blob/master/pathplanning.png)
-### Visualized Occupancy Grid
+### Visualized Occupancy Grid in configuration space
 Whiter grids means lower probability of being an obstacle.
 ![Occupancy Grid](https://github.com/johndah/robo7/blob/master/OccupancyGrid.png)
 ### Visualized Distance Grid to target
