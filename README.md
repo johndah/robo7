@@ -2,10 +2,10 @@
 
 The autonomous robot has been used in a competition at KTH Royal Institute of Technology testing its ability of 
 
-* exploration of walls with a LIDAR and objects to classify with camera,
+* mapping, i.e. exploring walls with a LIDAR and objects to classify with camera,
 https://github.com/johndah/robo7/blob/master/robot18-contest-phase1-G7_480p.mp4
 
-* rescue, i.e. performing path planning and to find objects in previous phase, catch them and finally place them in start posision
+* rescue, i.e. performing path planning and to find objects in previous phase, catch them and finally place them in start position
 https://github.com/johndah/robo7/blob/master/robot18-contest-phase2-G7_480p.mp4
 
 I was responsible for developing ![Exploration](https://github.com/johndah/robo7/blob/master/ExplorationSimulation-2018-12-04_03.56.32%20(Short).mp4) where I used a frontier occupancy grid
