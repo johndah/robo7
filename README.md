@@ -26,6 +26,7 @@ Whiter grids means lower probability of being an obstacle.
 ![Occupancy Grid](https://github.com/johndah/robo7/blob/master/OccupancyGrid.png)
 ### Visualized Distance Grid to target
 Whiter grids means closer to target.
+
 ![Distance Grid](https://github.com/johndah/robo7/blob/master/DistanceGrid.png)
 
 
@@ -45,9 +46,7 @@ roslaunch robo7_launch/launch/robo7.launch
 ```
 
 ## Motor
-$$
-angular Velocity = encoderCount \div CPR  \times 2\pi \times freqency
-$$
+angular Velocity = encoderCount / CPR * 2\pi * freqency
 
 ```
 CPR (counts per revolution) = 897.96
